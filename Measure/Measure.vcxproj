@@ -193,6 +193,7 @@
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="Measure.h" />
     <ClInclude Include="MeasureDlg.h" />
+    <ClInclude Include="MyWnd.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RtspDevice.h" />
@@ -206,6 +207,7 @@
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="Measure.cpp" />
     <ClCompile Include="MeasureDlg.cpp" />
+    <ClCompile Include="MyWnd.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

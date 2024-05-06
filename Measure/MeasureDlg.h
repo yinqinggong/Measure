@@ -4,6 +4,7 @@
 
 #pragma once
 #include "RtspDevice.h"
+#include "MyWnd.h"
 
 // CMeasureDlg 对话框
 class CMeasureDlg : public CDialogEx
@@ -35,6 +36,9 @@ public:
 	afx_msg void OnDestroy();
 private:
 	CStatic m_staVideo;
-
+	CButton m_captureBtn;
+	CMyWnd m_imgWnd;
 	CDevice* m_pDevice;
+public:
+	afx_msg void OnBnClickedBtnCapture();
 };

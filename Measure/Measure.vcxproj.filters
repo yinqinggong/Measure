@@ -25,6 +25,9 @@
     <Filter Include="Common">
       <UniqueIdentifier>{b37164e9-c55c-4336-a8e4-6c20b9690487}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ImgWnd">
+      <UniqueIdentifier>{b046656e-207a-4f44-ac2a-4a9a791469b9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Measure.h">
@@ -63,6 +66,9 @@
     <ClInclude Include="common.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="MyWnd.h">
+      <Filter>ImgWnd</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -91,6 +97,9 @@
     </ClCompile>
     <ClCompile Include="common.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="MyWnd.cpp">
+      <Filter>ImgWnd</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

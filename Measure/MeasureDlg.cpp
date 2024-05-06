@@ -60,6 +60,7 @@ void CMeasureDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_STATIC_VIDEO, m_staVideo);
+	DDX_Control(pDX, IDC_BTN_CAPTURE, m_captureBtn);
 }
 
 BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
@@ -67,6 +68,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_DESTROY()
+	ON_BN_CLICKED(IDC_BTN_CAPTURE, &CMeasureDlg::OnBnClickedBtnCapture)
 END_MESSAGE_MAP()
 
 
@@ -106,7 +108,17 @@ BOOL CMeasureDlg::OnInitDialog()
 	CRect rcWorkArea;
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWorkArea, 0);
 	MoveWindow(&rcWorkArea);
-	m_staVideo.MoveWindow(30, 30, rcWorkArea.Width() - 60, rcWorkArea.Height() - 60);
+	m_captureBtn.MoveWindow(rcWorkArea.Width() * 0.5-50, 5, 100, 30);
+	m_staVideo.MoveWindow(30, 50, rcWorkArea.Width() - 60, rcWorkArea.Height() - 100);
+	m_staVideo.ShowWindow(SW_SHOW);
+
+	RECT rect;
+	rect.left = 30;
+	rect.top = 50;
+	rect.right = rcWorkArea.Width() - 60;
+	rect.bottom = rcWorkArea.Height() - 100;
+	m_imgWnd.Create(NULL, _T(""), WS_VISIBLE | WS_CHILD, rect, this, 0);
+	m_imgWnd.ShowWindow(SW_HIDE);
 
 	//播放直播流视频测试
 	DeviceInfo devInfo = { 0 };
@@ -187,5 +199,41 @@ void CMeasureDlg::OnDestroy()
 		m_pDevice->StopRealPlay();
 		delete m_pDevice;
 		m_pDevice = NULL;
+	}
+}
+
+
+void CMeasureDlg::OnBnClickedBtnCapture()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (m_pDevice)
+	{
+		m_staVideo.ShowWindow(SW_HIDE);
+		m_imgWnd.ShowWindow(SW_SHOW);
+
+		m_pDevice->StopRealPlay();
+		delete m_pDevice;
+		m_pDevice = NULL;
+
+		
+	}
+	else
+	{
+		m_staVideo.ShowWindow(SW_SHOW);
+		m_imgWnd.ShowWindow(SW_HIDE);
+		//播放直播流视频测试
+		DeviceInfo devInfo = { 0 };
+		devInfo.channel = 0;
+		std::string playUrl = "rtmp://liteavapp.qcloud.com/live/liteavdemoplayerstreamid";
+		CameraInfo cameraInfo = { 0 };
+		strncpy_s(cameraInfo.rtsp, playUrl.c_str(), playUrl.length());
+		devInfo.cameras.push_back(cameraInfo);
+		m_pDevice = new CRtspDevice(devInfo, NULL);
+		HWND wnd = m_staVideo.GetSafeHwnd();
+
+		if (m_pDevice->StartRealPlay(wnd) <= 0)
+		{
+			AfxMessageBox(_T("播放失败！"));
+		}
 	}
 }
