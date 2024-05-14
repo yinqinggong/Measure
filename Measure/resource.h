@@ -8,8 +8,8 @@
 #define IDD_MEASURE_DIALOG              102
 #define IDR_MAINFRAME                   128
 #define IDC_STATIC_VIDEO                1000
-#define IDC_BUTTON1                     1001
 #define IDC_BTN_CAPTURE                 1001
+#define IDC_BTN_PAINT                   1002
 
 // Next default values for new objects
 // 

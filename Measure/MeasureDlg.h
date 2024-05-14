@@ -37,8 +37,10 @@ public:
 private:
 	CStatic m_staVideo;
 	CButton m_captureBtn;
+	CButton m_paintBtn;
 	CMyWnd m_imgWnd;
 	CDevice* m_pDevice;
 public:
 	afx_msg void OnBnClickedBtnCapture();
+	afx_msg void OnBnClickedBtnPaint();
 };
