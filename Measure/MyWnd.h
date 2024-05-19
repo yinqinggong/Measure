@@ -1,6 +1,8 @@
 #pragma once
 #include <afxwin.h>
 #include <atlimage.h>
+#include <vector>
+
 class CMyWnd :  public CWnd
 {
 protected:
@@ -12,13 +14,16 @@ protected:
     BOOL m_bEdit;
     // 声明变量用于记录椭圆的起始点和结束点
     CPoint startPoint, endPoint;
-
     // 声明变量用于标记是否正在绘制椭圆
-    bool isDrawing = false;
+    bool m_isDrawFinished = false;
+
+    //存需要绘制的椭圆
+    std::vector<CRect> m_ellipseRects;
 public:
     void SetEdit();
 public:
     CMyWnd();
+    ~CMyWnd();
     afx_msg void OnPaint();
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnLButtonUp(UINT nFlags, CPoint point);

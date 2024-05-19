@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "MyWnd.h"
+#include <iostream>
 
 BEGIN_MESSAGE_MAP(CMyWnd, CWnd)
     ON_WM_PAINT()
@@ -18,8 +19,17 @@ CMyWnd::CMyWnd()
 	// 加载图片（将"path_to_your_image"替换为你的图片路径）
 	m_image.Load(_T("..\\Doc\\test.jpg")); // 将"path_to_your_image"替换为你的图片路径
 	 //m_image.Load(_T("C:\\Users\\yinqi\\Desktop\\13.jpg")); // 将"path_to_your_image"替换为你的图片路径
+	m_ellipseRects.push_back(CRect(50, 50, 150, 100));
+	m_ellipseRects.push_back(CRect(200, 50, 300, 100));
+	m_ellipseRects.push_back(CRect(100, 150, 200, 200));
+	m_ellipseRects.push_back(CRect(250, 150, 350, 200));
+	m_ellipseRects.push_back(CRect(150, 250, 250, 300));
 }
 
+CMyWnd::~CMyWnd()
+{
+    
+}
 int CMyWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if (CWnd::OnCreate(lpCreateStruct) == -1)
@@ -36,56 +46,36 @@ void CMyWnd::OnPaint()
 	{
         CRect rect;
         GetClientRect(&rect);
-        if (!m_bEdit)
+        if (!m_bEdit || (m_bEdit && m_isDrawFinished))
         {
-            if (/*m_bDragging && */m_bDbClick)
-            {
-                m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
-            }
-            else
-            {
-                //m_image.Draw(dc, 0, 0);
-                m_image.Draw(dc, 0, 0, rect.Width(), rect.Height(), 0, 0, m_image.GetWidth(), m_image.GetHeight());
-            }
+            // 需要先绘制图形，再绘制背景图，才能正确显示
             // 获取与图像关联的设备上下文
             CDC* pDC = CDC::FromHandle(m_image.GetDC());
             if (pDC)
             {
-                // 创建多个颜色的画笔
-                COLORREF colors[5] = { RGB(255, 0, 0), RGB(0, 255, 0), RGB(0, 0, 255), RGB(255, 255, 0), RGB(255, 0, 255) };
-
-                // 创建多个椭圆的位置和大小
-                CRect rectEllipses[5] = {
-                    CRect(50, 50, 150, 100),
-                    CRect(200, 50, 300, 100),
-                    CRect(100, 150, 200, 200),
-                    CRect(250, 150, 350, 200),
-                    CRect(150, 250, 250, 300)
-                };
-
                 // 绘制多个不填充的椭圆曲线
-                for (int i = 0; i < 5; ++i)
+                for (int i = 0; i < m_ellipseRects.size(); ++i)
                 {
-                    // 创建画笔
-                    CPen pen(PS_SOLID, 2, colors[i]); // 2为边框的宽度，可以根据需要调整
-
-                    // 选择画笔
+                    if (m_ellipseRects[i].TopLeft() == m_ellipseRects[i].BottomRight())
+                    {
+                        continue;
+                    }
+                    // 创建画笔&选择画笔
+                    CPen pen(PS_SOLID, 2, RGB(255, 0, 0)); // 2为边框的宽度，可以根据需要调整
                     CPen* pOldPen = pDC->SelectObject(&pen);
 
-                    // 创建一个空画刷
+                    // 创建一个空画刷&选择空画刷
                     CBrush brush;
                     brush.CreateStockObject(NULL_BRUSH);
-
-                    // 选择空画刷
                     CBrush* pOldBrush = pDC->SelectObject(&brush);
 
                     // 绘制不填充的椭圆曲线
-                    pDC->Ellipse(rectEllipses[i]);
+                    pDC->Ellipse(m_ellipseRects[i]);
 
                     // 获取椭圆的中心点和长轴的两个端点
-                    CPoint center(rectEllipses[i].CenterPoint());
-                    CPoint end1(center.x + (rectEllipses[i].Width() / 2), center.y);
-                    CPoint end2(center.x - (rectEllipses[i].Width() / 2), center.y);
+                    CPoint center(m_ellipseRects[i].CenterPoint());
+                    CPoint end1(center.x + (m_ellipseRects[i].Width() / 2), center.y);
+                    CPoint end2(center.x - (m_ellipseRects[i].Width() / 2), center.y);
 
                     // 计算长轴的长度
                     double distance = sqrt(pow(end1.x - end2.x, 2) + pow(end1.y - end2.y, 2));
@@ -101,42 +91,39 @@ void CMyWnd::OnPaint()
                     pDC->SelectObject(pOldPen);
                     pDC->SelectObject(pOldBrush);
                 }
-
                 // 释放设备上下文
                 m_image.ReleaseDC();
+            }
+            //椭圆绘制成功后，再画背景图片
+            if (m_bDbClick)
+            {
+                m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
+            }
+            else
+            {
+                m_image.Draw(dc, 0, 0, rect.Width(), rect.Height(), 0, 0, m_image.GetWidth(), m_image.GetHeight());
             }
         }
         else 
         {
             m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
-            // 创建画笔
+            // 创建画笔&选择画笔
             CPen pen(PS_SOLID, 2, RGB(255, 255, 255)); // 2为边框的宽度，可以根据需要调整
-
-            // 选择画笔
             CPen* pOldPen = dc.SelectObject(&pen);
 
-            // 创建一个空画刷
+            // 创建一个空画刷&选择空画刷
             CBrush brush;
             brush.CreateStockObject(NULL_BRUSH);
-
-            // 选择空画刷
             CBrush* pOldBrush = dc.SelectObject(&brush);
 
-            // 计算椭圆的位置和大小
+            // 计算椭圆的位置和大小&绘制椭圆
             CRect rectEllipse(startPoint, endPoint);
-            // 擦除之前绘制的椭圆
-            //dc.FillRect(CRect(0, 0, 10000, 10000), CBrush::FromHandle((HBRUSH)GetStockObject(BLACK_BRUSH)));
-
-            // 绘制椭圆
             dc.Ellipse(rectEllipse);
 
             // 恢复原来的画笔和画刷
             dc.SelectObject(pOldPen);
             dc.SelectObject(pOldBrush);
-            
         }
-        
-       
     }
     else
     {
@@ -161,10 +148,10 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
         else
         {
             // 记录起始点
+            m_isDrawFinished = false;
             startPoint = point;
-            //isDrawing = true;
+            m_ellipseRects.push_back(CRect(startPoint, startPoint));
         }
-        
     }
 
     CWnd::OnLButtonDown(nFlags, point);
@@ -182,19 +169,9 @@ void CMyWnd::OnLButtonUp(UINT nFlags, CPoint point)
     }
     else
     {
-        // 如果正在绘制椭圆，结束绘制
-        //if (isDrawing)
-        //{
-        //    // 绘制椭圆到图像上
-
-        //    // 重置标志
-        //    isDrawing = false;
-
-        //    // 重绘窗口
-        //    Invalidate();
-        //}
+        m_isDrawFinished = true;
+        Invalidate();
     }
-    
 
     CWnd::OnLButtonUp(nFlags, point);
 }
@@ -239,24 +216,17 @@ void CMyWnd::OnMouseMove(UINT nFlags, CPoint point)
         {
             // 更新结束点
             endPoint = point;
-
+            if (m_ellipseRects.size() > 0)
+            {
+                //推动之后要重新计算起始点
+                CPoint newStartPoint(startPoint.x - m_ptOffset.x, startPoint.y - m_ptOffset.y);
+                CPoint newEndPoint(endPoint.x - m_ptOffset.x, endPoint.y - m_ptOffset.y);
+                m_ellipseRects[m_ellipseRects.size() - 1].SetRect(newStartPoint, newEndPoint);
+            }
             // 重绘窗口
             Invalidate();
-            // 重绘窗口
-            //RedrawWindow();
         }
-
-        /* 如果正在绘制椭圆，更新结束点并重绘
-        if (isDrawing)
-        {
-             记录结束点
-            endPoint = point;
-
-             重绘窗口
-            Invalidate();
-        }*/
     }
-    
 
     CWnd::OnMouseMove(nFlags, point);
 }
