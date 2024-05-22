@@ -10,6 +10,8 @@
 #define IDC_STATIC_VIDEO                1000
 #define IDC_BTN_CAPTURE                 1001
 #define IDC_BTN_PAINT                   1002
+#define IDC_BTN_PAINT2                  1003
+#define IDC_BTN_CROP                    1003
 
 // Next default values for new objects
 // 

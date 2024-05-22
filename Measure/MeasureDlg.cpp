@@ -54,6 +54,7 @@ CMeasureDlg::CMeasureDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MEASURE_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_pDevice = NULL;
 }
 
 void CMeasureDlg::DoDataExchange(CDataExchange* pDX)
@@ -62,6 +63,7 @@ void CMeasureDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_VIDEO, m_staVideo);
 	DDX_Control(pDX, IDC_BTN_CAPTURE, m_captureBtn);
 	DDX_Control(pDX, IDC_BTN_PAINT, m_paintBtn);
+	DDX_Control(pDX, IDC_BTN_CROP, m_cropBtn);
 }
 
 BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
@@ -71,6 +73,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_WM_DESTROY()
 	ON_BN_CLICKED(IDC_BTN_CAPTURE, &CMeasureDlg::OnBnClickedBtnCapture)
 	ON_BN_CLICKED(IDC_BTN_PAINT, &CMeasureDlg::OnBnClickedBtnPaint)
+	ON_BN_CLICKED(IDC_BTN_CROP, &CMeasureDlg::OnBnClickedBtnCrop)
 END_MESSAGE_MAP()
 
 
@@ -112,6 +115,7 @@ BOOL CMeasureDlg::OnInitDialog()
 	MoveWindow(&rcWorkArea);
 	m_captureBtn.MoveWindow(rcWorkArea.Width() * 0.5 - 50, 5, 100, 30);
 	m_paintBtn.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
+	m_cropBtn.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 300, 5, 100, 30);
 	m_staVideo.MoveWindow(30, 50, rcWorkArea.Width() - 60, rcWorkArea.Height() - 100);
 	m_staVideo.ShowWindow(SW_SHOW);
 
@@ -209,6 +213,8 @@ void CMeasureDlg::OnDestroy()
 void CMeasureDlg::OnBnClickedBtnCapture()
 {
 	// TODO: 在此添加控件通知处理程序代码
+
+	m_imgWnd.SetStatus(0);
 	if (m_pDevice)
 	{
 		m_staVideo.ShowWindow(SW_HIDE);
@@ -245,5 +251,12 @@ void CMeasureDlg::OnBnClickedBtnCapture()
 void CMeasureDlg::OnBnClickedBtnPaint()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	m_imgWnd.SetEdit();
+	m_imgWnd.SetStatus(1);
+}
+
+
+void CMeasureDlg::OnBnClickedBtnCrop()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_imgWnd.SetStatus(3);
 }

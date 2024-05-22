@@ -11,7 +11,12 @@ protected:
     BOOL m_bDragging;
     BOOL m_bDbClick;
     CPoint m_ptLastMousePos;
-    BOOL m_bEdit;
+
+    int m_status; //0：正常 1：新增 2：删除 3：多边形
+    std::vector<CPoint> m_points; // 用于存储多边形的顶点
+    bool m_isPolygonComplete; // 标志多边形是否绘制完成
+    bool isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold);
+
     // 声明变量用于记录椭圆的起始点和结束点
     CPoint startPoint, endPoint;
     // 声明变量用于标记是否正在绘制椭圆
@@ -20,7 +25,10 @@ protected:
     //存需要绘制的椭圆
     std::vector<CRect> m_ellipseRects;
 public:
-    void SetEdit();
+    void SetStatus(int status)
+    {
+        m_status = status;
+    }
 public:
     CMyWnd();
     ~CMyWnd();
@@ -31,6 +39,5 @@ public:
     DECLARE_MESSAGE_MAP()
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
-
 };
 

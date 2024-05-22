@@ -15,10 +15,9 @@ CMyWnd::CMyWnd()
 {
 	m_bDragging = FALSE;
     m_bDbClick = FALSE;
-    m_bEdit = FALSE;
-	// 加载图片（将"path_to_your_image"替换为你的图片路径）
+    m_status = 0;
+    m_isPolygonComplete = false;
 	m_image.Load(_T("..\\Doc\\test.jpg")); // 将"path_to_your_image"替换为你的图片路径
-	 //m_image.Load(_T("C:\\Users\\yinqi\\Desktop\\13.jpg")); // 将"path_to_your_image"替换为你的图片路径
 	m_ellipseRects.push_back(CRect(50, 50, 150, 100));
 	m_ellipseRects.push_back(CRect(200, 50, 300, 100));
 	m_ellipseRects.push_back(CRect(100, 150, 200, 200));
@@ -46,7 +45,7 @@ void CMyWnd::OnPaint()
 	{
         CRect rect;
         GetClientRect(&rect);
-        if (!m_bEdit || (m_bEdit && m_isDrawFinished))
+        if (m_status == 0 || (m_status == 1 && m_isDrawFinished))
         {
             // 需要先绘制图形，再绘制背景图，才能正确显示
             // 获取与图像关联的设备上下文
@@ -104,7 +103,7 @@ void CMyWnd::OnPaint()
                 m_image.Draw(dc, 0, 0, rect.Width(), rect.Height(), 0, 0, m_image.GetWidth(), m_image.GetHeight());
             }
         }
-        else 
+        else if(m_status == 1)
         {
             m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
             // 创建画笔&选择画笔
@@ -124,6 +123,35 @@ void CMyWnd::OnPaint()
             dc.SelectObject(pOldPen);
             dc.SelectObject(pOldBrush);
         }
+        else if (m_status == 3)
+        {
+            m_image.Draw(dc, 0, 0, rect.Width(), rect.Height(), 0, 0, m_image.GetWidth(), m_image.GetHeight());
+            // 设置透明背景模式
+            dc.SetBkMode(TRANSPARENT);
+            // 创建画笔和画刷
+            CPen pen(PS_SOLID, 2, RGB(255, 0, 0)); // 红色边框
+            CBrush* pOldBrush = static_cast<CBrush*>(dc.SelectStockObject(NULL_BRUSH)); // 空画刷
+            CPen* pOldPen = dc.SelectObject(&pen);
+
+            // 绘制多边形
+            if (m_points.size() > 1)
+            {
+                for (size_t i = 0; i < m_points.size() - 1; i++)
+                {
+                    dc.MoveTo(m_points[i]);
+                    dc.LineTo(m_points[i + 1]);
+                }
+                //dc.Polyline(&m_points[0], static_cast<int>(m_points.size()));
+                if (m_isPolygonComplete)
+                {
+                    dc.MoveTo(m_points.front());
+                    dc.LineTo(m_points.back());
+                }
+            }
+            // 恢复原来的画笔和画刷
+            dc.SelectObject(pOldPen);
+            dc.SelectObject(pOldBrush);
+        }
     }
     else
     {
@@ -135,7 +163,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
 {
     if (!m_image.IsNull())
     {
-        if (!m_bEdit)
+        if (m_status == 0)
         {
             CRect rect(0, 0, m_image.GetWidth(), m_image.GetHeight());
             rect.OffsetRect(m_ptOffset);
@@ -145,12 +173,30 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
                 SetCapture();
             }
         }
-        else
+        else if (m_status == 1)
         {
             // 记录起始点
             m_isDrawFinished = false;
             startPoint = point;
             m_ellipseRects.push_back(CRect(startPoint, startPoint));
+        }
+        else if (m_status == 3)
+        {
+            if (!m_isPolygonComplete)
+            {
+                // 左键点击时，记录顶点
+                if (m_points.size() > 0 && isCloseEnough(m_points.front(), point, 10))
+                {
+                    // 如果最后一个点与第一个点距离小于5，则完成多边形
+                    m_points[m_points.size() - 1].SetPoint(m_points.front().x, m_points.front().y);
+                    m_isPolygonComplete = true;
+                }
+                else
+                {
+                    m_points.push_back(point);
+                }
+                Invalidate();
+            }
         }
     }
 
@@ -159,7 +205,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
 
 void CMyWnd::OnLButtonUp(UINT nFlags, CPoint point)
 {
-    if (!m_bEdit)
+    if (m_status == 0)
     {
         if (m_bDragging)
         {
@@ -167,7 +213,7 @@ void CMyWnd::OnLButtonUp(UINT nFlags, CPoint point)
             m_bDragging = FALSE;
         }
     }
-    else
+    else if(m_status == 1)
     {
         m_isDrawFinished = true;
         Invalidate();
@@ -178,7 +224,7 @@ void CMyWnd::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CMyWnd::OnMouseMove(UINT nFlags, CPoint point)
 {
-    if (!m_bEdit)
+    if (m_status == 0)
     {
         if (m_bDragging && m_bDbClick)
         {
@@ -209,7 +255,7 @@ void CMyWnd::OnMouseMove(UINT nFlags, CPoint point)
 
         m_ptLastMousePos = point;
     }
-    else
+    else if(m_status == 1)
     {
         // 如果鼠标左键按下，并且正在移动，更新结束点并重绘
         if ((nFlags & MK_LBUTTON) && (startPoint != point))
@@ -223,9 +269,23 @@ void CMyWnd::OnMouseMove(UINT nFlags, CPoint point)
                 CPoint newEndPoint(endPoint.x - m_ptOffset.x, endPoint.y - m_ptOffset.y);
                 m_ellipseRects[m_ellipseRects.size() - 1].SetRect(newStartPoint, newEndPoint);
             }
-            // 重绘窗口
             Invalidate();
         }
+    }
+    else if (m_status == 3)
+    {
+        //鼠标按下第一个点后，鼠标移动先加入第二个点
+        if (!m_isPolygonComplete && m_points.size() == 1)
+        {
+            m_points.push_back(point);
+        }
+        //随着鼠标移动，不断修改最后一个点
+        if (!m_isPolygonComplete && m_points.size() > 1)
+        {
+            m_points[m_points.size() - 1].SetPoint(point.x, point.y);
+        }
+
+        Invalidate();
     }
 
     CWnd::OnMouseMove(nFlags, point);
@@ -235,7 +295,7 @@ void CMyWnd::OnMouseMove(UINT nFlags, CPoint point)
 void CMyWnd::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
     // TODO: 在此添加消息处理程序代码和/或调用默认值
-    if (!m_bEdit)
+    if (m_status == 0)
     {
         m_bDbClick = !m_bDbClick;
         Invalidate();
@@ -244,8 +304,9 @@ void CMyWnd::OnLButtonDblClk(UINT nFlags, CPoint point)
     CWnd::OnLButtonDblClk(nFlags, point);
 }
 
-
-void CMyWnd::SetEdit()
+bool CMyWnd::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
 {
-    m_bEdit = !m_bEdit;
+    int dx = p1.x - p2.x;
+    int dy = p1.y - p2.y;
+    return (dx * dx + dy * dy) <= (threshold * threshold);
 }

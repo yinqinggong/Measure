@@ -43,4 +43,6 @@ private:
 public:
 	afx_msg void OnBnClickedBtnCapture();
 	afx_msg void OnBnClickedBtnPaint();
+	CButton m_cropBtn;
+	afx_msg void OnBnClickedBtnCrop();
 };
