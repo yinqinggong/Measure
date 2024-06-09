@@ -2,6 +2,10 @@
 #include "MyWnd.h"
 #include <iostream>
 
+#define IDC_BTN_CAPTURE                 8000+1
+#define IDC_BTN_REC                     8000+2
+#define IDC_BTN_DIS                     8000+3
+
 BEGIN_MESSAGE_MAP(CMyWnd, CWnd)
     ON_WM_PAINT()
     ON_WM_LBUTTONDOWN()
@@ -9,6 +13,9 @@ BEGIN_MESSAGE_MAP(CMyWnd, CWnd)
     ON_WM_MOUSEMOVE()
     ON_WM_CREATE()
     ON_WM_LBUTTONDBLCLK()
+    ON_BN_CLICKED(IDC_BTN_CAPTURE, &CMyWnd::OnBnClickedBtnCapture)
+    ON_BN_CLICKED(IDC_BTN_REC, &CMyWnd::OnBnClickedBtnRec)
+    ON_BN_CLICKED(IDC_BTN_DIS, &CMyWnd::OnBnClickedBtnDis)
 END_MESSAGE_MAP()
 
 CMyWnd::CMyWnd()
@@ -33,7 +40,15 @@ int CMyWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if (CWnd::OnCreate(lpCreateStruct) == -1)
         return -1;
+    m_btnCapture.Create(_T("拍照"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_CAPTURE);
+    m_btnRec.Create(_T("识别"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_REC);
+    m_btnDis.Create(_T("放弃"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_DIS);
 
+    CRect rect;
+    GetClientRect(&rect);
+    m_btnCapture.MoveWindow(rect.right - 120, rect.Height() * 0.5, 100, 50);
+    m_btnRec.MoveWindow(rect.right - 120, rect.Height() * 0.5 - 100, 100, 50);
+    m_btnDis.MoveWindow(rect.right - 120, rect.Height() * 0.5 + 100, 100, 50);
     return 0;
 }
 
@@ -309,4 +324,21 @@ bool CMyWnd::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
     int dx = p1.x - p2.x;
     int dy = p1.y - p2.y;
     return (dx * dx + dy * dy) <= (threshold * threshold);
+}
+
+void CMyWnd::OnBnClickedBtnCapture()
+{
+    SetStatus(0);
+    ShowWindow(SW_SHOW);
+    AfxMessageBox(_T("拍照"));
+}
+
+void CMyWnd::OnBnClickedBtnRec()
+{
+    AfxMessageBox(_T("识别"));
+}
+
+void CMyWnd::OnBnClickedBtnDis()
+{
+    AfxMessageBox(_T("放弃"));
 }

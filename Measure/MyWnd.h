@@ -12,7 +12,7 @@ protected:
     BOOL m_bDbClick;
     CPoint m_ptLastMousePos;
 
-    int m_status; //0：正常 1：新增 2：删除 3：多边形
+    int m_status; //-1：播放 0：截图 1：新增 2：删除 3：多边形
     std::vector<CPoint> m_points; // 用于存储多边形的顶点
     bool m_isPolygonComplete; // 标志多边形是否绘制完成
     bool isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold);
@@ -24,10 +24,17 @@ protected:
 
     //存需要绘制的椭圆
     std::vector<CRect> m_ellipseRects;
+    CButton m_btnCapture;
+    CButton m_btnRec;
+    CButton m_btnDis;
 public:
     void SetStatus(int status)
     {
         m_status = status;
+    }
+    int GetStatus()
+    {
+        return m_status;
     }
 public:
     CMyWnd();
@@ -39,5 +46,8 @@ public:
     DECLARE_MESSAGE_MAP()
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
+    afx_msg void OnBnClickedBtnCapture();
+    afx_msg void OnBnClickedBtnRec();
+    afx_msg void OnBnClickedBtnDis();
 };
 
