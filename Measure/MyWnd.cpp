@@ -24,12 +24,7 @@ CMyWnd::CMyWnd()
     m_bDbClick = FALSE;
     m_status = 0;
     m_isPolygonComplete = false;
-	m_image.Load(_T("..\\Doc\\test.jpg")); // 将"path_to_your_image"替换为你的图片路径
-	m_ellipseRects.push_back(CRect(50, 50, 150, 100));
-	m_ellipseRects.push_back(CRect(200, 50, 300, 100));
-	m_ellipseRects.push_back(CRect(100, 150, 200, 200));
-	m_ellipseRects.push_back(CRect(250, 150, 350, 200));
-	m_ellipseRects.push_back(CRect(150, 250, 250, 300));
+	//m_image.Load(_T("..\\Doc\\test.jpg")); // 将"path_to_your_image"替换为你的图片路径
 }
 
 CMyWnd::~CMyWnd()
@@ -75,7 +70,7 @@ void CMyWnd::OnPaint()
                         continue;
                     }
                     // 创建画笔&选择画笔
-                    CPen pen(PS_SOLID, 2, RGB(255, 0, 0)); // 2为边框的宽度，可以根据需要调整
+                    CPen pen(PS_SOLID, 20, RGB(255, 0, 0)); // 2为边框的宽度，可以根据需要调整
                     CPen* pOldPen = pDC->SelectObject(&pen);
 
                     // 创建一个空画刷&选择空画刷
@@ -168,10 +163,15 @@ void CMyWnd::OnPaint()
             dc.SelectObject(pOldBrush);
         }
     }
-    else
-    {
-        MessageBox(_T("截图失败！"));
-    }
+	else
+	{
+	CRect rect;
+	GetClientRect(rect);
+	dc.FillSolidRect(rect, RGB(42, 42, 43));   //控件背景色
+	m_btnCapture.ShowWindow(SW_SHOW);
+	m_btnDis.ShowWindow(SW_HIDE);
+	m_btnRec.ShowWindow(SW_HIDE);
+	}
 }
 
 void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
@@ -328,17 +328,49 @@ bool CMyWnd::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
 
 void CMyWnd::OnBnClickedBtnCapture()
 {
-    SetStatus(0);
+    //SetStatus(0);
     ShowWindow(SW_SHOW);
-    AfxMessageBox(_T("拍照"));
+    //AfxMessageBox(_T("拍照"));
+    m_image.Load(_T("..\\Doc\\test.jpg")); // 将"path_to_your_image"替换为你的图片路径
+    m_btnCapture.ShowWindow(SW_HIDE);
+    m_btnDis.ShowWindow(SW_SHOW);
+    m_btnRec.ShowWindow(SW_SHOW);
+    this->Invalidate();
 }
 
 void CMyWnd::OnBnClickedBtnRec()
 {
-    AfxMessageBox(_T("识别"));
+    CWaitCursor wait;
+    //SetCursor(::LoadCursor(NULL, IDC_WAIT));
+    m_btnRec.SetWindowTextW(_T("识别中"));
+    m_btnRec.EnableWindow(FALSE);
+    m_btnDis.ShowWindow(SW_HIDE);
+    Sleep(2000);
+    //SetCursor(::LoadCursor(NULL, IDC_ARROW));
+    wait.Restore();
+    m_btnRec.ShowWindow(SW_HIDE);
+    m_btnRec.SetWindowTextW(_T("识别"));
+    m_btnRec.EnableWindow(TRUE);
+
+    //AfxMessageBox(_T("调用识别接口"));
+    m_ellipseRects.push_back(CRect(50, 50, 150, 100));
+    m_ellipseRects.push_back(CRect(200, 50, 300, 100));
+    m_ellipseRects.push_back(CRect(100, 150, 200, 200));
+    m_ellipseRects.push_back(CRect(250, 150, 350, 200));
+    m_ellipseRects.push_back(CRect(150, 250, 450, 500));
+    m_ellipseRects.push_back(CRect(950, 750, 1450, 1500));
+    m_ellipseRects.push_back(CRect(1050, 850, 1650, 1900));
+    SetStatus(0);
+
+    this->Invalidate();
 }
 
 void CMyWnd::OnBnClickedBtnDis()
 {
-    AfxMessageBox(_T("放弃"));
+    //AfxMessageBox(_T("放弃")); 
+    m_image.Destroy();
+    m_btnCapture.ShowWindow(SW_SHOW);
+    m_btnDis.ShowWindow(SW_HIDE);
+    m_btnRec.ShowWindow(SW_HIDE);
+    this->Invalidate();
 }
