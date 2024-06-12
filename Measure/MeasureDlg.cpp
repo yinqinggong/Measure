@@ -282,6 +282,8 @@ void CMeasureDlg::OnDestroy()
 
 void CMeasureDlg::OnBnClickedBtnAdd()
 {
+	//SetClassLong(this->GetSafeHwnd(), GCLP_HCURSOR, (LONG)LoadCursor(NULL, IDC_CROSS));
+
 	// TODO: 在此添加控件通知处理程序代码
 	if (m_imgWnd.GetStatus() == -1)
 	{

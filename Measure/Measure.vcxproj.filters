@@ -69,6 +69,9 @@
     <ClInclude Include="MyWnd.h">
       <Filter>ImgWnd</Filter>
     </ClInclude>
+    <ClInclude Include="CDlgDiameter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -100,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="MyWnd.cpp">
       <Filter>ImgWnd</Filter>
+    </ClCompile>
+    <ClCompile Include="CDlgDiameter.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

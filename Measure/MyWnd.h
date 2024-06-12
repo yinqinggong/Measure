@@ -3,6 +3,13 @@
 #include <atlimage.h>
 #include <vector>
 
+class Wood
+{
+public:
+    CRect rect;
+    double diameter;
+};
+
 class CMyWnd :  public CWnd
 {
 protected:
@@ -23,7 +30,7 @@ protected:
     bool m_isDrawFinished = false;
 
     //存需要绘制的椭圆
-    std::vector<CRect> m_ellipseRects;
+    std::vector<Wood> m_ellipseRects;
     CButton m_btnCapture;
     CButton m_btnRec;
     CButton m_btnDis;

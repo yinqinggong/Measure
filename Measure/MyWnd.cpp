@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "MyWnd.h"
 #include <iostream>
+#include "CDlgDiameter.h"
 
 #define IDC_BTN_CAPTURE                 8000+1
 #define IDC_BTN_REC                     8000+2
@@ -65,7 +66,7 @@ void CMyWnd::OnPaint()
                 // 绘制多个不填充的椭圆曲线
                 for (int i = 0; i < m_ellipseRects.size(); ++i)
                 {
-                    if (m_ellipseRects[i].TopLeft() == m_ellipseRects[i].BottomRight())
+                    if (m_ellipseRects[i].rect.TopLeft() == m_ellipseRects[i].rect.BottomRight())
                     {
                         continue;
                     }
@@ -79,22 +80,25 @@ void CMyWnd::OnPaint()
                     CBrush* pOldBrush = pDC->SelectObject(&brush);
 
                     // 绘制不填充的椭圆曲线
-                    pDC->Ellipse(m_ellipseRects[i]);
+                    pDC->Ellipse(m_ellipseRects[i].rect);
 
+                    
                     // 获取椭圆的中心点和长轴的两个端点
-                    CPoint center(m_ellipseRects[i].CenterPoint());
-                    CPoint end1(center.x + (m_ellipseRects[i].Width() / 2), center.y);
-                    CPoint end2(center.x - (m_ellipseRects[i].Width() / 2), center.y);
-
-                    // 计算长轴的长度
-                    double distance = sqrt(pow(end1.x - end2.x, 2) + pow(end1.y - end2.y, 2));
-
-                    // 将长轴的长度绘制在椭圆中心点附近
-                    CString strDistance;
-                    strDistance.Format(_T("%.2f"), distance);
-                    // 设置文本背景模式为透明
-                    pDC->SetBkMode(TRANSPARENT);
-                    pDC->TextOut(center.x - 20, center.y - 10, strDistance);
+                    CPoint center(m_ellipseRects[i].rect.CenterPoint());
+                    //CPoint end1(center.x + (m_ellipseRects[i].rect.Width() / 2), center.y);
+                    //CPoint end2(center.x - (m_ellipseRects[i].rect.Width() / 2), center.y);
+                    //// 计算长轴的长度
+                    //double distance = sqrt(pow(end1.x - end2.x, 2) + pow(end1.y - end2.y, 2));
+                    if (m_ellipseRects[i].diameter > 0.0001)
+                    {
+                        // 将长轴的长度绘制在椭圆中心点附近
+                        CString strDistance;
+                        strDistance.Format(_T("%.2f"), m_ellipseRects[i].diameter);
+                        // 设置文本背景模式为透明
+                        pDC->SetBkMode(TRANSPARENT);
+                        pDC->TextOut(center.x - 20, center.y - 10, strDistance);
+                    }
+                   
 
                     // 恢复原来的画笔和画刷
                     pDC->SelectObject(pOldPen);
@@ -165,12 +169,12 @@ void CMyWnd::OnPaint()
     }
 	else
 	{
-	CRect rect;
-	GetClientRect(rect);
-	dc.FillSolidRect(rect, RGB(42, 42, 43));   //控件背景色
-	m_btnCapture.ShowWindow(SW_SHOW);
-	m_btnDis.ShowWindow(SW_HIDE);
-	m_btnRec.ShowWindow(SW_HIDE);
+	    CRect rect;
+	    GetClientRect(rect);
+	    dc.FillSolidRect(rect, RGB(42, 42, 43));   //控件背景色
+	    m_btnCapture.ShowWindow(SW_SHOW);
+	    m_btnDis.ShowWindow(SW_HIDE);
+	    m_btnRec.ShowWindow(SW_HIDE);
 	}
 }
 
@@ -193,7 +197,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
             // 记录起始点
             m_isDrawFinished = false;
             startPoint = point;
-            m_ellipseRects.push_back(CRect(startPoint, startPoint));
+            m_ellipseRects.push_back({ CRect(startPoint, startPoint),0.0 });
         }
         else if (m_status == 3)
         {
@@ -230,6 +234,33 @@ void CMyWnd::OnLButtonUp(UINT nFlags, CPoint point)
     }
     else if(m_status == 1)
     {
+		if (m_ellipseRects[m_ellipseRects.size() - 1].rect.TopLeft() != m_ellipseRects[m_ellipseRects.size() - 1].rect.BottomRight())
+		{
+			//需要用户来输入短直径
+			CDlgDiameter dlg;
+			INT_PTR nResponse = dlg.DoModal();
+			if (nResponse == IDOK)
+			{
+				float d = dlg.GetDiameter();
+				if (d > 0.001)
+				{
+					m_ellipseRects[m_ellipseRects.size() - 1].diameter = d;
+				}
+				else
+				{
+					m_ellipseRects.erase(--m_ellipseRects.end());
+				}
+			}
+			else
+			{
+				m_ellipseRects.erase(--m_ellipseRects.end());
+			}
+        }
+        else
+        {
+            m_ellipseRects.erase(--m_ellipseRects.end());
+        }
+        SetStatus(0);
         m_isDrawFinished = true;
         Invalidate();
     }
@@ -282,7 +313,7 @@ void CMyWnd::OnMouseMove(UINT nFlags, CPoint point)
                 //推动之后要重新计算起始点
                 CPoint newStartPoint(startPoint.x - m_ptOffset.x, startPoint.y - m_ptOffset.y);
                 CPoint newEndPoint(endPoint.x - m_ptOffset.x, endPoint.y - m_ptOffset.y);
-                m_ellipseRects[m_ellipseRects.size() - 1].SetRect(newStartPoint, newEndPoint);
+                m_ellipseRects[m_ellipseRects.size() - 1].rect.SetRect(newStartPoint, newEndPoint);
             }
             Invalidate();
         }
@@ -353,13 +384,13 @@ void CMyWnd::OnBnClickedBtnRec()
     m_btnRec.EnableWindow(TRUE);
 
     //AfxMessageBox(_T("调用识别接口"));
-    m_ellipseRects.push_back(CRect(50, 50, 150, 100));
-    m_ellipseRects.push_back(CRect(200, 50, 300, 100));
-    m_ellipseRects.push_back(CRect(100, 150, 200, 200));
-    m_ellipseRects.push_back(CRect(250, 150, 350, 200));
-    m_ellipseRects.push_back(CRect(150, 250, 450, 500));
-    m_ellipseRects.push_back(CRect(950, 750, 1450, 1500));
-    m_ellipseRects.push_back(CRect(1050, 850, 1650, 1900));
+    m_ellipseRects.push_back({ CRect(50, 50, 150, 100), 20.0});
+    m_ellipseRects.push_back({ CRect(200, 50, 300, 100), 20.0 });
+    m_ellipseRects.push_back({ CRect(100, 150, 200, 200), 20.0 });
+    m_ellipseRects.push_back({ CRect(250, 150, 350, 200), 20.0 });
+    m_ellipseRects.push_back({ CRect(150, 250, 450, 500), 20.0 });
+    m_ellipseRects.push_back({ CRect(950, 750, 1450, 1500), 20.0 });
+    m_ellipseRects.push_back({ CRect(1050, 850, 1650, 1900), 20.0 });
     SetStatus(0);
 
     this->Invalidate();
