@@ -119,7 +119,15 @@ void CMyWnd::OnPaint()
         }
         else if(m_status == 1)
         {
-            m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
+            if (m_bDbClick)
+            {
+                m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
+            }
+            else
+            {
+                m_image.Draw(dc, 0, 0, rect.Width(), rect.Height(), 0, 0, m_image.GetWidth(), m_image.GetHeight());
+            }
+
             // 创建画笔&选择画笔
             CPen pen(PS_SOLID, 2, RGB(255, 255, 255)); // 2为边框的宽度，可以根据需要调整
             CPen* pOldPen = dc.SelectObject(&pen);
@@ -309,11 +317,24 @@ void CMyWnd::OnMouseMove(UINT nFlags, CPoint point)
             // 更新结束点
             endPoint = point;
             if (m_ellipseRects.size() > 0)
-            {
-                //推动之后要重新计算起始点
-                CPoint newStartPoint(startPoint.x - m_ptOffset.x, startPoint.y - m_ptOffset.y);
-                CPoint newEndPoint(endPoint.x - m_ptOffset.x, endPoint.y - m_ptOffset.y);
-                m_ellipseRects[m_ellipseRects.size() - 1].rect.SetRect(newStartPoint, newEndPoint);
+            {  
+                //拖动之后要重新计算起始点
+                if (m_bDbClick)
+                {
+                    CPoint newStartPoint(startPoint.x - m_ptOffset.x, startPoint.y - m_ptOffset.y);
+                    CPoint newEndPoint(endPoint.x - m_ptOffset.x, endPoint.y - m_ptOffset.y);
+                    m_ellipseRects[m_ellipseRects.size() - 1].rect.SetRect(newStartPoint, newEndPoint);
+                }
+                else
+                {
+                    RECT rect;
+                    GetClientRect(&rect);
+                    CPoint newStartPoint(startPoint.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left), 
+                        startPoint.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top));
+                    CPoint newEndPoint(endPoint.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left),
+                        endPoint.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top));
+                    m_ellipseRects[m_ellipseRects.size() - 1].rect.SetRect(newStartPoint, newEndPoint);
+                }
             }
             Invalidate();
         }
