@@ -71,7 +71,7 @@ void CMyWnd::OnPaint()
                         continue;
                     }
                     // 创建画笔&选择画笔
-                    CPen pen(PS_SOLID, 20, RGB(255, 0, 0)); // 2为边框的宽度，可以根据需要调整
+                    CPen pen(PS_SOLID, 5, RGB(255, 0, 0)); // 2为边框的宽度，可以根据需要调整
                     CPen* pOldPen = pDC->SelectObject(&pen);
 
                     // 创建一个空画刷&选择空画刷
@@ -104,6 +104,34 @@ void CMyWnd::OnPaint()
                     pDC->SelectObject(pOldPen);
                     pDC->SelectObject(pOldBrush);
                 }
+
+                // 设置透明背景模式
+                pDC->SetBkMode(TRANSPARENT);
+                // 创建画笔和画刷
+                CPen pen(PS_SOLID, 5, RGB(255, 0, 0)); // 红色边框
+                CBrush* pOldBrush = static_cast<CBrush*>(pDC->SelectStockObject(NULL_BRUSH)); // 空画刷
+                CPen* pOldPen = pDC->SelectObject(&pen);
+
+                // 绘制多边形
+                if (m_points.size() > 1)
+                {
+                    for (size_t i = 0; i < m_points.size() - 1; i++)
+                    {
+                        pDC->MoveTo(m_points[i]);
+                        pDC->LineTo(m_points[i + 1]);
+                    }
+                    //dc.Polyline(&m_points[0], static_cast<int>(m_points.size()));
+                    if (m_isPolygonComplete)
+                    {
+                        pDC->MoveTo(m_points.front());
+                        pDC->LineTo(m_points.back());
+                    }
+                }
+                // 恢复原来的画笔和画刷
+                pDC->SelectObject(pOldPen);
+                pDC->SelectObject(pOldBrush);
+
+
                 // 释放设备上下文
                 m_image.ReleaseDC();
             }
@@ -147,11 +175,18 @@ void CMyWnd::OnPaint()
         }
         else if (m_status == 3)
         {
-            m_image.Draw(dc, 0, 0, rect.Width(), rect.Height(), 0, 0, m_image.GetWidth(), m_image.GetHeight());
+            if (m_bDbClick)
+            {
+                m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
+            }
+            else
+            {
+                m_image.Draw(dc, 0, 0, rect.Width(), rect.Height(), 0, 0, m_image.GetWidth(), m_image.GetHeight());
+            }
             // 设置透明背景模式
             dc.SetBkMode(TRANSPARENT);
             // 创建画笔和画刷
-            CPen pen(PS_SOLID, 2, RGB(255, 0, 0)); // 红色边框
+            CPen pen(PS_SOLID, 2, RGB(255, 255, 255)); // 红色边框
             CBrush* pOldBrush = static_cast<CBrush*>(dc.SelectStockObject(NULL_BRUSH)); // 空画刷
             CPen* pOldPen = dc.SelectObject(&pen);
 
@@ -216,7 +251,34 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     // 如果最后一个点与第一个点距离小于5，则完成多边形
                     m_points[m_points.size() - 1].SetPoint(m_points.front().x, m_points.front().y);
-                    m_isPolygonComplete = true;
+                    int ret = AfxMessageBox(_T("确认保留多边形区域的木材？"), MB_OKCANCEL);
+                    if (ret != IDOK)
+                    {
+                        m_points.clear();
+                    }
+                    else
+                    {
+                        m_isPolygonComplete = true;
+                        if (m_bDbClick)
+                        {
+                            for (size_t i = 0; i < m_points.size(); i++)
+                            {
+                                m_points[i].x = m_points[i].x - m_ptOffset.x;
+                                m_points[i].y = m_points[i].y - m_ptOffset.y;
+                            }
+                        }
+                        else
+                        {
+                            RECT rect;
+                            GetClientRect(&rect);
+                            for (size_t i = 0; i < m_points.size(); i++)
+                            {
+                                m_points[i].x = m_points[i].x * m_image.GetWidth() * 1.0 / (rect.right - rect.left);
+                                m_points[i].y = m_points[i].y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top);
+                            }
+                        }
+                        SetStatus(0);
+                    }
                 }
                 else
                 {

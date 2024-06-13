@@ -313,16 +313,11 @@ void CMeasureDlg::OnBnClickedBtnCrop()
 		AfxMessageBox(_T("请先截图！"));
 		return;
 	}
-	else if (m_imgWnd.GetStatus() == 3)
-	{
-		m_imgWnd.SetStatus(0);
-	}
 	else
 	{
 		m_imgWnd.SetStatus(3);
 	}
 }
-
 
 HBRUSH CMeasureDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
