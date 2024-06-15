@@ -79,6 +79,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_ADD, &CMeasureDlg::OnBnClickedBtnAdd)
 	ON_BN_CLICKED(IDC_BTN_CROP, &CMeasureDlg::OnBnClickedBtnCrop)
 	ON_WM_CTLCOLOR()
+	ON_BN_CLICKED(IDC_BTN_DEL, &CMeasureDlg::OnBnClickedBtnDel)
 END_MESSAGE_MAP()
 
 
@@ -341,4 +342,23 @@ HBRUSH CMeasureDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 
 	// TODO:  如果默认的不是所需画笔，则返回另一个画笔
 	return hbr;
+}
+
+
+void CMeasureDlg::OnBnClickedBtnDel()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (m_imgWnd.GetStatus() == -1)
+	{
+		AfxMessageBox(_T("请先截图！"));
+		return;
+	}
+	else if (m_imgWnd.GetStatus() == 2)
+	{
+		m_imgWnd.SetStatus(0);
+	}
+	else
+	{
+	    m_imgWnd.SetStatus(2);
+	}
 }

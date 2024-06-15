@@ -53,4 +53,5 @@ public:
 	CButton m_btnDel;//删除
 	CButton m_btnReport;//报表
 	CButton m_btnSave;//保存
+	afx_msg void OnBnClickedBtnDel();
 };

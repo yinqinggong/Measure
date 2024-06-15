@@ -8,6 +8,7 @@ class Wood
 public:
     CRect rect;
     double diameter;
+    bool isDeleting;
 };
 
 class CMyWnd :  public CWnd
@@ -23,6 +24,7 @@ protected:
     std::vector<CPoint> m_points; // 用于存储多边形的顶点
     bool m_isPolygonComplete; // 标志多边形是否绘制完成
     bool isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold);
+    bool isPointInEllipse(const CPoint& p);
 
     // 声明变量用于记录椭圆的起始点和结束点
     CPoint startPoint, endPoint;
@@ -50,6 +52,7 @@ public:
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+    afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
     DECLARE_MESSAGE_MAP()
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);

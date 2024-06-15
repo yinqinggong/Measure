@@ -17,6 +17,7 @@ BEGIN_MESSAGE_MAP(CMyWnd, CWnd)
     ON_BN_CLICKED(IDC_BTN_CAPTURE, &CMyWnd::OnBnClickedBtnCapture)
     ON_BN_CLICKED(IDC_BTN_REC, &CMyWnd::OnBnClickedBtnRec)
     ON_BN_CLICKED(IDC_BTN_DIS, &CMyWnd::OnBnClickedBtnDis)
+    ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 CMyWnd::CMyWnd()
@@ -56,9 +57,10 @@ void CMyWnd::OnPaint()
 	{
         CRect rect;
         GetClientRect(&rect);
-        if (m_status == 0 || (m_status == 1 && m_isDrawFinished))
+        if (m_status == 0 || (m_status == 1 && m_isDrawFinished) || m_status == 2)
         {
             // 需要先绘制图形，再绘制背景图，才能正确显示
+            // 椭圆绘制成功后，再画背景图片
             // 获取与图像关联的设备上下文
             CDC* pDC = CDC::FromHandle(m_image.GetDC());
             if (pDC)
@@ -71,9 +73,18 @@ void CMyWnd::OnPaint()
                         continue;
                     }
                     // 创建画笔&选择画笔
-                    CPen pen(PS_SOLID, 5, RGB(255, 0, 0)); // 2为边框的宽度，可以根据需要调整
-                    CPen* pOldPen = pDC->SelectObject(&pen);
-
+                    CPen pen_red(PS_SOLID, 5, RGB(255, 0, 0)); // 2为边框的宽度，可以根据需要调整 
+                    CPen pen_green(PS_SOLID, 5, RGB(0, 255, 0)); // 2为边框的宽度，可以根据需要调整
+                    CPen* pOldPen;
+                    if (m_ellipseRects[i].isDeleting)
+                    {
+                        pOldPen = pDC->SelectObject(&pen_red);
+                    }
+                    else
+                    {
+                        pOldPen = pDC->SelectObject(&pen_green);
+                    }
+                
                     // 创建一个空画刷&选择空画刷
                     CBrush brush;
                     brush.CreateStockObject(NULL_BRUSH);
@@ -82,7 +93,6 @@ void CMyWnd::OnPaint()
                     // 绘制不填充的椭圆曲线
                     pDC->Ellipse(m_ellipseRects[i].rect);
 
-                    
                     // 获取椭圆的中心点和长轴的两个端点
                     CPoint center(m_ellipseRects[i].rect.CenterPoint());
                     //CPoint end1(center.x + (m_ellipseRects[i].rect.Width() / 2), center.y);
@@ -98,7 +108,6 @@ void CMyWnd::OnPaint()
                         pDC->SetBkMode(TRANSPARENT);
                         pDC->TextOut(center.x - 20, center.y - 10, strDistance);
                     }
-                   
 
                     // 恢复原来的画笔和画刷
                     pDC->SelectObject(pOldPen);
@@ -241,6 +250,31 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
             m_isDrawFinished = false;
             startPoint = point;
             m_ellipseRects.push_back({ CRect(startPoint, startPoint),0.0 });
+        }
+        else if (m_status == 2)
+        {
+            //判断当前点是否在某个椭圆内部
+            if (m_bDbClick)
+            {
+                CPoint curPoint(point.x - m_ptOffset.x, point.y - m_ptOffset.y);
+                if (isPointInEllipse(curPoint))
+                {
+                    SetFocus();
+                    Invalidate();
+                }
+            }
+            else
+            {
+                RECT rect;
+                GetClientRect(&rect);   
+                CPoint curPoint(point.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left), 
+                    point.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top));
+                if (isPointInEllipse(curPoint))
+                {
+                    SetFocus();
+                    Invalidate();
+                }
+            }
         }
         else if (m_status == 3)
         {
@@ -440,6 +474,22 @@ bool CMyWnd::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
     return (dx * dx + dy * dy) <= (threshold * threshold);
 }
 
+bool CMyWnd::isPointInEllipse(const CPoint& p)
+{
+    for (size_t i = 0; i < m_ellipseRects.size(); i++)
+    {
+        if (p.x >= m_ellipseRects[i].rect.left && 
+            p.x <= m_ellipseRects[i].rect.right &&
+            p.y >= m_ellipseRects[i].rect.top && 
+            p.y <= m_ellipseRects[i].rect.bottom)
+        {
+            m_ellipseRects[i].isDeleting = !m_ellipseRects[i].isDeleting;
+            return true;
+        }
+    }
+    return false;
+}
+
 void CMyWnd::OnBnClickedBtnCapture()
 {
     //SetStatus(0);
@@ -487,4 +537,34 @@ void CMyWnd::OnBnClickedBtnDis()
     m_btnDis.ShowWindow(SW_HIDE);
     m_btnRec.ShowWindow(SW_HIDE);
     this->Invalidate();
+}
+
+void CMyWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    // TODO: 在此添加消息处理程序代码和/或调用默认值
+    //检查是否是删除键的按下
+    if (nChar == VK_DELETE && m_status == 2)
+    {
+        bool isDelete = false;
+        auto iter = m_ellipseRects.begin();
+        while (iter != m_ellipseRects.end())
+        {
+            if (iter->isDeleting)
+            {
+                iter = m_ellipseRects.erase(iter);
+                isDelete = true;
+            }
+            else
+            {
+                iter++;
+            }
+        }
+        if (isDelete)
+        {
+            m_image.Destroy();
+            m_image.Load(_T("..\\Doc\\test.jpg"));
+            Invalidate();
+        }
+    }
+    CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 }
