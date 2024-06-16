@@ -12,7 +12,8 @@
 #define new DEBUG_NEW
 #endif
 
-
+#define IDC_SUB_IMAGE_WND               9000+1
+#define IDC_SUB_SCROLL_VIEW             9000+2
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
 class CAboutDlg : public CDialogEx
@@ -55,6 +56,12 @@ CMeasureDlg::CMeasureDlg(CWnd* pParent /*=nullptr*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_pDevice = NULL;
+	m_pScrollView = NULL;
+}
+
+CMeasureDlg::~CMeasureDlg()
+{
+	
 }
 
 void CMeasureDlg::DoDataExchange(CDataExchange* pDX)
@@ -80,6 +87,9 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_CROP, &CMeasureDlg::OnBnClickedBtnCrop)
 	ON_WM_CTLCOLOR()
 	ON_BN_CLICKED(IDC_BTN_DEL, &CMeasureDlg::OnBnClickedBtnDel)
+	ON_BN_CLICKED(IDC_BTN_REPORT, &CMeasureDlg::OnBnClickedBtnReport)
+	ON_BN_CLICKED(IDC_BTN_SCALE, &CMeasureDlg::OnBnClickedBtnScale)
+	ON_BN_CLICKED(IDC_BTN_DATA, &CMeasureDlg::OnBnClickedBtnData)
 END_MESSAGE_MAP()
 
 
@@ -136,8 +146,24 @@ BOOL CMeasureDlg::OnInitDialog()
 	rect.top = 20;
 	rect.right = rcWorkArea.Width() - 120;
 	rect.bottom = rcWorkArea.Height() - 20;
-	m_imgWnd.Create(NULL, _T(""), WS_VISIBLE | WS_CHILD, rect, this, 0);
+	m_imgWnd.Create(NULL, _T(""), WS_VISIBLE | WS_CHILD, rect, this, IDC_SUB_IMAGE_WND);
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+
+	//报表
+	m_dlgReport.Create(IDD_DIALOG_REPORT, this);
+	m_dlgReport.MoveWindow(&rect);
+	m_dlgReport.ShowWindow(SW_HIDE);
+
+
+	 // 创建滚动视图
+	m_pScrollView = new CMyScrollView();
+	if (!m_pScrollView->Create(NULL, _T(""), WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL, rect, this, IDC_SUB_SCROLL_VIEW))
+	{
+		TRACE0("Failed to create scroll view\n");
+		return FALSE;
+	}
+	m_pScrollView->OnInitialUpdate();
+	m_pScrollView->ShowWindow(SW_HIDE);
 
 	//检尺和数据按钮
 	m_btnScale.MoveWindow(10, rcWorkArea.Height() * 0.5 - 40, 80, 40);
@@ -286,6 +312,8 @@ void CMeasureDlg::OnBnClickedBtnAdd()
 	//SetClassLong(this->GetSafeHwnd(), GCLP_HCURSOR, (LONG)LoadCursor(NULL, IDC_CROSS));
 
 	// TODO: 在此添加控件通知处理程序代码
+	m_dlgReport.ShowWindow(SW_HIDE);
+	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	if (m_imgWnd.GetStatus() == -1)
 	{
 		AfxMessageBox(_T("请先截图！"));
@@ -309,6 +337,8 @@ void CMeasureDlg::OnBnClickedBtnAdd()
 void CMeasureDlg::OnBnClickedBtnCrop()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	m_dlgReport.ShowWindow(SW_HIDE);
+	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	if (m_imgWnd.GetStatus() == -1)
 	{
 		AfxMessageBox(_T("请先截图！"));
@@ -348,6 +378,8 @@ HBRUSH CMeasureDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 void CMeasureDlg::OnBnClickedBtnDel()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	m_dlgReport.ShowWindow(SW_HIDE);
+	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	if (m_imgWnd.GetStatus() == -1)
 	{
 		AfxMessageBox(_T("请先截图！"));
@@ -361,4 +393,27 @@ void CMeasureDlg::OnBnClickedBtnDel()
 	{
 	    m_imgWnd.SetStatus(2);
 	}
+}
+
+
+void CMeasureDlg::OnBnClickedBtnReport()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_imgWnd.ShowWindow(SW_HIDE);
+	m_dlgReport.ShowWindow(SW_SHOWNORMAL);
+}
+
+
+void CMeasureDlg::OnBnClickedBtnScale()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	m_pScrollView->ShowWindow(SW_HIDE);
+}
+
+void CMeasureDlg::OnBnClickedBtnData()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_imgWnd.ShowWindow(SW_HIDE);
+	m_pScrollView->ShowWindow(SW_SHOWNORMAL);
 }

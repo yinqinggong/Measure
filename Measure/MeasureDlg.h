@@ -5,6 +5,8 @@
 #pragma once
 #include "RtspDevice.h"
 #include "MyWnd.h"
+#include "CDlgReport.h"
+#include "MyScrollView.h"
 
 // CMeasureDlg 对话框
 class CMeasureDlg : public CDialogEx
@@ -12,7 +14,7 @@ class CMeasureDlg : public CDialogEx
 // 构造
 public:
 	CMeasureDlg(CWnd* pParent = nullptr);	// 标准构造函数
-
+	~CMeasureDlg();
 // 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_MEASURE_DIALOG };
@@ -37,6 +39,9 @@ public:
 private:
 	CStatic m_staVideo;
 	CMyWnd m_imgWnd;
+	CDlgReport m_dlgReport;
+	CMyScrollView *m_pScrollView;
+
 	CBrush m_brushBG;
 	CDevice* m_pDevice;
 public:
@@ -54,4 +59,7 @@ public:
 	CButton m_btnReport;//报表
 	CButton m_btnSave;//保存
 	afx_msg void OnBnClickedBtnDel();
+	afx_msg void OnBnClickedBtnReport();
+	afx_msg void OnBnClickedBtnScale();
+	afx_msg void OnBnClickedBtnData();
 };

@@ -187,6 +187,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CDlgDiameter.h" />
+    <ClInclude Include="CDlgReport.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="framework.h" />
@@ -194,6 +195,7 @@
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="Measure.h" />
     <ClInclude Include="MeasureDlg.h" />
+    <ClInclude Include="MyScrollView.h" />
     <ClInclude Include="MyWnd.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
@@ -203,12 +205,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDlgDiameter.cpp" />
+    <ClCompile Include="CDlgReport.cpp" />
     <ClCompile Include="common.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="hwnd.cpp" />
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="Measure.cpp" />
     <ClCompile Include="MeasureDlg.cpp" />
+    <ClCompile Include="MyScrollView.cpp" />
     <ClCompile Include="MyWnd.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
