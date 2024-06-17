@@ -13,7 +13,7 @@
 #endif
 
 #define IDC_SUB_IMAGE_WND               9000+1
-#define IDC_SUB_SCROLL_VIEW             9000+2
+
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
 class CAboutDlg : public CDialogEx
@@ -56,7 +56,6 @@ CMeasureDlg::CMeasureDlg(CWnd* pParent /*=nullptr*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_pDevice = NULL;
-	m_pScrollView = NULL;
 }
 
 CMeasureDlg::~CMeasureDlg()
@@ -155,15 +154,9 @@ BOOL CMeasureDlg::OnInitDialog()
 	m_dlgReport.ShowWindow(SW_HIDE);
 
 
-	 // 创建滚动视图
-	m_pScrollView = new CMyScrollView();
-	if (!m_pScrollView->Create(NULL, _T(""), WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL, rect, this, IDC_SUB_SCROLL_VIEW))
-	{
-		TRACE0("Failed to create scroll view\n");
-		return FALSE;
-	}
-	m_pScrollView->OnInitialUpdate();
-	m_pScrollView->ShowWindow(SW_HIDE);
+	m_dlgData.Create(IDD_DIALOG_DATA, this);
+	m_dlgData.MoveWindow(&rect);
+	m_dlgData.ShowWindow(SW_HIDE);
 
 	//检尺和数据按钮
 	m_btnScale.MoveWindow(10, rcWorkArea.Height() * 0.5 - 40, 80, 40);
@@ -408,12 +401,12 @@ void CMeasureDlg::OnBnClickedBtnScale()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
-	m_pScrollView->ShowWindow(SW_HIDE);
+	m_dlgData.ShowWindow(SW_HIDE);
 }
 
 void CMeasureDlg::OnBnClickedBtnData()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	m_imgWnd.ShowWindow(SW_HIDE);
-	m_pScrollView->ShowWindow(SW_SHOWNORMAL);
+	m_dlgData.ShowWindow(SW_SHOWNORMAL);
 }

@@ -6,7 +6,7 @@
 #include "RtspDevice.h"
 #include "MyWnd.h"
 #include "CDlgReport.h"
-#include "MyScrollView.h"
+#include "DlgData.h"
 
 // CMeasureDlg 对话框
 class CMeasureDlg : public CDialogEx
@@ -40,7 +40,7 @@ private:
 	CStatic m_staVideo;
 	CMyWnd m_imgWnd;
 	CDlgReport m_dlgReport;
-	CMyScrollView *m_pScrollView;
+	CDlgData m_dlgData;
 
 	CBrush m_brushBG;
 	CDevice* m_pDevice;

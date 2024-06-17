@@ -12,20 +12,12 @@ CMyScrollView::CMyScrollView()
     m_columns = 4; // 每行四个子窗口
 
      // 示例数据数量
-    m_totalDataCount = 200;
+    m_totalDataCount = 123;
 }
 
 CMyScrollView::~CMyScrollView()
 {
-   /* for (CWnd* pChild : m_childWindows)
-    {
-        if (pChild != nullptr)
-        {
-            pChild->DestroyWindow();
-            delete pChild;
-        }
-    }
-    m_childWindows.clear();*/
+  
 }
 
 void CMyScrollView::OnInitialUpdate()
@@ -66,7 +58,7 @@ void CMyScrollView::CreateChildWindows(int nCount)
 
         // 创建子控件，例如静态文本
         CStatic* pStatic = new CStatic();
-        if (pStatic->Create(_T("Child Window"), WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), pChild))
+        if (pStatic->Create(_T("Child Window"), WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), pChild, 6000 + i))
         {
             CString strText;
             strText.Format(_T("Child Window %d"), i);
@@ -101,7 +93,8 @@ void CMyScrollView::LayoutChildWindows()
         pChild->MoveWindow(x, y - childHeight, childWidth, childHeight);
 
         // 设置子控件的位置
-        CStatic* pStatic = static_cast<CStatic*>(pChild->GetWindow(GW_CHILD));
+        //CStatic* pStatic = static_cast<CStatic*>(pChild->GetWindow(GW_CHILD));
+        CStatic* pStatic = static_cast<CStatic*>(pChild->GetDlgItem(6000 + i));
         if (pStatic)
         {
             pStatic->MoveWindow(10, 10, childWidth - 20, childHeight - 20);
@@ -122,7 +115,21 @@ void CMyScrollView::OnDestroy()
     CScrollView::OnDestroy();
 
     // TODO: 在此处添加消息处理程序代码
-    for (CWnd* pChild : m_childWindows)
+    for (size_t i = 0; i < m_childWindows.size(); i++)
+    {
+        if (m_childWindows[i] != nullptr)
+        {
+            CStatic* pStatic = static_cast<CStatic*>(m_childWindows[i]->GetDlgItem(6000 + i));
+            if (pStatic)
+            {
+                pStatic->DestroyWindow();
+                delete pStatic;
+            }
+            m_childWindows[i]->DestroyWindow();
+            delete m_childWindows[i];
+        }
+    }
+   /* for (CWnd* pChild : m_childWindows)
     {
         if (pChild != nullptr)
         {
@@ -135,6 +142,6 @@ void CMyScrollView::OnDestroy()
             pChild->DestroyWindow();
             delete pChild;
         }
-    }
+    }*/
     m_childWindows.clear();
 }
