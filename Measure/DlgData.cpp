@@ -50,7 +50,7 @@ BOOL CDlgData::OnInitDialog()
 
 	// TODO:  在此添加额外的初始化
 	 // 创建滚动视图
-	m_brushBG.CreateSolidBrush(RGB(42, 42, 43));//画刷为绿色
+	m_brushBG.CreateSolidBrush(RGB(0, 0, 0));//画刷为绿色
 	m_inited = TRUE;
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
@@ -96,7 +96,7 @@ HBRUSH CDlgData::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		pWnd->GetDlgCtrlID() == IDC_STATIC_END ||
 		pWnd->GetDlgCtrlID() == IDC_BUTTON_QUERY)
 	{
-		pDC->SetBkColor(RGB(42, 42, 43));//背景色为绿色
+		pDC->SetBkColor(RGB(0, 0, 0));//背景色为绿色
 		pDC->SetTextColor(RGB(255, 255, 255));//文字为红色
 		//pDC->SelectObject(&m_font);//文字为15号字体，华文行楷
 		// 创建并返回背景画刷
@@ -121,5 +121,5 @@ void CDlgData::OnPaint()
 	//给窗口设置背景色
 	CRect rect;
 	GetClientRect(rect);
-	dc.FillSolidRect(rect, RGB(42, 42, 43));   //控件背景色
+	dc.FillSolidRect(rect, RGB(0, 0, 0));   //控件背景色
 }

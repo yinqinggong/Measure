@@ -81,6 +81,9 @@
     <ClInclude Include="DlgData.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="MyStatic.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -123,6 +126,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DlgData.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MyStatic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

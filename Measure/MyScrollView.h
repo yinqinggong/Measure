@@ -24,8 +24,12 @@ private:
     int m_totalDataCount;
     int m_columns;
 
+    CBrush m_brushBG;
+    CSize m_sizeTotal;
+
     DECLARE_MESSAGE_MAP()
 public:
     afx_msg void OnDestroy();
+//    afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };
 
