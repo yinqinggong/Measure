@@ -28,6 +28,12 @@
     <Filter Include="ImgWnd">
       <UniqueIdentifier>{b046656e-207a-4f44-ac2a-4a9a791469b9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Http">
+      <UniqueIdentifier>{a4c64291-aa3e-4ccd-86c2-882c568c886b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Jsoncpp">
+      <UniqueIdentifier>{1546d7e9-70f3-423d-942f-de592c0c550d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Measure.h">
@@ -87,6 +93,39 @@
     <ClInclude Include="MyButton.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\3rdParty\http\httplib.h">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\http\ScaleAPI.h">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\jsoncpp\json_batchallocator.h">
+      <Filter>Jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\jsoncpp\json\autolink.h">
+      <Filter>Jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\jsoncpp\json\config.h">
+      <Filter>Jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\jsoncpp\json\features.h">
+      <Filter>Jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\jsoncpp\json\forwards.h">
+      <Filter>Jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\jsoncpp\json\json.h">
+      <Filter>Jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\jsoncpp\json\reader.h">
+      <Filter>Jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\jsoncpp\json\value.h">
+      <Filter>Jsoncpp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\jsoncpp\json\writer.h">
+      <Filter>Jsoncpp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -137,6 +176,18 @@
     <ClCompile Include="MyButton.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\3rdParty\http\ScaleAPI.cpp">
+      <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\jsoncpp\json_reader.cpp">
+      <Filter>Jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\jsoncpp\json_value.cpp">
+      <Filter>Jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\jsoncpp\json_writer.cpp">
+      <Filter>Jsoncpp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Measure.rc">
@@ -146,6 +197,15 @@
   <ItemGroup>
     <None Include="res\Measure.rc2">
       <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\3rdParty\jsoncpp\json_internalarray.inl">
+      <Filter>Jsoncpp</Filter>
+    </None>
+    <None Include="..\3rdParty\jsoncpp\json_internalmap.inl">
+      <Filter>Jsoncpp</Filter>
+    </None>
+    <None Include="..\3rdParty\jsoncpp\json_valueiterator.inl">
+      <Filter>Jsoncpp</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

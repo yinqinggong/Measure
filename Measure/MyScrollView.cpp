@@ -61,10 +61,10 @@ void CMyScrollView::CreateChildWindows(int nCount)
         CStatic* pImgSta = new CStatic();
         if (pImgSta->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP, CRect(0, 0, 0, 0), pChild, 20000 + i))
         {
-            CString imagePath = _T("D:\\Workspace\\Measure\\Doc\\wood.jpg"); // Ìæ»»ÎªÄãµÄÍ¼Æ¬Â·¾¶
+            CString imagePath = _T("..\\Doc\\wood.jpg"); // Ìæ»»ÎªÄãµÄÍ¼Æ¬Â·¾¶
             if (rand() % 2)
             {
-                imagePath = _T("D:\\Workspace\\Measure\\Doc\\wood1.jpg");
+                imagePath = _T("..\\Doc\\wood1.jpg");
             }
             CImage image;
             if (image.Load(imagePath) == S_OK)

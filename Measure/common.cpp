@@ -402,7 +402,6 @@ BOOL GetInternetConnectedState()
 	return bOnline;
 }
 
-
 bool GetBeginEndTimeStamps(CDateTimeCtrl &beginDateCtrl, CDateTimeCtrl &endDateCtrl, int &beginTime, int &endTime)
 {
 	COleDateTime beginOleDate, endOleDate;

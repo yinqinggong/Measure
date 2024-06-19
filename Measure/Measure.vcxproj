@@ -79,7 +79,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)3rdParty\ffmpeg-7.0-win64\include;$(SolutionDir)3rdParty\jsoncpp;$(SolutionDir)3rdParty\md5;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)3rdParty\ffmpeg-7.0-win64\include;$(SolutionDir)3rdParty\jsoncpp;$(SolutionDir)3rdParty\jsoncpp\json;$(SolutionDir)3rdParty\md5;$(SolutionDir)3rdParty\http;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)3rdParty\ffmpeg-7.0-win64\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -186,6 +186,17 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\3rdParty\http\httplib.h" />
+    <ClInclude Include="..\3rdParty\http\ScaleAPI.h" />
+    <ClInclude Include="..\3rdParty\jsoncpp\json\autolink.h" />
+    <ClInclude Include="..\3rdParty\jsoncpp\json\config.h" />
+    <ClInclude Include="..\3rdParty\jsoncpp\json\features.h" />
+    <ClInclude Include="..\3rdParty\jsoncpp\json\forwards.h" />
+    <ClInclude Include="..\3rdParty\jsoncpp\json\json.h" />
+    <ClInclude Include="..\3rdParty\jsoncpp\json\reader.h" />
+    <ClInclude Include="..\3rdParty\jsoncpp\json\value.h" />
+    <ClInclude Include="..\3rdParty\jsoncpp\json\writer.h" />
+    <ClInclude Include="..\3rdParty\jsoncpp\json_batchallocator.h" />
     <ClInclude Include="CDlgDiameter.h" />
     <ClInclude Include="CDlgReport.h" />
     <ClInclude Include="common.h" />
@@ -207,6 +218,18 @@
     <ClInclude Include="videoplayerd3d.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\3rdParty\http\ScaleAPI.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\jsoncpp\json_reader.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\jsoncpp\json_value.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\jsoncpp\json_writer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="CDlgDiameter.cpp" />
     <ClCompile Include="CDlgReport.cpp" />
     <ClCompile Include="common.cpp" />
@@ -233,6 +256,9 @@
     <ResourceCompile Include="Measure.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\3rdParty\jsoncpp\json_internalarray.inl" />
+    <None Include="..\3rdParty\jsoncpp\json_internalmap.inl" />
+    <None Include="..\3rdParty\jsoncpp\json_valueiterator.inl" />
     <None Include="res\Measure.rc2" />
   </ItemGroup>
   <ItemGroup>
