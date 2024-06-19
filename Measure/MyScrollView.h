@@ -9,12 +9,15 @@ protected:
 
 public:
     CMyScrollView();
-    ~CMyScrollView();
+    virtual ~CMyScrollView();
     virtual void OnInitialUpdate();
 
 protected:
     virtual void OnDraw(CDC* pDC);
     virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);
+    afx_msg void OnDestroy();
+    afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+    //afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 
 private:
     void LayoutChildWindows();
@@ -23,13 +26,8 @@ private:
     std::vector<CWnd*> m_childWindows;
     int m_totalDataCount;
     int m_columns;
-
-    CBrush m_brushBG;
-    CSize m_sizeTotal;
-
+    CBrush m_brushBlack;  // 添加用于背景色的画刷
     DECLARE_MESSAGE_MAP()
-public:
-    afx_msg void OnDestroy();
-//    afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+
 };
 

@@ -1,21 +1,22 @@
 #include "pch.h"
 #include "MyScrollView.h"
 #include "MyStatic.h"
+#include "MyButton.h"
 
 IMPLEMENT_DYNCREATE(CMyScrollView, CScrollView)
 
 BEGIN_MESSAGE_MAP(CMyScrollView, CScrollView)
     ON_WM_DESTROY()
-    ON_WM_CTLCOLOR()
+    ON_WM_ERASEBKGND()
+    //ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
-CMyScrollView::CMyScrollView()
+CMyScrollView::CMyScrollView(): m_brushBlack(RGB(0, 0, 0))
 {
     m_columns = 4; // 每行四个子窗口
 
      // 示例数据数量
     m_totalDataCount = 123;
-    m_brushBG.CreateSolidBrush(RGB(42, 42, 43));//画刷为绿色
 }
 
 CMyScrollView::~CMyScrollView()
@@ -40,11 +41,6 @@ void CMyScrollView::OnInitialUpdate()
 void CMyScrollView::OnDraw(CDC* pDC)
 {
     // 在此绘制滚动视图的内容（如果有需要的话）
-    CRect rect;
-    GetClientRect(rect);
-    rect.right = m_sizeTotal.cx;
-    rect.bottom = m_sizeTotal.cy;
-    pDC->FillSolidRect(rect, RGB(0, 0, 0));   //控件背景色
 }
 
 void CMyScrollView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
@@ -65,7 +61,11 @@ void CMyScrollView::CreateChildWindows(int nCount)
         CStatic* pImgSta = new CStatic();
         if (pImgSta->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP, CRect(0, 0, 0, 0), pChild, 20000 + i))
         {
-            CString imagePath = _T("D:\\SIGAI\\Measure\\Doc\\wood.jpg"); // 替换为你的图片路径
+            CString imagePath = _T("D:\\Workspace\\Measure\\Doc\\wood.jpg"); // 替换为你的图片路径
+            if (rand() % 2)
+            {
+                imagePath = _T("D:\\Workspace\\Measure\\Doc\\wood1.jpg");
+            }
             CImage image;
             if (image.Load(imagePath) == S_OK)
             {
@@ -121,16 +121,13 @@ void CMyScrollView::CreateChildWindows(int nCount)
         }
 
         // 5，创建复选框子控件
-        CButton* pCheckBtn = new CButton();
+        CMyButton* pCheckBtn = new CMyButton();
         if (pCheckBtn->Create(_T(""), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX, CRect(0, 0, 0, 0), pChild, 60000 + i))
         {
-            // 设置背景色
-            //pCheckBtn->SetColor(CButtonST_Ex::BTNST_COLOR_BK_IN, RGB(0, 0, 0));
-            //pCheckBtn->SetColor(CButtonST_Ex::BTNST_COLOR_BK_OUT, RGB(0, 0, 0));
-           /* pCheckBtn->SetColor(CButtonST_Ex::BTNST_COLOR_BK_FOCUS, RGB(0, 0, 0));
-            pCheckBtn->SetColor(CButtonST_Ex::BTNST_COLOR_FG_OUT, RGB(255, 255, 255));
-            pCheckBtn->SetColor(CButtonST_Ex::BTNST_COLOR_FG_IN, RGB(255, 255, 255));
-            pCheckBtn->SetColor(CButtonST_Ex::BTNST_COLOR_FG_FOCUS, RGB(255, 255, 255));*/
+            if (rand() % 2)
+            {
+                pCheckBtn->SetCheck(1);
+            }
         }
         else
         {
@@ -189,7 +186,7 @@ void CMyScrollView::LayoutChildWindows()
         }
       
         // 5，创建复选框子控件
-        CButton* pCheckBtn = static_cast<CButton*>(pChild->GetDlgItem(60000 + i));
+        CMyButton* pCheckBtn = static_cast<CMyButton*>(pChild->GetDlgItem(60000 + i));
         if (pCheckBtn)
         {
             pCheckBtn->MoveWindow(childWidth - 30, childHeight - 95 , 30, 30);
@@ -204,7 +201,6 @@ void CMyScrollView::LayoutChildWindows()
     sizeTotal.cx = clientRect.Width();
     sizeTotal.cy = y;
     SetScrollSizes(MM_TEXT, sizeTotal);
-    m_sizeTotal = sizeTotal;
 }
 
 void CMyScrollView::OnDestroy()
@@ -248,7 +244,7 @@ void CMyScrollView::OnDestroy()
             }
 
             // 5，创建复选框子控件
-            CButton* pCheckBtn = static_cast<CButton*>(m_childWindows[i]->GetDlgItem(60000 + i));
+            CMyButton* pCheckBtn = static_cast<CMyButton*>(m_childWindows[i]->GetDlgItem(60000 + i));
             if (pCheckBtn)
             {
                 pCheckBtn->DestroyWindow();
@@ -259,40 +255,41 @@ void CMyScrollView::OnDestroy()
             delete m_childWindows[i];
         }
     }
-   /* for (CWnd* pChild : m_childWindows)
-    {
-        if (pChild != nullptr)
-        {
-            CMyStatic* pStatic = static_cast<CMyStatic*>(pChild->GetWindow(GW_CHILD));
-            if (pStatic)
-            {
-                pStatic->DestroyWindow();
-                delete pStatic;
-            }
-            pChild->DestroyWindow();
-            delete pChild;
-        }
-    }*/
+   
     m_childWindows.clear();
 }
 
-
+BOOL CMyScrollView::OnEraseBkgnd(CDC* pDC)
+{
+    // TODO: 在此添加消息处理程序代码和/或调用默认值
+     // 设置背景色，例如白色
+    CBrush brush(RGB(0, 0, 0));
+    CRect rect;
+    pDC->GetClipBox(&rect); // 获取需要更新的区域
+    pDC->FillRect(&rect, &brush);
+    // 返回TRUE，表示我们处理了背景擦除
+    return TRUE;
+    //return CScrollView::OnEraseBkgnd(pDC);
+}
+//
+//
 //HBRUSH CMyScrollView::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 //{
-//    HBRUSH hbr = CScrollView::OnCtlColor(pDC, pWnd, nCtlColor);
-//
-//    // TODO:  在此更改 DC 的任何特性
-//
-//    if (pWnd->GetDlgCtrlID() >= 10000 &&
-//        pWnd->GetDlgCtrlID() <= 70000)
+//    // 确保我们只处理复选框
+//    if (nCtlColor == CTLCOLOR_BTN)
 //    {
-//        pDC->SetBkColor(RGB(42, 42, 43));//背景色为绿色
-//        pDC->SetTextColor(RGB(255, 255, 255));//文字为红色
-//        //pDC->SelectObject(&m_font);//文字为15号字体，华文行楷
-//        // 创建并返回背景画刷
-//        //return CreateSolidBrush(m_bgColor);
-//        return m_brushBG;
+//        pDC->SetBkColor(RGB(0, 0, 0));  // 设置背景色为黑色
+//        pDC->SetTextColor(RGB(255, 255, 255));  // 设置文本颜色为白色
+//        return m_brushBlack;  // 返回黑色画刷
 //    }
-//    // TODO:  如果默认的不是所需画笔，则返回另一个画笔
-//    return hbr;
+//
+//    // 对于其他控件，调用默认处理
+//    return CScrollView::OnCtlColor(pDC, pWnd, nCtlColor);
+//
+//    //HBRUSH hbr = CScrollView::OnCtlColor(pDC, pWnd, nCtlColor);
+//
+//    //// TODO:  在此更改 DC 的任何特性
+//
+//    //// TODO:  如果默认的不是所需画笔，则返回另一个画笔
+//    //return hbr;
 //}
