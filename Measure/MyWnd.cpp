@@ -2,6 +2,8 @@
 #include "MyWnd.h"
 #include <iostream>
 #include "CDlgDiameter.h"
+//#include "..\\3rdParty\http\ScaleAPI.h"
+#include "ScaleAPI.h"
 
 #define IDC_BTN_CAPTURE                 8000+1
 #define IDC_BTN_REC                     8000+2
@@ -492,9 +494,19 @@ bool CMyWnd::isPointInEllipse(const CPoint& p)
 
 void CMyWnd::OnBnClickedBtnCapture()
 {
-    //SetStatus(0);
     ShowWindow(SW_SHOW);
-    //AfxMessageBox(_T("拍照"));
+
+    std::string limg;
+    CWaitCursor wait;
+    int ret = PostPhoto(limg);
+    wait.Restore();
+    if (ret < 0)
+    {
+        AfxMessageBox(_T("拍照失败，请重试"));
+        //return;
+    }
+    //TODO limg,base64解密，存本地文件或者转为IStream
+
     m_image.Load(_T("..\\Doc\\test.jpg")); // 将"path_to_your_image"替换为你的图片路径
     m_btnCapture.ShowWindow(SW_HIDE);
     m_btnDis.ShowWindow(SW_SHOW);
@@ -509,7 +521,8 @@ void CMyWnd::OnBnClickedBtnRec()
     m_btnRec.SetWindowTextW(_T("识别中"));
     m_btnRec.EnableWindow(FALSE);
     m_btnDis.ShowWindow(SW_HIDE);
-    Sleep(2000);
+    ScaleWood scalewood;
+    int ret = PostScale(scalewood);
     //SetCursor(::LoadCursor(NULL, IDC_ARROW));
     wait.Restore();
     m_btnRec.ShowWindow(SW_HIDE);
