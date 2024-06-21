@@ -2,8 +2,12 @@
 #include "MyWnd.h"
 #include <iostream>
 #include "CDlgDiameter.h"
-//#include "..\\3rdParty\http\ScaleAPI.h"
 #include "ScaleAPI.h"
+#include "base64.h"
+#include "LogFile.h"
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 #define IDC_BTN_CAPTURE                 8000+1
 #define IDC_BTN_REC                     8000+2
@@ -503,11 +507,29 @@ void CMyWnd::OnBnClickedBtnCapture()
     if (ret < 0)
     {
         AfxMessageBox(_T("拍照失败，请重试"));
-        //return;
+        return;
     }
-    //TODO limg,base64解密，存本地文件或者转为IStream
+    try
+    {
+        limg = base64_decode(limg);
+    }
+    catch (const std::exception&)
+    {
+        WriteLog(_T("invalid base64"));
+        AfxMessageBox(_T("获取图片失败，请重试"));
+        return;
+    }
+    if (limg.length() <= 0)
+    {
+        AfxMessageBox(_T("获取图片失败，请重试"));
+        return;
+    }
 
-    m_image.Load(_T("..\\Doc\\test.jpg")); // 将"path_to_your_image"替换为你的图片路径
+	std::vector<uchar> img_data(limg.begin(), limg.end());
+	cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
+	cv::imwrite("..\\Doc\\limg.jpg", img);
+
+    m_image.Load(_T("..\\Doc\\limg.jpg")); // 将"path_to_your_image"替换为你的图片路径
     m_btnCapture.ShowWindow(SW_HIDE);
     m_btnDis.ShowWindow(SW_SHOW);
     m_btnRec.ShowWindow(SW_SHOW);
@@ -517,17 +539,48 @@ void CMyWnd::OnBnClickedBtnCapture()
 void CMyWnd::OnBnClickedBtnRec()
 {
     CWaitCursor wait;
-    //SetCursor(::LoadCursor(NULL, IDC_WAIT));
     m_btnRec.SetWindowTextW(_T("识别中"));
     m_btnRec.EnableWindow(FALSE);
     m_btnDis.ShowWindow(SW_HIDE);
     ScaleWood scalewood;
     int ret = PostScale(scalewood);
-    //SetCursor(::LoadCursor(NULL, IDC_ARROW));
-    wait.Restore();
-    m_btnRec.ShowWindow(SW_HIDE);
-    m_btnRec.SetWindowTextW(_T("识别"));
     m_btnRec.EnableWindow(TRUE);
+    m_btnRec.SetWindowTextW(_T("识别"));
+    wait.Restore();
+    if (ret < 0)
+    {
+        m_btnRec.ShowWindow(SW_SHOWNORMAL);
+        m_btnDis.ShowWindow(SW_SHOWNORMAL);
+        return;
+    }
+    else
+    {
+        m_btnRec.ShowWindow(SW_HIDE);
+    }
+
+    try
+    {
+        scalewood.img = base64_decode(scalewood.img);
+    }
+    catch (const std::exception&)
+    {
+        WriteLog(_T("invalid base64"));
+        m_btnRec.ShowWindow(SW_SHOWNORMAL);
+        m_btnDis.ShowWindow(SW_SHOWNORMAL);
+        return;
+    }
+    if (scalewood.img.length() <= 0)
+    {
+        m_btnRec.ShowWindow(SW_SHOWNORMAL);
+        m_btnDis.ShowWindow(SW_SHOWNORMAL);
+        return;
+    }
+    //TODO limg,base64解密，存本地文件或者转为IStream
+    std::vector<uchar> img_data(scalewood.img.begin(), scalewood.img.end());
+    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
+    cv::imwrite("..\\Doc\\img.jpg", img);
+    m_image.Destroy();
+    m_image.Load(_T("..\\Doc\\img.jpg")); // 将"path_to_your_image"替换为你的图片路径
 
     //AfxMessageBox(_T("调用识别接口"));
     m_ellipseRects.push_back({ CRect(50, 50, 150, 100), 20.0});

@@ -34,6 +34,9 @@
     <Filter Include="Jsoncpp">
       <UniqueIdentifier>{1546d7e9-70f3-423d-942f-de592c0c550d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="base64">
+      <UniqueIdentifier>{a804f85f-3e4a-4087-b403-be678e692cf5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Measure.h">
@@ -126,6 +129,9 @@
     <ClInclude Include="..\3rdParty\jsoncpp\json\writer.h">
       <Filter>Jsoncpp</Filter>
     </ClInclude>
+    <ClInclude Include="base64.h">
+      <Filter>base64</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -187,6 +193,9 @@
     </ClCompile>
     <ClCompile Include="..\3rdParty\jsoncpp\json_writer.cpp">
       <Filter>Jsoncpp</Filter>
+    </ClCompile>
+    <ClCompile Include="base64.cpp">
+      <Filter>base64</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

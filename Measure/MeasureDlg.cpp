@@ -7,6 +7,7 @@
 #include "Measure.h"
 #include "MeasureDlg.h"
 #include "afxdialogex.h"
+#include "ScaleAPI.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -402,6 +403,8 @@ void CMeasureDlg::OnBnClickedBtnScale()
 	// TODO: 在此添加控件通知处理程序代码
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	m_dlgData.ShowWindow(SW_HIDE);
+	//std::string url;
+	//int ret = PostPreview(url);
 }
 
 void CMeasureDlg::OnBnClickedBtnData()
