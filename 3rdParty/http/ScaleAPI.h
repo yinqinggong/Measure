@@ -36,6 +36,7 @@ typedef struct defWoodAttr
 	Diameters diameters;//木材短直径与长直径的长度，以厘米为单位，为如下形式：
 	double diameter;//长直径与短直径的较小值，以厘米为单位
 	double volumn; //木材的体积，暂时先设置为0，用户设置木材长度之后，前端网页计算出每根木材的体积，填入该字段
+	bool isDeleting;//额外添加的信息，标注是否正在被删除
 }WoodAttr;
 
 typedef struct defScaleWood
@@ -43,7 +44,6 @@ typedef struct defScaleWood
 	unsigned int id; //数值, 本次检尺任务的ID，使用的是时间戳
 	std::vector<WoodAttr> wood_list;//列表, 木材信息列表，包括了识别出的每根木材的信息
 	std::string img;//字符串,Base64编码的jpg文件，是校正处理之后的图像
-
 }ScaleWood;
 
 int PostPreview(std::string& url);

@@ -21,6 +21,7 @@ CDlgData::CDlgData(CWnd* pParent /*=nullptr*/)
 
 CDlgData::~CDlgData()
 {
+	
 }
 
 void CDlgData::DoDataExchange(CDataExchange* pDX)

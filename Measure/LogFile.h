@@ -1,6 +1,8 @@
 #pragma once
 #include <stdio.h>
 
+#define QGDebug 1
+
 #ifndef _WIN32
 #include <pthread.h>
 #else

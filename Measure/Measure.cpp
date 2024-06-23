@@ -6,6 +6,13 @@
 #include "framework.h"
 #include "Measure.h"
 #include "MeasureDlg.h"
+#include <objidl.h>
+#include <gdiplus.h>
+using namespace Gdiplus;
+
+#pragma comment(lib, "Gdiplus.lib")
+
+ULONG_PTR gdiplusToken;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -71,6 +78,10 @@ BOOL CMeasureApp::InitInstance()
 	// 例如修改为公司或组织名
 	SetRegistryKey(_T("应用程序向导生成的本地应用程序"));
 
+	//Gdi初始化
+	GdiplusStartupInput gdiplusStartupInput;
+	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
 	CMeasureDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
@@ -105,3 +116,11 @@ BOOL CMeasureApp::InitInstance()
 	return FALSE;
 }
 
+
+
+int CMeasureApp::ExitInstance()
+{
+	// TODO: 在此添加专用代码和/或调用基类
+	GdiplusShutdown(gdiplusToken);
+	return CWinApp::ExitInstance();
+}

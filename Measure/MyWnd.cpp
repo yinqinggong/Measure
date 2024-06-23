@@ -2,12 +2,12 @@
 #include "MyWnd.h"
 #include <iostream>
 #include "CDlgDiameter.h"
-#include "ScaleAPI.h"
 #include "base64.h"
 #include "LogFile.h"
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <libavutil/mathematics.h>
 
 #define IDC_BTN_CAPTURE                 8000+1
 #define IDC_BTN_REC                     8000+2
@@ -32,7 +32,8 @@ CMyWnd::CMyWnd()
     m_bDbClick = FALSE;
     m_status = 0;
     m_isPolygonComplete = false;
-	//m_image.Load(_T("..\\Doc\\test.jpg")); // 将"path_to_your_image"替换为你的图片路径
+    m_scaleWood = { 0 };
+    m_ellipse_add = { 0 };
 }
 
 CMyWnd::~CMyWnd()
@@ -55,6 +56,70 @@ int CMyWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
     return 0;
 }
 
+void CMyWnd::DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr &woodAttr)
+{
+    // 创建并设置变换矩阵
+    Gdiplus::Matrix matrix;
+    matrix.Translate(woodAttr.ellipse.cx, woodAttr.ellipse.cy);
+    matrix.Rotate(woodAttr.ellipse.angel);
+
+    // 保存图形状态并应用变换
+    GraphicsState state = graphics->Save();
+    graphics->SetTransform(&matrix);
+
+    // 绘制椭圆
+    if (woodAttr.isDeleting)
+    {
+        Pen red_pen(Gdiplus::Color(255, 255, 0, 0), 4);
+        graphics->DrawEllipse(&red_pen, (int)-woodAttr.ellipse.ab1, (int)-woodAttr.ellipse.ab2, 2 * (int)woodAttr.ellipse.ab1, 2 * (int)woodAttr.ellipse.ab2);
+    }
+    else
+    {
+        Pen green_pen(Gdiplus::Color(255, 0, 255, 0), 4);
+        graphics->DrawEllipse(&green_pen, (int)-woodAttr.ellipse.ab1, (int)-woodAttr.ellipse.ab2, 2 * (int)woodAttr.ellipse.ab1, 2 * (int)woodAttr.ellipse.ab2);
+    }
+
+    // 恢复图形状态
+    graphics->Restore(state);
+
+    // 绘制文字（短半轴长度）
+    CString text;
+    text.Format(_T("%.2f"), woodAttr.diameter);
+    Gdiplus::FontFamily fontFamily(L"Arial");
+    Gdiplus::Font font(&fontFamily, 12, FontStyleRegular, UnitPixel);
+    Gdiplus::PointF pointF(static_cast<float>(woodAttr.ellipse.cx), static_cast<float>(woodAttr.ellipse.cy));
+    Gdiplus::SolidBrush solidBrush(Gdiplus::Color(255, 0, 0, 255)); // 黑色画刷
+    graphics->DrawString(text, -1, &font, pointF, &solidBrush);
+
+    // 恢复图形状态，以确保绘制其他图形不受影响
+   // Matrix matrix0;
+    //graphics->SetTransform(&matrix0); // 重置变换矩阵
+}
+
+void CMyWnd::DrawRotatedEllipse(Gdiplus::Graphics* graphics, Gdiplus::Pen& pen, int cx, int cy, int ab1, int ab2, double angle)
+{
+   // 创建并设置变换矩阵
+    Gdiplus::Matrix matrix;
+    matrix.Translate(cx, cy);
+    matrix.Rotate(angle);
+
+    // 保存图形状态并应用变换
+    GraphicsState state = graphics->Save();
+    graphics->SetTransform(&matrix);
+
+    // 绘制椭圆
+    graphics->DrawEllipse(&pen, -ab1, -ab2, 2 * ab1, 2 * ab2);
+
+    // 恢复图形状态
+    graphics->Restore(state);
+}
+
+void CMyWnd::DrawPolygon(Gdiplus::Graphics* graphics, PointF points[], int numPoints)
+{
+    Pen red_pen(Gdiplus::Color(255, 255, 0, 0), 2);
+    graphics->DrawPolygon(&red_pen, points, numPoints);
+}
+
 void CMyWnd::OnPaint()
 {
 	CPaintDC dc(this);
@@ -65,91 +130,118 @@ void CMyWnd::OnPaint()
         GetClientRect(&rect);
         if (m_status == 0 || (m_status == 1 && m_isDrawFinished) || m_status == 2)
         {
-            // 需要先绘制图形，再绘制背景图，才能正确显示
-            // 椭圆绘制成功后，再画背景图片
-            // 获取与图像关联的设备上下文
-            CDC* pDC = CDC::FromHandle(m_image.GetDC());
-            if (pDC)
+            // 获取GDI+图形对象
+            Gdiplus::Graphics graphics(m_image.GetDC());
+
+            for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
             {
-                // 绘制多个不填充的椭圆曲线
-                for (int i = 0; i < m_ellipseRects.size(); ++i)
-                {
-                    if (m_ellipseRects[i].rect.TopLeft() == m_ellipseRects[i].rect.BottomRight())
-                    {
-                        continue;
-                    }
-                    // 创建画笔&选择画笔
-                    CPen pen_red(PS_SOLID, 5, RGB(255, 0, 0)); // 2为边框的宽度，可以根据需要调整 
-                    CPen pen_green(PS_SOLID, 5, RGB(0, 255, 0)); // 2为边框的宽度，可以根据需要调整
-                    CPen* pOldPen;
-                    if (m_ellipseRects[i].isDeleting)
-                    {
-                        pOldPen = pDC->SelectObject(&pen_red);
-                    }
-                    else
-                    {
-                        pOldPen = pDC->SelectObject(&pen_green);
-                    }
-                
-                    // 创建一个空画刷&选择空画刷
-                    CBrush brush;
-                    brush.CreateStockObject(NULL_BRUSH);
-                    CBrush* pOldBrush = pDC->SelectObject(&brush);
-
-                    // 绘制不填充的椭圆曲线
-                    pDC->Ellipse(m_ellipseRects[i].rect);
-
-                    // 获取椭圆的中心点和长轴的两个端点
-                    CPoint center(m_ellipseRects[i].rect.CenterPoint());
-                    //CPoint end1(center.x + (m_ellipseRects[i].rect.Width() / 2), center.y);
-                    //CPoint end2(center.x - (m_ellipseRects[i].rect.Width() / 2), center.y);
-                    //// 计算长轴的长度
-                    //double distance = sqrt(pow(end1.x - end2.x, 2) + pow(end1.y - end2.y, 2));
-                    if (m_ellipseRects[i].diameter > 0.0001)
-                    {
-                        // 将长轴的长度绘制在椭圆中心点附近
-                        CString strDistance;
-                        strDistance.Format(_T("%.2f"), m_ellipseRects[i].diameter);
-                        // 设置文本背景模式为透明
-                        pDC->SetBkMode(TRANSPARENT);
-                        pDC->TextOut(center.x - 20, center.y - 10, strDistance);
-                    }
-
-                    // 恢复原来的画笔和画刷
-                    pDC->SelectObject(pOldPen);
-                    pDC->SelectObject(pOldBrush);
-                }
-
-                // 设置透明背景模式
-                pDC->SetBkMode(TRANSPARENT);
-                // 创建画笔和画刷
-                CPen pen(PS_SOLID, 5, RGB(255, 0, 0)); // 红色边框
-                CBrush* pOldBrush = static_cast<CBrush*>(pDC->SelectStockObject(NULL_BRUSH)); // 空画刷
-                CPen* pOldPen = pDC->SelectObject(&pen);
-
-                // 绘制多边形
-                if (m_points.size() > 1)
-                {
-                    for (size_t i = 0; i < m_points.size() - 1; i++)
-                    {
-                        pDC->MoveTo(m_points[i]);
-                        pDC->LineTo(m_points[i + 1]);
-                    }
-                    //dc.Polyline(&m_points[0], static_cast<int>(m_points.size()));
-                    if (m_isPolygonComplete)
-                    {
-                        pDC->MoveTo(m_points.front());
-                        pDC->LineTo(m_points.back());
-                    }
-                }
-                // 恢复原来的画笔和画刷
-                pDC->SelectObject(pOldPen);
-                pDC->SelectObject(pOldBrush);
-
-
-                // 释放设备上下文
-                m_image.ReleaseDC();
+                DrawRotatedEllipse(&graphics, m_scaleWood.wood_list[i]);
             }
+
+            // 绘制三角形
+            if (m_points.size() > 0)
+            {
+                Gdiplus::PointF* points = new Gdiplus::PointF[m_points.size()];
+                for (size_t i = 0; i < m_points.size(); i++)
+                {
+                    points[i].X = m_points[i].x;
+                    points[i].Y = m_points[i].y;
+                }
+                DrawPolygon(&graphics, points, m_points.size());
+                delete[]points;
+            }
+
+            // 释放GDI+图形对象
+            m_image.ReleaseDC();
+
+            // 将绘制的图像显示到窗口上
+            //dc.BitBlt(0, 0, m_image.GetWidth(), m_image.GetHeight(), CDC::FromHandle(m_image.GetDC()), 0, 0, SRCCOPY);
+
+            //// 需要先绘制图形，再绘制背景图，才能正确显示
+            //// 椭圆绘制成功后，再画背景图片
+            //// 获取与图像关联的设备上下文
+            //CDC* pDC = CDC::FromHandle(m_image.GetDC());
+            //if (pDC)
+            //{
+            //    // 绘制多个不填充的椭圆曲线
+            //    for (int i = 0; i < m_ellipseRects.size(); ++i)
+            //    {
+            //        if (m_ellipseRects[i].rect.TopLeft() == m_ellipseRects[i].rect.BottomRight())
+            //        {
+            //            continue;
+            //        }
+            //        // 创建画笔&选择画笔
+            //        CPen pen_red(PS_SOLID, 5, RGB(255, 0, 0)); // 2为边框的宽度，可以根据需要调整 
+            //        CPen pen_green(PS_SOLID, 5, RGB(0, 255, 0)); // 2为边框的宽度，可以根据需要调整
+            //        CPen* pOldPen;
+            //        if (m_ellipseRects[i].isDeleting)
+            //        {
+            //            pOldPen = pDC->SelectObject(&pen_red);
+            //        }
+            //        else
+            //        {
+            //            pOldPen = pDC->SelectObject(&pen_green);
+            //        }
+            //    
+            //        // 创建一个空画刷&选择空画刷
+            //        CBrush brush;
+            //        brush.CreateStockObject(NULL_BRUSH);
+            //        CBrush* pOldBrush = pDC->SelectObject(&brush);
+
+            //        // 绘制不填充的椭圆曲线
+            //        pDC->Ellipse(m_ellipseRects[i].rect);
+
+            //        // 获取椭圆的中心点和长轴的两个端点
+            //        CPoint center(m_ellipseRects[i].rect.CenterPoint());
+            //        //CPoint end1(center.x + (m_ellipseRects[i].rect.Width() / 2), center.y);
+            //        //CPoint end2(center.x - (m_ellipseRects[i].rect.Width() / 2), center.y);
+            //        //// 计算长轴的长度
+            //        //double distance = sqrt(pow(end1.x - end2.x, 2) + pow(end1.y - end2.y, 2));
+            //        if (m_ellipseRects[i].diameter > 0.0001)
+            //        {
+            //            // 将长轴的长度绘制在椭圆中心点附近
+            //            CString strDistance;
+            //            strDistance.Format(_T("%.2f"), m_ellipseRects[i].diameter);
+            //            // 设置文本背景模式为透明
+            //            pDC->SetBkMode(TRANSPARENT);
+            //            pDC->TextOut(center.x - 20, center.y - 10, strDistance);
+            //        }
+
+            //        // 恢复原来的画笔和画刷
+            //        pDC->SelectObject(pOldPen);
+            //        pDC->SelectObject(pOldBrush);
+            //    }
+
+            //    // 设置透明背景模式
+            //    pDC->SetBkMode(TRANSPARENT);
+            //    // 创建画笔和画刷
+            //    CPen pen(PS_SOLID, 5, RGB(255, 0, 0)); // 红色边框
+            //    CBrush* pOldBrush = static_cast<CBrush*>(pDC->SelectStockObject(NULL_BRUSH)); // 空画刷
+            //    CPen* pOldPen = pDC->SelectObject(&pen);
+
+            //    // 绘制多边形
+            //    if (m_points.size() > 1)
+            //    {
+            //        for (size_t i = 0; i < m_points.size() - 1; i++)
+            //        {
+            //            pDC->MoveTo(m_points[i]);
+            //            pDC->LineTo(m_points[i + 1]);
+            //        }
+            //        //dc.Polyline(&m_points[0], static_cast<int>(m_points.size()));
+            //        if (m_isPolygonComplete)
+            //        {
+            //            pDC->MoveTo(m_points.front());
+            //            pDC->LineTo(m_points.back());
+            //        }
+            //    }
+            //    // 恢复原来的画笔和画刷
+            //    pDC->SelectObject(pOldPen);
+            //    pDC->SelectObject(pOldBrush);
+
+
+            //    // 释放设备上下文
+            //    m_image.ReleaseDC();
+            //}
             //椭圆绘制成功后，再画背景图片
             if (m_bDbClick)
             {
@@ -171,22 +263,64 @@ void CMyWnd::OnPaint()
                 m_image.Draw(dc, 0, 0, rect.Width(), rect.Height(), 0, 0, m_image.GetWidth(), m_image.GetHeight());
             }
 
-            // 创建画笔&选择画笔
-            CPen pen(PS_SOLID, 2, RGB(255, 255, 255)); // 2为边框的宽度，可以根据需要调整
-            CPen* pOldPen = dc.SelectObject(&pen);
+            // 使用双缓冲绘图，防止闪烁
+            /*CRect rect;
+            GetClientRect(&rect);
+            CDC memDC;
+            CBitmap bmp;
+            memDC.CreateCompatibleDC(&dc);
+            bmp.CreateCompatibleBitmap(&dc, rect.Width(), rect.Height());
+            CBitmap* pOldbmp = memDC.SelectObject(&bmp);*/
 
-            // 创建一个空画刷&选择空画刷
-            CBrush brush;
-            brush.CreateStockObject(NULL_BRUSH);
-            CBrush* pOldBrush = dc.SelectObject(&brush);
+            // 获取GDI+图形对象
+            Gdiplus::Graphics graphics(dc.GetSafeHdc());
 
-            // 计算椭圆的位置和大小&绘制椭圆
-            CRect rectEllipse(startPoint, endPoint);
-            dc.Ellipse(rectEllipse);
+            // 创建一个画笔
+            Pen pen(Gdiplus::Color(255, 255, 255, 255), 2);
+            int cx = (m_startPoint.x + m_endPoint.x) * 0.5;
+            int cy = (m_startPoint.y + m_endPoint.y) * 0.5;
+            int ab1 = abs(m_endPoint.x - m_startPoint.x) * 0.5;
+            int ab2 = abs(m_endPoint.y - m_startPoint.y) * 0.5;
+            double angel = CalculateAngle(m_startPoint.x, m_startPoint.y, m_endPoint.x, m_endPoint.y);
+            DrawRotatedEllipse(&graphics, pen, cx, cy, ab1, ab2, angel);
 
-            // 恢复原来的画笔和画刷
-            dc.SelectObject(pOldPen);
-            dc.SelectObject(pOldBrush);
+
+            // 如果正在绘制椭圆，则绘制之
+            //if (m_isDrawing)
+            //{
+            //    // 计算椭圆的中心坐标和长短半轴长度
+            //    int cx = (startPoint.x + endPoint.x) / 2;
+            //    int cy = (startPoint.y + endPoint.y) / 2;
+            //    int ab1 = abs(endPoint.x - startPoint.x) / 2;
+            //    int ab2 = abs(endPoint.y - startPoint.y) / 2;
+
+            //    // 绘制椭圆
+            //    DrawRotatedEllipse2(&graphics, pen, cx, cy, ab1, ab2, m_angle);
+            //}
+
+            // 将绘制的图像拷贝到窗口的DC上
+            //dc.BitBlt(0, 0, rect.Width(), rect.Height(), &memDC, 0, 0, SRCCOPY);
+
+            // 清理
+            //memDC.SelectObject(pOldbmp);
+
+
+            //// 创建画笔&选择画笔
+            //CPen pen(PS_SOLID, 2, RGB(255, 255, 255)); // 2为边框的宽度，可以根据需要调整
+            //CPen* pOldPen = dc.SelectObject(&pen);
+
+            //// 创建一个空画刷&选择空画刷
+            //CBrush brush;
+            //brush.CreateStockObject(NULL_BRUSH);
+            //CBrush* pOldBrush = dc.SelectObject(&brush);
+
+            //// 计算椭圆的位置和大小&绘制椭圆
+            //CRect rectEllipse(startPoint, endPoint);
+            //dc.Ellipse(rectEllipse);
+
+            //// 恢复原来的画笔和画刷
+            //dc.SelectObject(pOldPen);
+            //dc.SelectObject(pOldBrush);
         }
         else if (m_status == 3)
         {
@@ -254,8 +388,14 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
         {
             // 记录起始点
             m_isDrawFinished = false;
-            startPoint = point;
-            m_ellipseRects.push_back({ CRect(startPoint, startPoint),0.0 });
+            m_startPoint = point;
+           /* m_ellipse_add.cx = startPoint.x;
+            m_ellipse_add.cy = startPoint.y;
+            m_ellipse_add.ab1 = 0;
+            m_ellipse_add.ab2 = 0;
+            m_ellipse_add.angel = 0;*/
+
+            //m_ellipseRects.push_back({ CRect(startPoint, startPoint),0.0 });
         }
         else if (m_status == 2)
         {
@@ -344,32 +484,51 @@ void CMyWnd::OnLButtonUp(UINT nFlags, CPoint point)
     }
     else if(m_status == 1)
     {
-		if (m_ellipseRects[m_ellipseRects.size() - 1].rect.TopLeft() != m_ellipseRects[m_ellipseRects.size() - 1].rect.BottomRight())
-		{
-			//需要用户来输入短直径
-			CDlgDiameter dlg;
-			INT_PTR nResponse = dlg.DoModal();
-			if (nResponse == IDOK)
-			{
-				float d = dlg.GetDiameter();
-				if (d > 0.001)
-				{
-					m_ellipseRects[m_ellipseRects.size() - 1].diameter = d;
-				}
-				else
-				{
-					m_ellipseRects.erase(--m_ellipseRects.end());
-				}
-			}
-			else
-			{
-				m_ellipseRects.erase(--m_ellipseRects.end());
-			}
-        }
-        else
+        if (m_ellipse_add.ab1 > 0.0 || m_ellipse_add.ab2 > 0.0)
         {
-            m_ellipseRects.erase(--m_ellipseRects.end());
+            //需要用户来输入短直径
+            CDlgDiameter dlg;
+            INT_PTR nResponse = dlg.DoModal();
+            if (nResponse == IDOK)
+            {
+                float d = dlg.GetDiameter();
+                if (d > 0.001)
+                {
+                    WoodAttr woodAttr = { 0 };
+                    woodAttr.diameter = d;
+                    woodAttr.ellipse = m_ellipse_add;
+                    woodAttr.diameters.d1 = m_ellipse_add.ab1;
+                    woodAttr.diameters.d2 = m_ellipse_add.ab2;
+                    m_scaleWood.wood_list.push_back(woodAttr);
+                }
+            }
         }
+		//if (m_ellipseRects[m_ellipseRects.size() - 1].rect.TopLeft() != m_ellipseRects[m_ellipseRects.size() - 1].rect.BottomRight())
+		//{
+		//	//需要用户来输入短直径
+		//	CDlgDiameter dlg;
+		//	INT_PTR nResponse = dlg.DoModal();
+		//	if (nResponse == IDOK)
+		//	{
+		//		float d = dlg.GetDiameter();
+		//		if (d > 0.001)
+		//		{
+		//			m_ellipseRects[m_ellipseRects.size() - 1].diameter = d;
+		//		}
+		//		else
+		//		{
+		//			m_ellipseRects.erase(--m_ellipseRects.end());
+		//		}
+		//	}
+		//	else
+		//	{
+		//		m_ellipseRects.erase(--m_ellipseRects.end());
+		//	}
+  //      }
+  //      else
+  //      {
+  //          m_ellipseRects.erase(--m_ellipseRects.end());
+  //      }
         SetStatus(0);
         m_isDrawFinished = true;
         Invalidate();
@@ -414,30 +573,62 @@ void CMyWnd::OnMouseMove(UINT nFlags, CPoint point)
     else if(m_status == 1)
     {
         // 如果鼠标左键按下，并且正在移动，更新结束点并重绘
-        if ((nFlags & MK_LBUTTON) && (startPoint != point))
+        if ((nFlags & MK_LBUTTON) && (m_startPoint != point))
         {
             // 更新结束点
-            endPoint = point;
-            if (m_ellipseRects.size() > 0)
-            {  
-                //拖动之后要重新计算起始点
-                if (m_bDbClick)
-                {
-                    CPoint newStartPoint(startPoint.x - m_ptOffset.x, startPoint.y - m_ptOffset.y);
-                    CPoint newEndPoint(endPoint.x - m_ptOffset.x, endPoint.y - m_ptOffset.y);
-                    m_ellipseRects[m_ellipseRects.size() - 1].rect.SetRect(newStartPoint, newEndPoint);
-                }
-                else
-                {
-                    RECT rect;
-                    GetClientRect(&rect);
-                    CPoint newStartPoint(startPoint.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left), 
-                        startPoint.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top));
-                    CPoint newEndPoint(endPoint.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left),
-                        endPoint.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top));
-                    m_ellipseRects[m_ellipseRects.size() - 1].rect.SetRect(newStartPoint, newEndPoint);
-                }
-            }
+            m_endPoint = point;
+            //if (m_ellipse_add.cx > 0.0)
+            {
+				//拖动之后要重新计算起始点
+				CPoint newStartPoint;
+				CPoint newEndPoint;
+				if (m_bDbClick)
+				{
+					newStartPoint.x = m_startPoint.x - m_ptOffset.x;
+					newStartPoint.y = m_startPoint.y - m_ptOffset.y;
+					newEndPoint.x = m_endPoint.x - m_ptOffset.x;
+					newEndPoint.y = m_endPoint.y - m_ptOffset.y;
+				}
+				else
+				{
+					RECT rect;
+					GetClientRect(&rect);
+					newStartPoint.x = m_startPoint.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left);
+					newStartPoint.y = m_startPoint.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top);
+					newEndPoint.x = m_endPoint.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left);
+					newEndPoint.y = m_endPoint.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top);
+				}
+				m_ellipse_add.cx = (newStartPoint.x + newEndPoint.x) * 0.5;
+				m_ellipse_add.cy = (newStartPoint.y + newEndPoint.y) * 0.5;
+				m_ellipse_add.ab1 = abs(newEndPoint.x - newStartPoint.x) * 0.5;
+				m_ellipse_add.ab2 = abs(newEndPoint.y - newStartPoint.y) * 0.5;
+				m_ellipse_add.angel = CalculateAngle(newStartPoint.x, newStartPoint.y, newEndPoint.x, newEndPoint.y);
+                //m_ellipse_add.angel = CalculateAngle(m_startPoint.x, m_startPoint.y, m_endPoint.x, m_endPoint.y);
+			}
+            //if (m_ellipseRects.size() > 0)
+            //{  
+            //    //拖动之后要重新计算起始点
+            //    if (m_bDbClick)
+            //    {
+            //        CPoint newStartPoint(startPoint.x - m_ptOffset.x, startPoint.y - m_ptOffset.y);
+            //        CPoint newEndPoint(endPoint.x - m_ptOffset.x, endPoint.y - m_ptOffset.y);
+            //        m_ellipseRects[m_ellipseRects.size() - 1].rect.SetRect(newStartPoint, newEndPoint);
+            //        // 计算角度
+            //        m_angle = CalculateAngle(newStartPoint.x, newStartPoint.y, newEndPoint.x, newEndPoint.y);
+            //    }
+            //    else
+            //    {
+            //        RECT rect;
+            //        GetClientRect(&rect);
+            //        CPoint newStartPoint(startPoint.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left), 
+            //            startPoint.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top));
+            //        CPoint newEndPoint(endPoint.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left),
+            //            endPoint.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top));
+            //        m_ellipseRects[m_ellipseRects.size() - 1].rect.SetRect(newStartPoint, newEndPoint);
+            //        // 计算角度
+            //        m_angle = CalculateAngle(newStartPoint.x, newStartPoint.y, newEndPoint.x, newEndPoint.y);
+            //    }
+            //}
             Invalidate();
         }
     }
@@ -482,24 +673,79 @@ bool CMyWnd::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
 
 bool CMyWnd::isPointInEllipse(const CPoint& p)
 {
-    for (size_t i = 0; i < m_ellipseRects.size(); i++)
+    for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
     {
-        if (p.x >= m_ellipseRects[i].rect.left && 
-            p.x <= m_ellipseRects[i].rect.right &&
-            p.y >= m_ellipseRects[i].rect.top && 
-            p.y <= m_ellipseRects[i].rect.bottom)
+        if (p.x >= m_scaleWood.wood_list[i].ellipse.cx - m_scaleWood.wood_list[i].ellipse.ab1 * 0.5 &&
+            p.x <= m_scaleWood.wood_list[i].ellipse.cx + m_scaleWood.wood_list[i].ellipse.ab1 * 0.5 &&
+            p.y >= m_scaleWood.wood_list[i].ellipse.cy - m_scaleWood.wood_list[i].ellipse.ab2 * 0.5 &&
+            p.y <= m_scaleWood.wood_list[i].ellipse.cy + m_scaleWood.wood_list[i].ellipse.ab2 * 0.5)
         {
-            m_ellipseRects[i].isDeleting = !m_ellipseRects[i].isDeleting;
+            m_scaleWood.wood_list[i].isDeleting = !m_scaleWood.wood_list[i].isDeleting;
             return true;
         }
     }
     return false;
 }
 
+bool CMyWnd::IsPointInEllipse(int px, int py, int cx, int cy, int a, int b, double angle)
+{
+    // 将角度转换为弧度
+    double radianAngle = angle * M_PI / 180.0;
+
+    // 将点(px, py)绕椭圆中心(cx, cy)反向旋转angle角度
+    double cosAngle = cos(-radianAngle);
+    double sinAngle = sin(-radianAngle);
+
+    double dx = px - cx;
+    double dy = py - cy;
+
+    double rotatedX = dx * cosAngle - dy * sinAngle;
+    double rotatedY = dx * sinAngle + dy * cosAngle;
+
+    // 判断旋转后的点是否在标准椭圆内
+    double normalizedX = rotatedX / a;
+    double normalizedY = rotatedY / b;
+
+    return (normalizedX * normalizedX + normalizedY * normalizedY) <= 1.0;
+}
+
+bool CMyWnd::IsPointInPolygon(int px, int py, const std::vector<CPoint>& polygon)
+{
+    int n = polygon.size();
+    bool inside = false;
+
+    for (int i = 0, j = n - 1; i < n; j = i++)
+    {
+        int xi = polygon[i].x, yi = polygon[i].y;
+        int xj = polygon[j].x, yj = polygon[j].y;
+
+        bool intersect = ((yi > py) != (yj > py)) &&
+            (px < (xj - xi)* (py - yi) / (yj - yi) + xi);
+        if (intersect)
+        {
+            inside = !inside;
+        }
+    }
+
+    return inside;
+}
+
+double CMyWnd::CalculateAngle(int startX, int startY, int endX, int endY)
+{
+    // 计算两点之间的角度（以度为单位）
+    double dx = endX - startX;
+    double dy = endY - startY;
+    double angle = atan2(dy, dx) * 180.0 / M_PI;
+
+    return angle;
+}
+
 void CMyWnd::OnBnClickedBtnCapture()
 {
+#if (QGDebug == 1)
     ShowWindow(SW_SHOW);
-
+#else
+    ShowWindow(SW_SHOW);
     std::string limg;
     CWaitCursor wait;
     int ret = PostPhoto(limg);
@@ -528,7 +774,7 @@ void CMyWnd::OnBnClickedBtnCapture()
 	std::vector<uchar> img_data(limg.begin(), limg.end());
 	cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
 	cv::imwrite("..\\Doc\\limg.jpg", img);
-
+#endif // 
     m_image.Load(_T("..\\Doc\\limg.jpg")); // 将"path_to_your_image"替换为你的图片路径
     m_btnCapture.ShowWindow(SW_HIDE);
     m_btnDis.ShowWindow(SW_SHOW);
@@ -538,6 +784,37 @@ void CMyWnd::OnBnClickedBtnCapture()
 
 void CMyWnd::OnBnClickedBtnRec()
 {
+#if (QGDebug == 1) 
+    m_btnRec.EnableWindow(TRUE);
+    m_btnRec.SetWindowTextW(_T("识别"));
+    m_btnRec.ShowWindow(SW_HIDE);
+    m_btnDis.ShowWindow(SW_HIDE);
+    ScaleWood scalewood;
+    scalewood.id = 1;
+    scalewood.img = "";
+    WoodAttr woodAttr1 = { 0 };
+    woodAttr1.ellipse = {200.0, 200.0, 100.0, 80.0, 45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    woodAttr1.diameter = 80.0;
+    woodAttr1.diameters = { 100.0, 80.0 };
+    woodAttr1.volumn = 0.0;
+    
+    WoodAttr woodAttr2 = { 0 };
+    woodAttr2.ellipse = { 500.0, 500.0, 100.0, 80.0, 45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    woodAttr2.diameter = 80.0;
+    woodAttr2.diameters = { 100.0, 80.0 };
+    woodAttr2.volumn = 0.0;
+
+    WoodAttr woodAttr3 = { 0 };
+    woodAttr3.ellipse = { 700.0, 700.0, 100.0, 80.0, 45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+    woodAttr3.diameter = 80.0;
+    woodAttr3.diameters = { 100.0, 80.0 };
+    woodAttr3.volumn = 0.0;
+
+    scalewood.wood_list.push_back(woodAttr1);
+    scalewood.wood_list.push_back(woodAttr2);
+    scalewood.wood_list.push_back(woodAttr3);
+
+#else
     CWaitCursor wait;
     m_btnRec.SetWindowTextW(_T("识别中"));
     m_btnRec.EnableWindow(FALSE);
@@ -557,7 +834,6 @@ void CMyWnd::OnBnClickedBtnRec()
     {
         m_btnRec.ShowWindow(SW_HIDE);
     }
-
     try
     {
         scalewood.img = base64_decode(scalewood.img);
@@ -579,19 +855,13 @@ void CMyWnd::OnBnClickedBtnRec()
     std::vector<uchar> img_data(scalewood.img.begin(), scalewood.img.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
     cv::imwrite("..\\Doc\\img.jpg", img);
+#endif
     m_image.Destroy();
     m_image.Load(_T("..\\Doc\\img.jpg")); // 将"path_to_your_image"替换为你的图片路径
 
     //AfxMessageBox(_T("调用识别接口"));
-    m_ellipseRects.push_back({ CRect(50, 50, 150, 100), 20.0});
-    m_ellipseRects.push_back({ CRect(200, 50, 300, 100), 20.0 });
-    m_ellipseRects.push_back({ CRect(100, 150, 200, 200), 20.0 });
-    m_ellipseRects.push_back({ CRect(250, 150, 350, 200), 20.0 });
-    m_ellipseRects.push_back({ CRect(150, 250, 450, 500), 20.0 });
-    m_ellipseRects.push_back({ CRect(950, 750, 1450, 1500), 20.0 });
-    m_ellipseRects.push_back({ CRect(1050, 850, 1650, 1900), 20.0 });
+    m_scaleWood = scalewood;
     SetStatus(0);
-
     this->Invalidate();
 }
 
@@ -612,12 +882,12 @@ void CMyWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     if (nChar == VK_DELETE && m_status == 2)
     {
         bool isDelete = false;
-        auto iter = m_ellipseRects.begin();
-        while (iter != m_ellipseRects.end())
+        auto iter = m_scaleWood.wood_list.begin();
+        while (iter != m_scaleWood.wood_list.end())
         {
             if (iter->isDeleting)
             {
-                iter = m_ellipseRects.erase(iter);
+                iter = m_scaleWood.wood_list.erase(iter);
                 isDelete = true;
             }
             else
@@ -628,7 +898,7 @@ void CMyWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (isDelete)
         {
             m_image.Destroy();
-            m_image.Load(_T("..\\Doc\\test.jpg"));
+            m_image.Load(_T("..\\Doc\\img.jpg"));
             Invalidate();
         }
     }
