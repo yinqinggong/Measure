@@ -89,7 +89,7 @@ int PostScale(ScaleWood& scalewood)
 		}
 		for (unsigned int i = 0; i < arrayData.size(); i++)
 		{
-			WoodAttr woodAttr;
+			WoodAttr woodAttr = { 0 };
 			woodAttr.diameter = arrayData[i]["diameter"].asDouble();
 			woodAttr.volumn = arrayData[i]["volumn"].asDouble();
 			Json::Value diametersData = arrayData[i]["diameters"];

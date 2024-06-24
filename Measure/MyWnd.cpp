@@ -793,33 +793,48 @@ void CMyWnd::OnBnClickedBtnRec()
     scalewood.id = 1;
     scalewood.img = "";
     WoodAttr woodAttr1 = { 0 };
-    woodAttr1.ellipse = {200.0, 200.0, 100.0, 80.0, 45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-    woodAttr1.diameter = 80.0;
-    woodAttr1.diameters = { 100.0, 80.0 };
-    woodAttr1.volumn = 0.0;
+    woodAttr1.ellipse = { 2436.7294921875000, 963.02606201171875, 54.000000000000000, 57.000000000000000, 63.426303863525391,
+        2383.0000000000000, 984.00000000000000, 2489.0000000000000, 943.00000000000000, 
+        2455.0000000000000, 1013.0000000000000, 2417.0000000000000, 912.00000000000000 };
+    woodAttr1.diameter = 13.400000000000000;
+    woodAttr1.diameters = { 13.400000000000000, 14.300000000000001 };
+    woodAttr1.volumn = 0.0000000000000000;
     
     WoodAttr woodAttr2 = { 0 };
-    woodAttr2.ellipse = { 500.0, 500.0, 100.0, 80.0, 45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-    woodAttr2.diameter = 80.0;
-    woodAttr2.diameters = { 100.0, 80.0 };
-    woodAttr2.volumn = 0.0;
+    woodAttr2.ellipse = { 2258.6398925781250, 1551.4863281250000, 56.000000000000000, 57.000000000000000, 124.72299957275391,
+        2231.0000000000000, 1502.0000000000000, 2285.0000000000000, 1602.0000000000000,
+        2210.0000000000000, 1578.0000000000000, 2307.0000000000000, 1527.0000000000000 };
+    woodAttr2.diameter = 5.0000000000000000;
+    woodAttr2.diameters = { 5.0000000000000000, 5.2000000000000002 };
+    woodAttr2.volumn = 0.0000000000000000;
 
     WoodAttr woodAttr3 = { 0 };
-    woodAttr3.ellipse = { 700.0, 700.0, 100.0, 80.0, 45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-    woodAttr3.diameter = 80.0;
-    woodAttr3.diameters = { 100.0, 80.0 };
-    woodAttr3.volumn = 0.0;
+    woodAttr3.ellipse = { 2189.5292968750000, 1670.6750488281250, 73.000000000000000, 79.000000000000000, 120.99822998046875,
+        2120.0000000000000, 1635.0000000000000, 2260.0000000000000, 1706.0000000000000,
+        2158.0000000000000, 1735.0000000000000, 2222.0000000000000, 1606.0000000000000 };
+    woodAttr3.diameter = 6.5999999999999996;
+    woodAttr3.diameters = { 6.5999999999999996, 7.2000000000000002 };
+    woodAttr3.volumn = 0.0000000000000000;
+
+    WoodAttr woodAttr4 = { 0 };
+    woodAttr4.ellipse = { 2362.7504882812500, 1676.9362792968750, 65.000000000000000, 71.000000000000000, 52.447589874267578,
+        2306.0000000000000, 1720.0000000000000, 2417.0000000000000, 1632.0000000000000,
+        2403.0000000000000, 1726.0000000000000, 2320.0000000000000, 1625.0000000000000 };
+    woodAttr4.diameter = 6.0000000000000000;
+    woodAttr4.diameters = { 6.0000000000000000, 6.5000000000000000 };
+    woodAttr4.volumn = 0.0000000000000000;
 
     scalewood.wood_list.push_back(woodAttr1);
     scalewood.wood_list.push_back(woodAttr2);
     scalewood.wood_list.push_back(woodAttr3);
+    scalewood.wood_list.push_back(woodAttr4);
 
 #else
     CWaitCursor wait;
     m_btnRec.SetWindowTextW(_T("识别中"));
     m_btnRec.EnableWindow(FALSE);
     m_btnDis.ShowWindow(SW_HIDE);
-    ScaleWood scalewood;
+    ScaleWood scalewood = { 0 };
     int ret = PostScale(scalewood);
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("识别"));
@@ -828,6 +843,7 @@ void CMyWnd::OnBnClickedBtnRec()
     {
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
         m_btnDis.ShowWindow(SW_SHOWNORMAL);
+        AfxMessageBox(_T("识别失败，请重试"));
         return;
     }
     else
@@ -843,12 +859,14 @@ void CMyWnd::OnBnClickedBtnRec()
         WriteLog(_T("invalid base64"));
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
         m_btnDis.ShowWindow(SW_SHOWNORMAL);
+        AfxMessageBox(_T("识别失败，请重试"));
         return;
     }
     if (scalewood.img.length() <= 0)
     {
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
         m_btnDis.ShowWindow(SW_SHOWNORMAL);
+        AfxMessageBox(_T("识别失败，请重试"));
         return;
     }
     //TODO limg,base64解密，存本地文件或者转为IStream
