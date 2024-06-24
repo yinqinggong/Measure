@@ -8,6 +8,7 @@
 #include "MeasureDlg.h"
 #include "afxdialogex.h"
 #include "ScaleAPI.h"
+#include "sqlite3.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -90,6 +91,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_REPORT, &CMeasureDlg::OnBnClickedBtnReport)
 	ON_BN_CLICKED(IDC_BTN_SCALE, &CMeasureDlg::OnBnClickedBtnScale)
 	ON_BN_CLICKED(IDC_BTN_DATA, &CMeasureDlg::OnBnClickedBtnData)
+	ON_BN_CLICKED(IDC_BTN_SAVE, &CMeasureDlg::OnBnClickedBtnSave)
 END_MESSAGE_MAP()
 
 
@@ -412,4 +414,176 @@ void CMeasureDlg::OnBnClickedBtnData()
 	// TODO: 在此添加控件通知处理程序代码
 	m_imgWnd.ShowWindow(SW_HIDE);
 	m_dlgData.ShowWindow(SW_SHOWNORMAL);
+}
+
+//数据库表test_table中行结构体
+typedef struct DB_DataFormat
+{
+	int	 	nID;
+	char 	cName[50];
+	char 	cCreateTime[15];    // YYYYMMDDHHMMSS
+	unsigned char 	ucSeq;
+	double 	dMoney;
+}DB_Data_Row, * PDB_Data_Row;
+// 20190409153643(Hex) -> "2019-04-09 15:36:43"
+void _BCDTimeToDBTime(unsigned char* BCDTime_in, short BCDTime_len, char* DBTime_out, short DBTime_len)
+{
+	assert(BCDTime_len == 7);
+
+	snprintf(DBTime_out, DBTime_len, "%02X%02X-%02X-%02X %02X:%02X:%02X", BCDTime_in[0], BCDTime_in[1],
+		BCDTime_in[2], BCDTime_in[3], BCDTime_in[4], BCDTime_in[5], BCDTime_in[6]);
+}
+
+// 20190409153643(char) -> "2019-04-09 15:36:43"
+void _cTimeToDBTime(char* cTime_in, short cTime_len, char* DBTime_out, short DBTime_len)
+{
+	assert(cTime_len == 14);
+
+	snprintf(DBTime_out, DBTime_len, "%c%c%c%c-%c%c-%c%c %c%c:%c%c:%c%c", cTime_in[0], cTime_in[1],
+		cTime_in[2], cTime_in[3], cTime_in[4], cTime_in[5], cTime_in[6], cTime_in[7],
+		cTime_in[8], cTime_in[9], cTime_in[10], cTime_in[11], cTime_in[12], cTime_in[13]);
+}
+
+// "2019-04-09 15:36:43" -> 20190409153643(char)
+void _DBTimeTocTime(char* DBTime_in, short DBTime_len, char* cTime_out)
+{
+	assert(DBTime_len == 19);
+
+	int i = 0, cTime_len = 0;
+	for (i = 0; i < DBTime_len; i++)
+	{
+		// 只存放数字字符
+		if (DBTime_in[i] >= '0' && DBTime_in[i] <= '9')
+		{
+			cTime_out[cTime_len] = DBTime_in[i];
+			cTime_len++;
+		}
+	}
+	cTime_out[cTime_len] = '\0';
+}
+#define DB_PATHNAME    "./yangxt.db"
+void CMeasureDlg::OnBnClickedBtnSave()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	//printf("_Version = %s \n", _Version);
+	std::vector<DB_Data_Row> testVec;
+	char* pcErrMsg = NULL;
+	sqlite3_stmt* pStmt = NULL;
+	sqlite3* pDB = NULL;
+	int nRes = 0;
+	// 格式化SQL语句
+	char cSql[512] = { 0 };
+	// 测试 时间数据
+	char cDBTime[32] = { 0 };
+	unsigned char bBCDTime[7] = { 0 };
+	memcpy(bBCDTime, "\x20\x19\x04\x09\x15\x36\x43", sizeof(bBCDTime));
+
+	do
+	{
+		//打开数据库
+		nRes = sqlite3_open(DB_PATHNAME, &pDB);
+		if (nRes != SQLITE_OK)
+		{
+			//打开数据库失败
+			// writeLog
+			printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+			break;
+		}
+
+		// 清除 数据库表 test_table
+		sqlite3_snprintf(512, cSql, "drop table if exists test_table");
+		sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
+		if (nRes != SQLITE_OK)
+		{
+			printf("清除数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+			break;
+		}
+		printf("Clear test_table successful. \n");
+
+		// 创建一个表,如果该表存在，则不创建，并给出提示信息，存储在 zErrMsg 中
+		sqlite3_snprintf(512, cSql, "CREATE TABLE test_table(\
+				nID INTEGER PRIMARY KEY,\
+				cName VARCHAR(50),\
+				cCreateTime TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),\
+				ucSeq INTEGER, \
+				dMoney DOUBLE DEFAULT 15.5 \
+			);");
+		nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
+		if (nRes != SQLITE_OK)
+		{
+			printf("创建数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+			break;
+		}
+		printf("create test_table successful. \n");
+
+		// 插入数据
+		memset(cDBTime, 0x00, sizeof(cDBTime));
+		_BCDTimeToDBTime(bBCDTime, sizeof(bBCDTime), cDBTime, sizeof(cDBTime));
+		sqlite3_snprintf(512, cSql, "INSERT INTO test_table(cName, ucSeq) VALUES('当前时间', 8); \
+				INSERT INTO test_table(cName, cCreateTime, ucSeq, dMoney) VALUES('%s', '%s', %d, %f)", "InputTime", cDBTime, 10, 16.5);
+		nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
+		if (nRes != SQLITE_OK)
+		{
+			printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+			break;
+		}
+		printf("insert test_table successful. \n");
+
+		// 执行操作  "order by cCreateTime ASC"
+		sqlite3_snprintf(512, cSql, "select * from test_table order by ucSeq DESC");
+		if (sqlite3_prepare_v2(pDB, cSql, -1, &pStmt, NULL) == SQLITE_OK)
+		{
+			// 单步处理返回的每个行结果
+			while (sqlite3_step(pStmt) == SQLITE_ROW)
+			{
+				// 整型数据 处理
+				DB_Data_Row rowData;
+				printf("------------------------------\n");
+				rowData.nID = sqlite3_column_int(pStmt, 0);
+				printf("rowData.nID = %d\n", rowData.nID);
+
+				// 字符串数据 处理
+				memcpy(rowData.cName, "123456789012345", 16);
+				strcpy_s(rowData.cName, (const char*)sqlite3_column_text(pStmt, 1));
+				printf("rowData.cName = %s\n", rowData.cName);
+				// 验证 strcpy 复制会把'\0' 结束字符也复制过去
+				for (int idx = 0; idx < 16; idx++)
+					printf("%c", rowData.cName[idx]);
+				printf("\n");
+
+				// 时间数据 处理
+				_DBTimeTocTime((char*)sqlite3_column_text(pStmt, 2), (short)sqlite3_column_bytes(pStmt, 2), rowData.cCreateTime);
+				printf("cCreateTime_len = %d, rowData.cCreateTime = %s\n", strlen(rowData.cCreateTime), rowData.cCreateTime);
+				memset(cDBTime, 0x00, sizeof(cDBTime));
+				_cTimeToDBTime(rowData.cCreateTime, strlen(rowData.cCreateTime), cDBTime, sizeof(cDBTime));
+				printf("cDBTime_len = %d, cDBTime = %s\n", strlen(cDBTime), cDBTime);
+
+				// 单字节数据  处理
+				rowData.ucSeq = sqlite3_column_int(pStmt, 3);
+				printf("rowData.ucSeq = %d\n", rowData.ucSeq);
+
+				// 浮点数据 处理,格式化显示2位小数
+				rowData.dMoney = sqlite3_column_double(pStmt, 4);
+				printf("rowData.dMoney = %.2f\n", rowData.dMoney);
+
+				testVec.push_back(rowData);
+			}
+		}
+		else
+		{
+			printf("sqlite3_prepare_v2, 准备语句失败 : %s --------------------\n", sqlite3_errmsg(pDB));
+		}
+		sqlite3_finalize(pStmt);
+
+	} while (0);
+
+	//关闭数据库
+	sqlite3_close(pDB);
+	pDB = NULL;
+
+	if (pcErrMsg != NULL)
+	{
+		sqlite3_free(pcErrMsg); //释放内存
+		pcErrMsg = NULL;
+	}
 }

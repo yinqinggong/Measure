@@ -79,8 +79,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)3rdParty\ffmpeg-7.0-win64\include;$(SolutionDir)3rdParty\jsoncpp;$(SolutionDir)3rdParty\jsoncpp\json;$(SolutionDir)3rdParty\md5;$(SolutionDir)3rdParty\http;$(SolutionDir)3rdParty\opencv\include;$(SolutionDir)3rdParty\opencv\include\opencv2;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)3rdParty\ffmpeg-7.0-win64\lib;$(SolutionDir)3rdParty\opencv\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)3rdParty\ffmpeg-7.0-win64\include;$(SolutionDir)3rdParty\jsoncpp;$(SolutionDir)3rdParty\jsoncpp\json;$(SolutionDir)3rdParty\md5;$(SolutionDir)3rdParty\http;$(SolutionDir)3rdParty\opencv\include;$(SolutionDir)3rdParty\opencv\include\opencv2;$(SolutionDir)3rdParty\sqlite-x64;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)3rdParty\ffmpeg-7.0-win64\lib;$(SolutionDir)3rdParty\opencv\lib;$(SolutionDir)3rdParty\sqlite-x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -120,7 +120,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>avcodec.lib;avfilter.lib;avutil.lib;swresample.lib;avdevice.lib;avformat.lib;postproc.lib;swscale.lib;opencv_world420d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>avcodec.lib;avfilter.lib;avutil.lib;swresample.lib;avdevice.lib;avformat.lib;postproc.lib;swscale.lib;opencv_world420d.lib;sqlite3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -197,6 +197,8 @@
     <ClInclude Include="..\3rdParty\jsoncpp\json\value.h" />
     <ClInclude Include="..\3rdParty\jsoncpp\json\writer.h" />
     <ClInclude Include="..\3rdParty\jsoncpp\json_batchallocator.h" />
+    <ClInclude Include="..\3rdParty\sqlite-x64\sqlite3.h" />
+    <ClInclude Include="..\3rdParty\sqlite-x64\sqlite3ext.h" />
     <ClInclude Include="base64.h" />
     <ClInclude Include="CDlgDiameter.h" />
     <ClInclude Include="CDlgReport.h" />
@@ -229,6 +231,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\3rdParty\jsoncpp\json_writer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\sqlite-x64\sqlite3.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="base64.cpp">

@@ -37,6 +37,9 @@
     <Filter Include="base64">
       <UniqueIdentifier>{a804f85f-3e4a-4087-b403-be678e692cf5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="sqlite">
+      <UniqueIdentifier>{80c08df7-88bc-41bc-a1e1-2bdf8279e749}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Measure.h">
@@ -132,6 +135,12 @@
     <ClInclude Include="base64.h">
       <Filter>base64</Filter>
     </ClInclude>
+    <ClInclude Include="..\3rdParty\sqlite-x64\sqlite3.h">
+      <Filter>sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3rdParty\sqlite-x64\sqlite3ext.h">
+      <Filter>sqlite</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -196,6 +205,9 @@
     </ClCompile>
     <ClCompile Include="base64.cpp">
       <Filter>base64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3rdParty\sqlite-x64\sqlite3.c">
+      <Filter>sqlite</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
