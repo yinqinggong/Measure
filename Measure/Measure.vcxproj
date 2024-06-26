@@ -217,6 +217,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RtspDevice.h" />
+    <ClInclude Include="ScaleDB.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="videoplayerd3d.h" />
   </ItemGroup>
@@ -259,6 +260,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="RtspDevice.cpp" />
+    <ClCompile Include="ScaleDB.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="videoplayerd3d.cpp" />
   </ItemGroup>
   <ItemGroup>

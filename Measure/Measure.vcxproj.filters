@@ -141,6 +141,9 @@
     <ClInclude Include="..\3rdParty\sqlite-x64\sqlite3ext.h">
       <Filter>sqlite</Filter>
     </ClInclude>
+    <ClInclude Include="ScaleDB.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -208,6 +211,9 @@
     </ClCompile>
     <ClCompile Include="..\3rdParty\sqlite-x64\sqlite3.c">
       <Filter>sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="ScaleDB.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

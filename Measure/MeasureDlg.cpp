@@ -9,6 +9,7 @@
 #include "afxdialogex.h"
 #include "ScaleAPI.h"
 #include "sqlite3.h"
+#include "ScaleDB.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
