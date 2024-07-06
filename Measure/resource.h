@@ -32,6 +32,8 @@
 #define IDC_BTN_REPORT                  1011
 #define IDC_STATIC_NUM                  1011
 #define IDC_STATIC_SQUARE               1012
+#define IDC_BTN_SAVE2                   1012
+#define IDC_BTN_DOWNLOAD                1012
 #define IDC_STATIC_START                1014
 #define IDC_STATIC_END                  1015
 #define IDC_BUTTON_QUERY                1016

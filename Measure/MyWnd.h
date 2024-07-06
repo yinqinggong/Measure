@@ -55,6 +55,15 @@ public:
     {
         return m_status;
     }
+    bool GetScaleWood(ScaleWood& scaleWood)
+    {
+        if (scaleWood.id <= 0)
+        {
+            return false;
+        }
+        scaleWood = m_scaleWood;
+        return true;
+    }
 public:
     CMyWnd();
     ~CMyWnd();

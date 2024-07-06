@@ -79,7 +79,7 @@ int PostScale(ScaleWood& scalewood)
 			return -1;
 		}
 		
-		scalewood.id = value["id"].asUInt();
+		//scalewood.id = value["id"].asUInt();
 		scalewood.img = value["img"].asString();
 		Json::Value arrayData = value["wood_list"];
 		if (arrayData.size() <= 0)

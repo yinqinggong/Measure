@@ -11,6 +11,16 @@
 #include "sqlite3.h"
 #include "ScaleDB.h"
 
+//excel begin
+//#include <afxdisp.h>      // MFC 自动化类库
+//#include "CApplication.h" // 自定义的Excel应用程序类
+//#include "CWorkbooks.h"   // 工作簿集合类
+//#include "CWorkbook.h"    // 工作簿类
+//#include "CWorksheets.h"  // 工作表集合类
+//#include "CWorksheet.h"   // 工作表类
+//#include "CRange.h"       // 单元格范围类
+//excel end
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -78,6 +88,7 @@ void CMeasureDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BTN_DEL, m_btnDel);
 	DDX_Control(pDX, IDC_BTN_REPORT, m_btnReport);
 	DDX_Control(pDX, IDC_BTN_SAVE, m_btnSave);
+	DDX_Control(pDX, IDC_BTN_DOWNLOAD, m_btnDownLoad);
 }
 
 BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
@@ -93,6 +104,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_SCALE, &CMeasureDlg::OnBnClickedBtnScale)
 	ON_BN_CLICKED(IDC_BTN_DATA, &CMeasureDlg::OnBnClickedBtnData)
 	ON_BN_CLICKED(IDC_BTN_SAVE, &CMeasureDlg::OnBnClickedBtnSave)
+	ON_BN_CLICKED(IDC_BTN_DOWNLOAD, &CMeasureDlg::OnBnClickedBtnDownload)
 END_MESSAGE_MAP()
 
 
@@ -172,6 +184,9 @@ BOOL CMeasureDlg::OnInitDialog()
 	m_btnAdd.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 160, 80, 40);
 	m_btnReport.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 + 80, 80, 40);
 	m_btnSave.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 + 160, 80, 40);
+	//下载按钮，居中
+	m_btnDownLoad.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5, 80, 40);
+	m_btnDownLoad.ShowWindow(SW_HIDE);
 
 	////播放直播流视频测试
 	//DeviceInfo devInfo = { 0 };
@@ -187,7 +202,7 @@ BOOL CMeasureDlg::OnInitDialog()
 	//{
 	//	AfxMessageBox(_T("播放失败！"));
 	//}
-
+	create_db();
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -350,11 +365,9 @@ void CMeasureDlg::OnBnClickedBtnCrop()
 HBRUSH CMeasureDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
 	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
-
 	// TODO:  在此更改 DC 的任何特性
 	if (pWnd->GetDlgCtrlID() == IDC_STATIC_BG)
 	{
-
 		//pDC->SetBkColor(RGB(0, 255, 0));//背景色为绿色
 		//pDC->SetTextColor(RGB(255, 0, 0));//文字为红色
 		//pDC->SelectObject(&m_font);//文字为15号字体，华文行楷
@@ -365,7 +378,6 @@ HBRUSH CMeasureDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		//pDC->SetBkColor(RGB(0, 255, 0));//背景色为绿色
 		return m_brushBG;
 	}
-
 
 	// TODO:  如果默认的不是所需画笔，则返回另一个画笔
 	return hbr;
@@ -398,6 +410,9 @@ void CMeasureDlg::OnBnClickedBtnReport()
 	// TODO: 在此添加控件通知处理程序代码
 	m_imgWnd.ShowWindow(SW_HIDE);
 	m_dlgReport.ShowWindow(SW_SHOWNORMAL);
+	ScaleWood scaleWood;
+	m_imgWnd.GetScaleWood(scaleWood);
+	m_dlgReport.SetScaleWood(scaleWood);
 }
 
 
@@ -408,6 +423,15 @@ void CMeasureDlg::OnBnClickedBtnScale()
 	m_dlgData.ShowWindow(SW_HIDE);
 	//std::string url;
 	//int ret = PostPreview(url);
+
+	//右侧按钮切换显示
+	m_btnDel.ShowWindow(SW_SHOWNORMAL);
+	m_btnCrop.ShowWindow(SW_SHOWNORMAL);
+	m_btnAdd.ShowWindow(SW_SHOWNORMAL);
+	m_btnReport.ShowWindow(SW_SHOWNORMAL);
+	m_btnSave.ShowWindow(SW_SHOWNORMAL);
+	m_btnDownLoad.ShowWindow(SW_HIDE);
+
 }
 
 void CMeasureDlg::OnBnClickedBtnData()
@@ -415,176 +439,195 @@ void CMeasureDlg::OnBnClickedBtnData()
 	// TODO: 在此添加控件通知处理程序代码
 	m_imgWnd.ShowWindow(SW_HIDE);
 	m_dlgData.ShowWindow(SW_SHOWNORMAL);
+
+	//右侧按钮切换显示
+	m_btnDel.ShowWindow(SW_HIDE);
+	m_btnCrop.ShowWindow(SW_HIDE);
+	m_btnAdd.ShowWindow(SW_HIDE);
+	m_btnReport.ShowWindow(SW_HIDE);
+	m_btnSave.ShowWindow(SW_HIDE);
+	m_btnDownLoad.ShowWindow(SW_SHOWNORMAL);
 }
 
-//数据库表test_table中行结构体
-typedef struct DB_DataFormat
-{
-	int	 	nID;
-	char 	cName[50];
-	char 	cCreateTime[15];    // YYYYMMDDHHMMSS
-	unsigned char 	ucSeq;
-	double 	dMoney;
-}DB_Data_Row, * PDB_Data_Row;
-// 20190409153643(Hex) -> "2019-04-09 15:36:43"
-void _BCDTimeToDBTime(unsigned char* BCDTime_in, short BCDTime_len, char* DBTime_out, short DBTime_len)
-{
-	assert(BCDTime_len == 7);
-
-	snprintf(DBTime_out, DBTime_len, "%02X%02X-%02X-%02X %02X:%02X:%02X", BCDTime_in[0], BCDTime_in[1],
-		BCDTime_in[2], BCDTime_in[3], BCDTime_in[4], BCDTime_in[5], BCDTime_in[6]);
-}
-
-// 20190409153643(char) -> "2019-04-09 15:36:43"
-void _cTimeToDBTime(char* cTime_in, short cTime_len, char* DBTime_out, short DBTime_len)
-{
-	assert(cTime_len == 14);
-
-	snprintf(DBTime_out, DBTime_len, "%c%c%c%c-%c%c-%c%c %c%c:%c%c:%c%c", cTime_in[0], cTime_in[1],
-		cTime_in[2], cTime_in[3], cTime_in[4], cTime_in[5], cTime_in[6], cTime_in[7],
-		cTime_in[8], cTime_in[9], cTime_in[10], cTime_in[11], cTime_in[12], cTime_in[13]);
-}
-
-// "2019-04-09 15:36:43" -> 20190409153643(char)
-void _DBTimeTocTime(char* DBTime_in, short DBTime_len, char* cTime_out)
-{
-	assert(DBTime_len == 19);
-
-	int i = 0, cTime_len = 0;
-	for (i = 0; i < DBTime_len; i++)
-	{
-		// 只存放数字字符
-		if (DBTime_in[i] >= '0' && DBTime_in[i] <= '9')
-		{
-			cTime_out[cTime_len] = DBTime_in[i];
-			cTime_len++;
-		}
-	}
-	cTime_out[cTime_len] = '\0';
-}
-#define DB_PATHNAME    "./yangxt.db"
 void CMeasureDlg::OnBnClickedBtnSave()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	//printf("_Version = %s \n", _Version);
-	std::vector<DB_Data_Row> testVec;
-	char* pcErrMsg = NULL;
-	sqlite3_stmt* pStmt = NULL;
-	sqlite3* pDB = NULL;
-	int nRes = 0;
-	// 格式化SQL语句
-	char cSql[512] = { 0 };
-	// 测试 时间数据
-	char cDBTime[32] = { 0 };
-	unsigned char bBCDTime[7] = { 0 };
-	memcpy(bBCDTime, "\x20\x19\x04\x09\x15\x36\x43", sizeof(bBCDTime));
-
-	do
+	ScaleWood scaleWood;
+	if (m_imgWnd.GetScaleWood(scaleWood))
 	{
-		//打开数据库
-		nRes = sqlite3_open(DB_PATHNAME, &pDB);
-		if (nRes != SQLITE_OK)
-		{
-			//打开数据库失败
-			// writeLog
-			printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
-			break;
-		}
+		std::string woollist = "{\"name\":\"Alice\",\"age\":25}";
+		db_insert_record(scaleWood.id, 123, 45.6, 78.9, woollist);
+	}
+	db_query_by_time_range2(1720100449 - 3600 * 5, 1720100449 + 3600);
 
-		// 清除 数据库表 test_table
-		sqlite3_snprintf(512, cSql, "drop table if exists test_table");
-		sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
-		if (nRes != SQLITE_OK)
-		{
-			printf("清除数据库表test_table 失败: %s --------------------\n", pcErrMsg);
-			break;
-		}
-		printf("Clear test_table successful. \n");
+	//db_query_all();
 
-		// 创建一个表,如果该表存在，则不创建，并给出提示信息，存储在 zErrMsg 中
-		sqlite3_snprintf(512, cSql, "CREATE TABLE test_table(\
-				nID INTEGER PRIMARY KEY,\
-				cName VARCHAR(50),\
-				cCreateTime TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),\
-				ucSeq INTEGER, \
-				dMoney DOUBLE DEFAULT 15.5 \
-			);");
-		nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
-		if (nRes != SQLITE_OK)
-		{
-			printf("创建数据库表test_table 失败: %s --------------------\n", pcErrMsg);
-			break;
-		}
-		printf("create test_table successful. \n");
+	//return;
+	////printf("_Version = %s \n", _Version);
+	//std::vector<DB_Data_Row> testVec;
+	//char* pcErrMsg = NULL;
+	//sqlite3_stmt* pStmt = NULL;
+	//sqlite3* pDB = NULL;
+	//int nRes = 0;
+	//// 格式化SQL语句
+	//char cSql[512] = { 0 };
+	//// 测试 时间数据
+	//char cDBTime[32] = { 0 };
+	//unsigned char bBCDTime[7] = { 0 };
+	//memcpy(bBCDTime, "\x20\x19\x04\x09\x15\x36\x43", sizeof(bBCDTime));
+	//do
+	//{
+	//	//打开数据库
+	//	nRes = sqlite3_open(DB_PATHNAME, &pDB);
+	//	if (nRes != SQLITE_OK)
+	//	{
+	//		//打开数据库失败
+	//		// writeLog
+	//		printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+	//		break;
+	//	}
+	//	// 清除 数据库表 test_table
+	//	sqlite3_snprintf(512, cSql, "drop table if exists test_table");
+	//	sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
+	//	if (nRes != SQLITE_OK)
+	//	{
+	//		printf("清除数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+	//		break;
+	//	}
+	//	printf("Clear test_table successful. \n");
+	//	// 创建一个表,如果该表存在，则不创建，并给出提示信息，存储在 zErrMsg 中
+	//	sqlite3_snprintf(512, cSql, "CREATE TABLE test_table(\
+	//			nID INTEGER PRIMARY KEY,\
+	//			cName VARCHAR(50),\
+	//			cCreateTime TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),\
+	//			ucSeq INTEGER, \
+	//			dMoney DOUBLE DEFAULT 15.5 \
+	//		);");
+	//	nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
+	//	if (nRes != SQLITE_OK)
+	//	{
+	//		printf("创建数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+	//		break;
+	//	}
+	//	printf("create test_table successful. \n");
+	//	// 插入数据
+	//	memset(cDBTime, 0x00, sizeof(cDBTime));
+	//	_BCDTimeToDBTime(bBCDTime, sizeof(bBCDTime), cDBTime, sizeof(cDBTime));
+	//	sqlite3_snprintf(512, cSql, "INSERT INTO test_table(cName, ucSeq) VALUES('当前时间', 8); \
+	//			INSERT INTO test_table(cName, cCreateTime, ucSeq, dMoney) VALUES('%s', '%s', %d, %f)", "InputTime", cDBTime, 10, 16.5);
+	//	nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
+	//	if (nRes != SQLITE_OK)
+	//	{
+	//		printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+	//		break;
+	//	}
+	//	printf("insert test_table successful. \n");
+	//	// 执行操作  "order by cCreateTime ASC"
+	//	sqlite3_snprintf(512, cSql, "select * from test_table order by ucSeq DESC");
+	//	if (sqlite3_prepare_v2(pDB, cSql, -1, &pStmt, NULL) == SQLITE_OK)
+	//	{
+	//		// 单步处理返回的每个行结果
+	//		while (sqlite3_step(pStmt) == SQLITE_ROW)
+	//		{
+	//			// 整型数据 处理
+	//			DB_Data_Row rowData;
+	//			printf("------------------------------\n");
+	//			rowData.nID = sqlite3_column_int(pStmt, 0);
+	//			printf("rowData.nID = %d\n", rowData.nID);
+	//			// 字符串数据 处理
+	//			memcpy(rowData.cName, "123456789012345", 16);
+	//			strcpy_s(rowData.cName, (const char*)sqlite3_column_text(pStmt, 1));
+	//			printf("rowData.cName = %s\n", rowData.cName);
+	//			// 验证 strcpy 复制会把'\0' 结束字符也复制过去
+	//			for (int idx = 0; idx < 16; idx++)
+	//				printf("%c", rowData.cName[idx]);
+	//			printf("\n");
+	//			// 时间数据 处理
+	//			_DBTimeTocTime((char*)sqlite3_column_text(pStmt, 2), (short)sqlite3_column_bytes(pStmt, 2), rowData.cCreateTime);
+	//			printf("cCreateTime_len = %d, rowData.cCreateTime = %s\n", strlen(rowData.cCreateTime), rowData.cCreateTime);
+	//			memset(cDBTime, 0x00, sizeof(cDBTime));
+	//			_cTimeToDBTime(rowData.cCreateTime, strlen(rowData.cCreateTime), cDBTime, sizeof(cDBTime));
+	//			printf("cDBTime_len = %d, cDBTime = %s\n", strlen(cDBTime), cDBTime);
+	//			// 单字节数据  处理
+	//			rowData.ucSeq = sqlite3_column_int(pStmt, 3);
+	//			printf("rowData.ucSeq = %d\n", rowData.ucSeq);
+	//			// 浮点数据 处理,格式化显示2位小数
+	//			rowData.dMoney = sqlite3_column_double(pStmt, 4);
+	//			printf("rowData.dMoney = %.2f\n", rowData.dMoney);
+	//			testVec.push_back(rowData);
+	//		}
+	//	}
+	//	else
+	//	{
+	//		printf("sqlite3_prepare_v2, 准备语句失败 : %s --------------------\n", sqlite3_errmsg(pDB));
+	//	}
+	//	sqlite3_finalize(pStmt);
+	//} while (0);
+	////关闭数据库
+	//sqlite3_close(pDB);
+	//pDB = NULL;
+	//if (pcErrMsg != NULL)
+	//{
+	//	sqlite3_free(pcErrMsg); //释放内存
+	//	pcErrMsg = NULL;
+	//}
+}
 
-		// 插入数据
-		memset(cDBTime, 0x00, sizeof(cDBTime));
-		_BCDTimeToDBTime(bBCDTime, sizeof(bBCDTime), cDBTime, sizeof(cDBTime));
-		sqlite3_snprintf(512, cSql, "INSERT INTO test_table(cName, ucSeq) VALUES('当前时间', 8); \
-				INSERT INTO test_table(cName, cCreateTime, ucSeq, dMoney) VALUES('%s', '%s', %d, %f)", "InputTime", cDBTime, 10, 16.5);
-		nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
-		if (nRes != SQLITE_OK)
-		{
-			printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
-			break;
-		}
-		printf("insert test_table successful. \n");
+void ExportToExcel(const CString& strFileName)
+{
+	//// 创建Excel应用程序对象
+	//CExcelApp excelApp;
+	//if (!excelApp.CreateDispatch(_T("Excel.Application")))
+	//{
+	//	AfxMessageBox(_T("无法启动Excel！"));
+	//	return;
+	//}
 
-		// 执行操作  "order by cCreateTime ASC"
-		sqlite3_snprintf(512, cSql, "select * from test_table order by ucSeq DESC");
-		if (sqlite3_prepare_v2(pDB, cSql, -1, &pStmt, NULL) == SQLITE_OK)
-		{
-			// 单步处理返回的每个行结果
-			while (sqlite3_step(pStmt) == SQLITE_ROW)
-			{
-				// 整型数据 处理
-				DB_Data_Row rowData;
-				printf("------------------------------\n");
-				rowData.nID = sqlite3_column_int(pStmt, 0);
-				printf("rowData.nID = %d\n", rowData.nID);
+	//// 使Excel应用程序可见（可选）
+	//excelApp.SetVisible(TRUE);
 
-				// 字符串数据 处理
-				memcpy(rowData.cName, "123456789012345", 16);
-				strcpy_s(rowData.cName, (const char*)sqlite3_column_text(pStmt, 1));
-				printf("rowData.cName = %s\n", rowData.cName);
-				// 验证 strcpy 复制会把'\0' 结束字符也复制过去
-				for (int idx = 0; idx < 16; idx++)
-					printf("%c", rowData.cName[idx]);
-				printf("\n");
+	//// 获取添加工作簿的Dispatch接口
+	//CWorkbooks books = excelApp.GetWorkbooks();
+	//CWorkbook book = books.Add(_variant_t(long(xlWBATWorksheet)));
 
-				// 时间数据 处理
-				_DBTimeTocTime((char*)sqlite3_column_text(pStmt, 2), (short)sqlite3_column_bytes(pStmt, 2), rowData.cCreateTime);
-				printf("cCreateTime_len = %d, rowData.cCreateTime = %s\n", strlen(rowData.cCreateTime), rowData.cCreateTime);
-				memset(cDBTime, 0x00, sizeof(cDBTime));
-				_cTimeToDBTime(rowData.cCreateTime, strlen(rowData.cCreateTime), cDBTime, sizeof(cDBTime));
-				printf("cDBTime_len = %d, cDBTime = %s\n", strlen(cDBTime), cDBTime);
+	//// 获取工作表的Dispatch接口
+	//CWorksheets sheets = book.GetWorksheets();
+	//CWorksheet sheet = sheets.GetItem(_T("Sheet1"));
 
-				// 单字节数据  处理
-				rowData.ucSeq = sqlite3_column_int(pStmt, 3);
-				printf("rowData.ucSeq = %d\n", rowData.ucSeq);
+	//// 填充数据
+	//CRange range = sheet.GetRange(_T("A1"));
+	//range.SetValue2(_variant_t(_T("这里是数据")));
 
-				// 浮点数据 处理,格式化显示2位小数
-				rowData.dMoney = sqlite3_column_double(pStmt, 4);
-				printf("rowData.dMoney = %.2f\n", rowData.dMoney);
+	//// 保存工作簿
+	//books.SaveAs(COleVariant(strFileName),
+	//	_variant_t(long(xlOpenXMLWorkbook)),
+	//	vtMissing, vtMissing, vtMissing,
+	//	vtMissing, _variant_t(long(xlLocal)),
+	//	vtMissing, vtMissing, vtMissing);
 
-				testVec.push_back(rowData);
-			}
-		}
-		else
-		{
-			printf("sqlite3_prepare_v2, 准备语句失败 : %s --------------------\n", sqlite3_errmsg(pDB));
-		}
-		sqlite3_finalize(pStmt);
+	//// 关闭工作簿和Excel应用程序
+	//book.Close(FALSE);
+	//excelApp.Quit();
 
-	} while (0);
+	//// 释放对象
+	//range.ReleaseDispatch();
+	//sheet.ReleaseDispatch();
+	//books.ReleaseDispatch();
+	//book.ReleaseDispatch();
+	//excelApp.ReleaseDispatch();
 
-	//关闭数据库
-	sqlite3_close(pDB);
-	pDB = NULL;
+	//AfxMessageBox(_T("导出成功！"));
+}
 
-	if (pcErrMsg != NULL)
+void CMeasureDlg::OnBnClickedBtnDownload()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CFileDialog fileDlg(FALSE, _T("xlsx"), _T("Export.xlsx"),
+		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+		_T("Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*||"));
+
+	if (fileDlg.DoModal() == IDOK)
 	{
-		sqlite3_free(pcErrMsg); //释放内存
-		pcErrMsg = NULL;
+		ExportToExcel(fileDlg.GetPathName());
 	}
 }

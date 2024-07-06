@@ -790,7 +790,7 @@ void CMyWnd::OnBnClickedBtnRec()
     m_btnRec.ShowWindow(SW_HIDE);
     m_btnDis.ShowWindow(SW_HIDE);
     ScaleWood scalewood;
-    scalewood.id = 1;
+    scalewood.id = time(0);
     scalewood.img = "";
     WoodAttr woodAttr1 = { 0 };
     woodAttr1.ellipse = { 2436.7294921875000, 963.02606201171875, 54.000000000000000, 57.000000000000000, 63.426303863525391,
@@ -836,6 +836,7 @@ void CMyWnd::OnBnClickedBtnRec()
     m_btnDis.ShowWindow(SW_HIDE);
     ScaleWood scalewood = { 0 };
     int ret = PostScale(scalewood);
+    scalewood.id = time(0);
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("Ê¶±ð"));
     wait.Restore();

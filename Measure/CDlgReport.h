@@ -1,5 +1,14 @@
 ﻿#pragma once
+#include "ScaleAPI.h"
+#include <map>
 
+typedef struct typeReportData
+{
+	double wood_d;
+	int wood_num;
+	double wood_l;
+	double wood_v;
+}ReportData;
 
 // CDlgReport 对话框
 
@@ -30,7 +39,14 @@ public:
 	CListCtrl m_list_report;
 	CStatic m_sta_num;
 	CStatic m_sta_square;
+
+	std::map<std::string, ReportData> m_report_map;
+	ScaleWood m_scaleWood;
+	void SetScaleWood(ScaleWood scaleWood);
+	void UpdateWoodData(int sd);
+	
 	void InitCtrls();
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	int InsertListCtrl(CListCtrl& evtListCtrl, CString items[]);
+	afx_msg void OnCbnSelchangeComboStandard();
 };

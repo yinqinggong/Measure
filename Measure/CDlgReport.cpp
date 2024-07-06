@@ -10,14 +10,6 @@
 #include <string>
 #include "common.h"
 
-typedef struct typeReportData
-{
-	float jingji;
-	int num;
-	float len;
-	float chaiji;
-}ReportData;
-
 // CDlgReport 对话框
 
 IMPLEMENT_DYNAMIC(CDlgReport, CDialogEx)
@@ -48,6 +40,7 @@ void CDlgReport::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CDlgReport, CDialogEx)
 //	ON_WM_PAINT()
 	ON_WM_SIZE()
+	ON_CBN_SELCHANGE(IDC_COMBO_STANDARD, &CDlgReport::OnCbnSelchangeComboStandard)
 END_MESSAGE_MAP()
 
 
@@ -59,25 +52,11 @@ BOOL CDlgReport::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	m_edit_len.SetWindowTextW(_T("123"));
+	m_edit_len.SetWindowTextW(_T("2.6"));
 	m_combo_standard.InsertString(0, _T("原始"));
 	m_combo_standard.InsertString(1, _T("国标"));
 	m_combo_standard.InsertString(2, _T("广西"));
 	m_combo_standard.SetCurSel(0);
-
-
-	CString strTemp;
-
-	int num = 5;
-	std::string strNum = std::to_string(num);
-	UTF8ToUnicode(strNum.c_str(), strTemp);
-	m_sta_num.SetWindowTextW(_T("根数：") + strTemp);
-
-	float square = 5.3344;
-	std::string strSquare = std::to_string(square);
-	strSquare = strSquare.substr(0, strSquare.find(".") + 1 + 3);
-	UTF8ToUnicode(strSquare.c_str(), strTemp);
-	m_sta_square.SetWindowTextW(_T("方数：") + strTemp);
 
 	m_inited = TRUE;
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -93,6 +72,105 @@ BOOL CDlgReport::OnInitDialog()
 //
 //	InitCtrls();
 //}
+
+void CDlgReport::SetScaleWood(ScaleWood scaleWood)
+{
+	m_scaleWood = scaleWood;
+	UpdateWoodData(0);
+}
+
+void CDlgReport::UpdateWoodData(int sd)
+{
+	int total_num = 0;
+	double total_v = 0.0;
+	m_report_map.clear();
+	m_list_report.DeleteAllItems();
+	for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
+	{
+		double d = m_scaleWood.wood_list[i].diameter;
+		if (sd == 1)//国标
+		{
+			d = round(d / 2) * 2;
+			d = round(d * 10) / 10;
+		}
+		else if (sd == 2)//广西
+		{
+			d = round(((d - 0.3) / 2)) * 2;
+		}
+		
+		std::string str_wood_d = std::to_string(d);
+		str_wood_d = str_wood_d.substr(0, str_wood_d.find(".") + 1 + 1);
+		auto iter = m_report_map.find(str_wood_d);
+		if (iter != m_report_map.end())
+		{
+			iter->second.wood_num++;
+			//double d = m_scaleWood.wood_list[i].diameter;
+			double l = 2.6;
+			if (d < 14) {
+				iter->second.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+			}
+			else {
+				iter->second.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+			}
+			iter->second.wood_v *= iter->second.wood_num;
+
+			total_num += iter->second.wood_num;
+			total_v += iter->second.wood_v;
+		}
+		else
+		{
+			ReportData reportData;
+			reportData.wood_d = d;
+			reportData.wood_l = 2.6;
+			reportData.wood_num = 1;
+
+			//double d = m_scaleWood.wood_list[i].diameter;
+			double l = 2.6;
+			if (d < 14) {
+				reportData.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+			}
+			else {
+				reportData.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+			}
+
+			m_report_map.insert(std::make_pair(str_wood_d, reportData));
+
+			total_num += reportData.wood_num;
+			total_v += reportData.wood_v;
+		}
+	}
+
+
+	CString items[4];
+	for (auto iter = m_report_map.begin(); iter != m_report_map.end(); iter++)
+	{
+		std::string str_wood_d = iter->first;
+		UTF8ToUnicode(str_wood_d.c_str(), items[0]);
+
+		std::string wood_num = std::to_string(iter->second.wood_num);
+		UTF8ToUnicode(wood_num.c_str(), items[1]);
+
+		std::string wood_len = std::to_string(iter->second.wood_l);
+		wood_len = wood_len.substr(0, wood_len.find(".") + 1 + 1);
+		UTF8ToUnicode(wood_len.c_str(), items[2]);
+
+		std::string wood_v = std::to_string(iter->second.wood_v);
+		wood_v = wood_v.substr(0, wood_v.find(".") + 1 + 3);
+		UTF8ToUnicode(wood_v.c_str(), items[3]);
+
+		InsertListCtrl(m_list_report, items);
+	}
+
+	CString strTemp;
+	std::string strNum = std::to_string(total_num);
+	UTF8ToUnicode(strNum.c_str(), strTemp);
+	m_sta_num.SetWindowTextW(_T("根数：") + strTemp);
+
+	std::string strSquare = std::to_string(total_v);
+	strSquare = strSquare.substr(0, strSquare.find(".") + 1 + 3);
+	UTF8ToUnicode(strSquare.c_str(), strTemp);
+	m_sta_square.SetWindowTextW(_T("方数：") + strTemp);
+}
 
 void CDlgReport::InitCtrls()
 {
@@ -134,37 +212,7 @@ void CDlgReport::OnSize(UINT nType, int cx, int cy)
 	m_list_report.InsertColumn(1, _T("根数"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
 	m_list_report.InsertColumn(2, _T("长度"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
 	m_list_report.InsertColumn(3, _T("材积"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
-
-
-	std::vector<ReportData> dataArray;
-	dataArray.push_back({ 1.0, 1, 2.0, 3.0 });
-	dataArray.push_back({ 1.0, 1, 2.0, 3.0 });
-	dataArray.push_back({ 1.0, 1, 2.0, 3.0 });
-	dataArray.push_back({ 1.0, 1, 2.0, 3.0 });
-	dataArray.push_back({ 1.0, 1, 2.0, 3.0 });
-	dataArray.push_back({ 1.0, 1, 2.0, 3.0 });
-	CString items[4];
-	for (int i = 0; i < dataArray.size(); i++)
-	{
-		std::string jingji = std::to_string(dataArray[i].jingji); 
-		jingji = jingji.substr(0, jingji.find(".") + 1 + 3);
-		UTF8ToUnicode(jingji.c_str(), items[0]);
-
-		std::string num = std::to_string(dataArray[i].num);
-		UTF8ToUnicode(num.c_str(), items[1]);
-
-		std::string len = std::to_string(dataArray[i].len);
-		len = len.substr(0, len.find(".") + 1 + 3);
-		UTF8ToUnicode(len.c_str(), items[2]);
-
-		std::string chaiji = std::to_string(dataArray[i].chaiji);
-		chaiji = chaiji.substr(0, chaiji.find(".") + 1 + 3);
-		UTF8ToUnicode(chaiji.c_str(), items[3]);
-
-		InsertListCtrl(m_list_report, items);
-	}
 }
-
 
 int CDlgReport::InsertListCtrl(CListCtrl& evtListCtrl, CString items[]) 
 {
@@ -178,4 +226,14 @@ int CDlgReport::InsertListCtrl(CListCtrl& evtListCtrl, CString items[])
 	}
 	return 1;
 
+}
+
+void CDlgReport::OnCbnSelchangeComboStandard()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	int sel = m_combo_standard.GetCurSel();
+	if (sel >= 0 && sel < 3)
+	{
+		UpdateWoodData(sel);
+	}
 }

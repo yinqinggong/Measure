@@ -63,4 +63,6 @@ public:
 	afx_msg void OnBnClickedBtnScale();
 	afx_msg void OnBnClickedBtnData();
 	afx_msg void OnBnClickedBtnSave();
+	afx_msg void OnBnClickedBtnDownload();
+	CButton m_btnDownLoad;
 };
