@@ -3,7 +3,6 @@
 #include <atlimage.h>
 #include <vector>
 #include "ScaleAPI.h"
-
 #include <gdiplus.h>
 using namespace Gdiplus;
 

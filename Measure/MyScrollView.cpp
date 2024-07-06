@@ -2,6 +2,7 @@
 #include "MyScrollView.h"
 #include "MyStatic.h"
 #include "MyButton.h"
+#include "common.h"
 
 IMPLEMENT_DYNCREATE(CMyScrollView, CScrollView)
 
@@ -16,7 +17,7 @@ CMyScrollView::CMyScrollView(): m_brushBlack(RGB(0, 0, 0))
     m_columns = 4; // 每行四个子窗口
 
      // 示例数据数量
-    m_totalDataCount = 123;
+    //m_totalDataCount = 123;
 }
 
 CMyScrollView::~CMyScrollView()
@@ -38,6 +39,13 @@ void CMyScrollView::OnInitialUpdate()
     LayoutChildWindows();
 }
 
+void CMyScrollView::SetWoodDBShowList(std::vector<WoodDBShow> woodDBShowList)
+{
+    m_woodDBShowList = woodDBShowList;
+    m_totalDataCount = woodDBShowList.size();
+    OnInitialUpdate();
+}
+
 void CMyScrollView::OnDraw(CDC* pDC)
 {
     // 在此绘制滚动视图的内容（如果有需要的话）
@@ -52,6 +60,8 @@ void CMyScrollView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
 
 void CMyScrollView::CreateChildWindows(int nCount)
 {
+    ClearAllChildWindows();
+
     for (int i = 0; i < nCount; ++i)
     {
         CWnd* pChild = new CWnd();
@@ -61,11 +71,13 @@ void CMyScrollView::CreateChildWindows(int nCount)
         CStatic* pImgSta = new CStatic();
         if (pImgSta->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP, CRect(0, 0, 0, 0), pChild, 20000 + i))
         {
-            CString imagePath = _T("..\\Doc\\wood.jpg"); // 替换为你的图片路径
-            if (rand() % 2)
-            {
-                imagePath = _T("..\\Doc\\wood1.jpg");
-            }
+            CString imagePath;
+            UTF8ToUnicode(m_woodDBShowList[i].image_path.c_str(), imagePath);
+            //CString imagePath = _T("..\\Doc\\wood.jpg"); // 替换为你的图片路径
+            //if (rand() % 2)
+            //{
+            //    imagePath = _T("..\\Doc\\wood1.jpg");
+            //}
             CImage image;
             if (image.Load(imagePath) == S_OK)
             {
@@ -87,7 +99,9 @@ void CMyScrollView::CreateChildWindows(int nCount)
         CMyStatic* pTimeSta = new CMyStatic();
         if (pTimeSta->Create(_T(""), WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), pChild, 30000 + i))
         {
-            pTimeSta->SetWindowTextW(_T("2024-06-18 23:04:39")); 
+            CString strTime;
+            UTF8ToUnicode(m_woodDBShowList[i].timestamp.c_str(), strTime);
+            pTimeSta->SetWindowTextW(strTime);
         }
         else
         {
@@ -99,7 +113,7 @@ void CMyScrollView::CreateChildWindows(int nCount)
         if (pNumSta->Create(_T(""), WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), pChild, 40000 + i))
         {
             CString strText;
-            strText.Format(_T("根数：%d"), i);
+            strText.Format(_T("根数：%d"), m_woodDBShowList[i].amount);
             pNumSta->SetWindowTextW(strText);
         }
         else
@@ -112,7 +126,7 @@ void CMyScrollView::CreateChildWindows(int nCount)
         if (pTotalSta->Create(_T(""), WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), pChild, 50000 + i))
         {
             CString strText;
-            strText.Format(_T("总方数：%d"), i);
+            strText.Format(_T("总方数：%.3f"), m_woodDBShowList[i].total_v);
             pTotalSta->SetWindowTextW(strText);
         }
         else
@@ -124,16 +138,66 @@ void CMyScrollView::CreateChildWindows(int nCount)
         CMyButton* pCheckBtn = new CMyButton();
         if (pCheckBtn->Create(_T(""), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX, CRect(0, 0, 0, 0), pChild, 60000 + i))
         {
-            if (rand() % 2)
-            {
-                pCheckBtn->SetCheck(1);
-            }
+            pCheckBtn->SetCheck(m_woodDBShowList[i].checked);
         }
         else
         {
             delete pCheckBtn;
         }
     }
+}
+
+void CMyScrollView::ClearAllChildWindows()
+{
+    for (size_t i = 0; i < m_childWindows.size(); i++)
+    {
+        if (m_childWindows[i] != nullptr)
+        {
+            // 1，图片子控件
+            CStatic* pImgSta = static_cast<CStatic*>(m_childWindows[i]->GetDlgItem(20000 + i));
+            if (pImgSta)
+            {
+                pImgSta->DestroyWindow();
+                delete pImgSta;
+            }
+            // 2，设置时间子控件
+            CMyStatic* pTimeSta = static_cast<CMyStatic*>(m_childWindows[i]->GetDlgItem(30000 + i));
+            if (pTimeSta)
+            {
+                pTimeSta->DestroyWindow();
+                delete pTimeSta;
+            }
+
+            // 3，设置根数子控件
+            CMyStatic* pNumSta = static_cast<CMyStatic*>(m_childWindows[i]->GetDlgItem(40000 + i));
+            if (pNumSta)
+            {
+                pNumSta->DestroyWindow();
+                delete pNumSta;
+            }
+
+            // 4，设置总方数子控件
+            CMyStatic* pTotalSta = static_cast<CMyStatic*>(m_childWindows[i]->GetDlgItem(50000 + i));
+            if (pTotalSta)
+            {
+                pTotalSta->DestroyWindow();
+                delete pTotalSta;
+            }
+
+            // 5，创建复选框子控件
+            CMyButton* pCheckBtn = static_cast<CMyButton*>(m_childWindows[i]->GetDlgItem(60000 + i));
+            if (pCheckBtn)
+            {
+                pCheckBtn->DestroyWindow();
+                delete pCheckBtn;
+            }
+
+            m_childWindows[i]->DestroyWindow();
+            delete m_childWindows[i];
+        }
+    }
+
+    m_childWindows.clear();
 }
 
 void CMyScrollView::LayoutChildWindows()
@@ -208,55 +272,7 @@ void CMyScrollView::OnDestroy()
     CScrollView::OnDestroy();
 
     // TODO: 在此处添加消息处理程序代码
-    for (size_t i = 0; i < m_childWindows.size(); i++)
-    {
-        if (m_childWindows[i] != nullptr)
-        {
-            // 1，图片子控件
-            CStatic* pImgSta = static_cast<CStatic*>(m_childWindows[i]->GetDlgItem(20000 + i));
-            if (pImgSta)
-            {
-                pImgSta->DestroyWindow();
-                delete pImgSta;
-            }
-            // 2，设置时间子控件
-            CMyStatic* pTimeSta = static_cast<CMyStatic*>(m_childWindows[i]->GetDlgItem(30000 + i));
-            if (pTimeSta)
-            {
-                pTimeSta->DestroyWindow();
-                delete pTimeSta;
-            }
-
-            // 3，设置根数子控件
-            CMyStatic* pNumSta = static_cast<CMyStatic*>(m_childWindows[i]->GetDlgItem(40000 + i));
-            if (pNumSta)
-            {
-                pNumSta->DestroyWindow();
-                delete pNumSta;
-            }
-
-            // 4，设置总方数子控件
-            CMyStatic* pTotalSta = static_cast<CMyStatic*>(m_childWindows[i]->GetDlgItem(50000 + i));
-            if (pTotalSta)
-            {
-                pTotalSta->DestroyWindow();
-                delete pTotalSta;
-            }
-
-            // 5，创建复选框子控件
-            CMyButton* pCheckBtn = static_cast<CMyButton*>(m_childWindows[i]->GetDlgItem(60000 + i));
-            if (pCheckBtn)
-            {
-                pCheckBtn->DestroyWindow();
-                delete pCheckBtn;
-            }
-
-            m_childWindows[i]->DestroyWindow();
-            delete m_childWindows[i];
-        }
-    }
-   
-    m_childWindows.clear();
+    ClearAllChildWindows();
 }
 
 BOOL CMyScrollView::OnEraseBkgnd(CDC* pDC)

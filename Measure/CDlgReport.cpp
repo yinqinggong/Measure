@@ -81,7 +81,6 @@ void CDlgReport::SetScaleWood(ScaleWood scaleWood)
 
 void CDlgReport::UpdateWoodData(int sd)
 {
-	int total_num = 0;
 	double total_v = 0.0;
 	m_report_map.clear();
 	m_list_report.DeleteAllItems();
@@ -112,10 +111,9 @@ void CDlgReport::UpdateWoodData(int sd)
 			else {
 				iter->second.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
 			}
-			iter->second.wood_v *= iter->second.wood_num;
 
-			total_num += iter->second.wood_num;
 			total_v += iter->second.wood_v;
+			iter->second.wood_v *= iter->second.wood_num;
 		}
 		else
 		{
@@ -135,7 +133,6 @@ void CDlgReport::UpdateWoodData(int sd)
 
 			m_report_map.insert(std::make_pair(str_wood_d, reportData));
 
-			total_num += reportData.wood_num;
 			total_v += reportData.wood_v;
 		}
 	}
@@ -162,7 +159,7 @@ void CDlgReport::UpdateWoodData(int sd)
 	}
 
 	CString strTemp;
-	std::string strNum = std::to_string(total_num);
+	std::string strNum = std::to_string(m_scaleWood.wood_list.size());
 	UTF8ToUnicode(strNum.c_str(), strTemp);
 	m_sta_num.SetWindowTextW(_T("根数：") + strTemp);
 

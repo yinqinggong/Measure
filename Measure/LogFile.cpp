@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string>
+#include "common.h"
 
 #pragma warning (disable:4996)	//warning:_CRT_SECURE_NO_WARNINGS ×Ö·û´®°²È«¾¯¸æ
 

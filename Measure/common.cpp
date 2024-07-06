@@ -369,58 +369,58 @@ bool WritePhotoFile(std::basic_string<char> strFileName, std::string &strData)
 	CloseHandle(hFile);
 	return true;
 }
-
-BOOL GetInternetConnectedState()
-{
-	DWORD   flags;//上网方式   
-	BOOL   bOnline = TRUE;//是否在线    
-
-	bOnline = InternetGetConnectedState(&flags, 0);
-	if (bOnline)//在线     
-	{
-		if ((flags & INTERNET_CONNECTION_MODEM) == INTERNET_CONNECTION_MODEM)
-		{
-			//cout << "在线：拨号上网\n";
-		}
-		if ((flags & INTERNET_CONNECTION_LAN) == INTERNET_CONNECTION_LAN)
-		{
-			//cout << "在线：通过局域网\n";
-		}
-		if ((flags & INTERNET_CONNECTION_PROXY) == INTERNET_CONNECTION_PROXY)
-		{
-			//cout << "在线：代理\n";
-		}
-		if ((flags & INTERNET_CONNECTION_MODEM_BUSY) == INTERNET_CONNECTION_MODEM_BUSY)
-		{
-			//cout << "MODEM被其他非INTERNET连接占用\n";
-		}
-	}
-	else
-	{
-		//cout << "不在线\n";
-	}
-	return bOnline;
-}
-
-bool GetBeginEndTimeStamps(CDateTimeCtrl &beginDateCtrl, CDateTimeCtrl &endDateCtrl, int &beginTime, int &endTime)
-{
-	COleDateTime beginOleDate, endOleDate;
-	beginDateCtrl.GetTime(beginOleDate);
-	beginOleDate.SetDateTime(beginOleDate.GetYear(), beginOleDate.GetMonth(), beginOleDate.GetDay(), 0, 0, 0);
-	beginDateCtrl.SetTime(beginOleDate);
-
-	endDateCtrl.GetTime(endOleDate);
-	endOleDate.SetDateTime(endOleDate.GetYear(), endOleDate.GetMonth(), endOleDate.GetDay(), 23, 59, 59);
-	endDateCtrl.SetTime(endOleDate);
-
-	CTime  beginDate, endDate;
-	beginDateCtrl.GetTime(beginDate);
-	endDateCtrl.GetTime(endDate);
-	beginTime = beginDate.GetTime();
-	endTime = endDate.GetTime();
-	
-	return true;
-}
+//
+//BOOL GetInternetConnectedState()
+//{
+//	DWORD   flags;//上网方式   
+//	BOOL   bOnline = TRUE;//是否在线    
+//
+//	bOnline = InternetGetConnectedState(&flags, 0);
+//	if (bOnline)//在线     
+//	{
+//		if ((flags & INTERNET_CONNECTION_MODEM) == INTERNET_CONNECTION_MODEM)
+//		{
+//			//cout << "在线：拨号上网\n";
+//		}
+//		if ((flags & INTERNET_CONNECTION_LAN) == INTERNET_CONNECTION_LAN)
+//		{
+//			//cout << "在线：通过局域网\n";
+//		}
+//		if ((flags & INTERNET_CONNECTION_PROXY) == INTERNET_CONNECTION_PROXY)
+//		{
+//			//cout << "在线：代理\n";
+//		}
+//		if ((flags & INTERNET_CONNECTION_MODEM_BUSY) == INTERNET_CONNECTION_MODEM_BUSY)
+//		{
+//			//cout << "MODEM被其他非INTERNET连接占用\n";
+//		}
+//	}
+//	else
+//	{
+//		//cout << "不在线\n";
+//	}
+//	return bOnline;
+//}
+////
+//bool GetBeginEndTimeStamps(CDateTimeCtrl &beginDateCtrl, CDateTimeCtrl &endDateCtrl, int &beginTime, int &endTime)
+//{
+//	COleDateTime beginOleDate, endOleDate;
+//	beginDateCtrl.GetTime(beginOleDate);
+//	beginOleDate.SetDateTime(beginOleDate.GetYear(), beginOleDate.GetMonth(), beginOleDate.GetDay(), 0, 0, 0);
+//	beginDateCtrl.SetTime(beginOleDate);
+//
+//	endDateCtrl.GetTime(endOleDate);
+//	endOleDate.SetDateTime(endOleDate.GetYear(), endOleDate.GetMonth(), endOleDate.GetDay(), 23, 59, 59);
+//	endDateCtrl.SetTime(endOleDate);
+//
+//	CTime  beginDate, endDate;
+//	beginDateCtrl.GetTime(beginDate);
+//	endDateCtrl.GetTime(endDate);
+//	beginTime = beginDate.GetTime();
+//	endTime = endDate.GetTime();
+//	
+//	return true;
+//}
 
 
 //  拼接完整路径
@@ -442,4 +442,110 @@ CString SplicFullFilePath(CString strExeModuleName)
 	CString strPathName;
 	strPathName += strPath + strExeModuleName;
 	return strPathName;
+}
+
+std::string GetCurrentPathUTF8()
+{
+	char szCurrentPath[MAX_PATH];
+	memset(szCurrentPath, 0, MAX_PATH);
+	GetModuleFileNameA(NULL, szCurrentPath, MAX_PATH);
+
+	std::string  strFolderPath = (char*)szCurrentPath;
+	strFolderPath = strFolderPath.substr(0, strFolderPath.rfind("\\"));
+	strFolderPath += "\\";
+
+	return strFolderPath;
+}
+
+bool FolderExistUTF8(std::string strPath)   // 检查目录是否存在，存在为真，不存在为假
+{
+	WIN32_FIND_DATAA   wfd;
+	BOOL rValue = FALSE;
+	HANDLE hFind = FindFirstFileA(strPath.c_str(), &wfd);
+	if ((hFind != INVALID_HANDLE_VALUE) && (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+	{
+		rValue = TRUE;
+	}
+	FindClose(hFind);
+	return rValue;
+}
+
+std::string GetImagePathUTF8()
+{
+	std::string strDir = GetCurrentPathUTF8();
+	strDir += ("\\Image");
+	if (!FolderExistUTF8(strDir))
+	{
+		BOOL bRet = CreateDirectoryA(strDir.c_str(), NULL);
+		if (!bRet)
+		{
+			return ("");
+		}
+	}
+
+	strDir += ("\\");
+
+	return strDir;
+}
+
+BOOL FolderExist(CString strPath)   // 检查目录是否存在，存在为真，不存在为假
+{
+	WIN32_FIND_DATA   wfd;
+	BOOL rValue = FALSE;
+	HANDLE hFind = FindFirstFile(strPath, &wfd);
+	if ((hFind != INVALID_HANDLE_VALUE) && (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+	{
+		rValue = TRUE;
+	}
+	FindClose(hFind);
+	return rValue;
+}
+
+CString GetImagePath()
+{
+	CString strDir = GetCurrentPath();
+	strDir.Append(_T("\\Image"));
+	if (!FolderExist(strDir))
+	{
+		BOOL bRet = CreateDirectory(strDir, NULL);
+		if (!bRet)
+		{
+			return _T("");
+		}
+	}
+
+	strDir.Append(_T("\\"));
+
+	return strDir;
+}
+
+CString GetCurrentPath()
+{
+	WCHAR szCurrentPath[MAX_PATH];
+	memset(szCurrentPath, 0, MAX_PATH);
+	GetModuleFileName(NULL, szCurrentPath, MAX_PATH);
+
+	CString  strFolderPath = (WCHAR*)szCurrentPath;
+	strFolderPath = strFolderPath.Left(strFolderPath.ReverseFind('\\'));
+	strFolderPath += "\\";
+
+	return strFolderPath;
+}
+
+CString GetAppdataPath()
+{
+	CString strDir = GetCurrentPath();
+	strDir.Append(_T("\\logs"));
+	if (!FolderExist(strDir))
+	{
+		BOOL bRet = CreateDirectory(strDir, NULL);
+		if (!bRet)
+		{
+			return _T("");
+		}
+	}
+
+	strDir.Append(_T("\\"));
+
+	return strDir;
 }
