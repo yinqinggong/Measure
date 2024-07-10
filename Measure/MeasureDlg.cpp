@@ -496,6 +496,8 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	m_dlgReport.ShowWindow(SW_HIDE);
 
+	double wood_len = m_dlgReport.GetWoodLen();
+
 	ScaleWood scaleWood = { 0 };
 	if (m_imgWnd.GetScaleWood(scaleWood))
 	{
@@ -510,7 +512,7 @@ void CMeasureDlg::OnBnClickedBtnSave()
 		//计算总容积
 		double total_v = 0.0;
 		double wood_v = 0.0;
-		double l = 2.6;
+		double l = wood_len;
 		for (size_t i = 0; i < scaleWood.wood_list.size(); i++)
 		{
 			int d = scaleWood.wood_list[i].diameter;

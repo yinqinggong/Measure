@@ -41,6 +41,7 @@ BEGIN_MESSAGE_MAP(CDlgReport, CDialogEx)
 //	ON_WM_PAINT()
 	ON_WM_SIZE()
 	ON_CBN_SELCHANGE(IDC_COMBO_STANDARD, &CDlgReport::OnCbnSelchangeComboStandard)
+	ON_EN_CHANGE(IDC_EDIT_LEN, &CDlgReport::OnEnChangeEditLen)
 END_MESSAGE_MAP()
 
 
@@ -81,6 +82,10 @@ void CDlgReport::SetScaleWood(ScaleWood scaleWood)
 
 void CDlgReport::UpdateWoodData(int sd)
 {
+	CString str_wood_len;
+	m_edit_len.GetWindowTextW(str_wood_len);
+	double wood_len = _wtof(str_wood_len);
+
 	double total_v = 0.0;
 	m_report_map.clear();
 	m_list_report.DeleteAllItems();
@@ -104,7 +109,7 @@ void CDlgReport::UpdateWoodData(int sd)
 		{
 			iter->second.wood_num++;
 			//double d = m_scaleWood.wood_list[i].diameter;
-			double l = 2.6;
+			double l = wood_len;
 			if (d < 14) {
 				iter->second.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
 			}
@@ -119,11 +124,11 @@ void CDlgReport::UpdateWoodData(int sd)
 		{
 			ReportData reportData;
 			reportData.wood_d = d;
-			reportData.wood_l = 2.6;
+			reportData.wood_l = wood_len;
 			reportData.wood_num = 1;
 
 			//double d = m_scaleWood.wood_list[i].diameter;
-			double l = 2.6;
+			double l = wood_len;
 			if (d < 14) {
 				reportData.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
 			}
@@ -233,4 +238,16 @@ void CDlgReport::OnCbnSelchangeComboStandard()
 	{
 		UpdateWoodData(sel);
 	}
+}
+
+
+void CDlgReport::OnEnChangeEditLen()
+{
+	// TODO:  如果该控件是 RICHEDIT 控件，它将不
+	// 发送此通知，除非重写 CDialogEx::OnInitDialog()
+	// 函数并调用 CRichEditCtrl().SetEventMask()，
+	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
+
+	// TODO:  在此添加控件通知处理程序代码
+	OnCbnSelchangeComboStandard();
 }
