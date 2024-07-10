@@ -526,8 +526,6 @@ void CMeasureDlg::OnBnClickedBtnSave()
 		//获取woodlist串
 		std::string woollist = GetStringWoodList(scaleWood);
 		db_insert_record(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
-
-
 		AfxMessageBox(_T("保存数据成功"));
 		m_imgWnd.ResetCapture();
 		m_imgWnd.ClearScaleWood();
@@ -536,8 +534,7 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	{
 		AfxMessageBox(_T("没有数据保存，请先进行检尺"));
 	}
-
-
+}
 
 	//db_query_all();
 
