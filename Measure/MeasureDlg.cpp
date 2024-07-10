@@ -534,7 +534,6 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	{
 		AfxMessageBox(_T("没有数据保存，请先进行检尺"));
 	}
-}
 
 	//db_query_all();
 
