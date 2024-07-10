@@ -3,7 +3,6 @@
 #include <atlimage.h>
 #include <vector>
 #include "ScaleAPI.h"
-
 #include <gdiplus.h>
 using namespace Gdiplus;
 
@@ -57,13 +56,18 @@ public:
     }
     bool GetScaleWood(ScaleWood& scaleWood)
     {
-        if (scaleWood.id <= 0)
+        if (m_scaleWood.id <= 0)
         {
             return false;
         }
         scaleWood = m_scaleWood;
         return true;
     }
+    void ClearScaleWood()
+    {
+        m_scaleWood = { 0 };
+    }
+    void ResetCapture();
 public:
     CMyWnd();
     ~CMyWnd();

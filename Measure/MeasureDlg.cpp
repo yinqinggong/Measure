@@ -10,6 +10,11 @@
 #include "ScaleAPI.h"
 #include "sqlite3.h"
 #include "ScaleDB.h"
+#include <json/json.h>
+#include "common.h"
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 //excel begin
 //#include <afxdisp.h>      // MFC 自动化类库
@@ -448,17 +453,91 @@ void CMeasureDlg::OnBnClickedBtnData()
 	m_btnSave.ShowWindow(SW_HIDE);
 	m_btnDownLoad.ShowWindow(SW_SHOWNORMAL);
 }
+std::string CMeasureDlg::GetStringWoodList(ScaleWood& scaleWood)
+{
+	// 新建 JSON 对象
+	Json::Value root(Json::arrayValue);// 给 JSON 对象添加键值对
+	for (size_t i = 0; i < scaleWood.wood_list.size(); i++)
+	{
+		Json::Value woodAttr;
+		woodAttr["diameter"] = scaleWood.wood_list[i].diameter;
 
+		Json::Value diameters;
+		diameters["d1"] = scaleWood.wood_list[i].diameters.d1;
+		diameters["d2"] = scaleWood.wood_list[i].diameters.d2;
+		woodAttr["diameters"] = diameters;
+
+		Json::Value ellipse;
+		ellipse["ab1"] = scaleWood.wood_list[i].ellipse.ab1;
+		ellipse["ab2"] = scaleWood.wood_list[i].ellipse.ab2;
+		ellipse["angel"] = scaleWood.wood_list[i].ellipse.angel;
+		ellipse["cx"] = scaleWood.wood_list[i].ellipse.cx;
+		ellipse["cy"] = scaleWood.wood_list[i].ellipse.cy;
+		ellipse["lx1"] = scaleWood.wood_list[i].ellipse.lx1;
+		ellipse["lx2"] = scaleWood.wood_list[i].ellipse.lx2;
+		ellipse["ly1"] = scaleWood.wood_list[i].ellipse.ly1;
+		ellipse["ly2"] = scaleWood.wood_list[i].ellipse.ly2;
+		ellipse["sx1"] = scaleWood.wood_list[i].ellipse.sx1;
+		ellipse["sx2"] = scaleWood.wood_list[i].ellipse.sx2;
+		ellipse["sy1"] = scaleWood.wood_list[i].ellipse.sy1;
+		ellipse["sy2"] = scaleWood.wood_list[i].ellipse.sy2;
+		woodAttr["ellipse"] = ellipse;
+
+		root.append(woodAttr);
+	}
+
+	Json::StyledWriter writer;
+	std::string json_str = writer.write(root);// 将字符串转为 char*const char* data = json_str.c_str();// 打印结果
+	return json_str;
+}
 void CMeasureDlg::OnBnClickedBtnSave()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	ScaleWood scaleWood;
+	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	m_dlgReport.ShowWindow(SW_HIDE);
+
+	ScaleWood scaleWood = { 0 };
 	if (m_imgWnd.GetScaleWood(scaleWood))
 	{
-		std::string woollist = "{\"name\":\"Alice\",\"age\":25}";
-		db_insert_record(scaleWood.id, 123, 45.6, 78.9, woollist);
+		cv::Mat src = cv::imread(GetImagePathUTF8() + std::to_string(scaleWood.id) + ".jpg");
+		if (src.data)
+		{
+			cv::Mat dst;
+			cv::resize(src, dst, cv::Size(src.cols/8, src.rows/8));
+			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWood.id) + "_s.jpg", dst);
+		}
+		
+		//计算总容积
+		double total_v = 0.0;
+		double wood_v = 0.0;
+		double l = 2.6;
+		for (size_t i = 0; i < scaleWood.wood_list.size(); i++)
+		{
+			int d = scaleWood.wood_list[i].diameter;
+			if (d < 14) {
+				wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+			}
+			else {
+				wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+			}
+			total_v += wood_v;
+		}
+		
+		//获取woodlist串
+		std::string woollist = GetStringWoodList(scaleWood);
+		db_insert_record(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
+
+
+		AfxMessageBox(_T("保存数据成功"));
+		m_imgWnd.ResetCapture();
+		m_imgWnd.ClearScaleWood();
 	}
-	db_query_by_time_range2(1720100449 - 3600 * 5, 1720100449 + 3600);
+	else
+	{
+		AfxMessageBox(_T("没有数据保存，请先进行检尺"));
+	}
+
+
 
 	//db_query_all();
 

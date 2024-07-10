@@ -37,8 +37,8 @@ const CString  VERSION_INFO = _T("1.0");
 
 void WaitAndTermThread(HANDLE hThread, DWORD dwTimeSec = 5);
 
-CString GetCurrentPath();//获取当前路径
-CString GetAppdataPath();//获取appdata路径
+//CString GetCurrentPath();//获取当前路径
+//CString GetAppdataPath();//获取appdata路径
 
 
 

@@ -5,6 +5,9 @@
 #include "Measure.h"
 #include "DlgData.h"
 #include "afxdialogex.h"
+#include "ScaleDB.h"
+#include "common.h"
+#include <json/json.h>
 
 
 #define IDC_SUB_SCROLL_VIEW             9000+2
@@ -39,6 +42,7 @@ BEGIN_MESSAGE_MAP(CDlgData, CDialogEx)
 	ON_WM_SIZE()
 	ON_WM_CTLCOLOR()
 	ON_WM_PAINT()
+	ON_BN_CLICKED(IDC_BUTTON_QUERY, &CDlgData::OnBnClickedButtonQuery)
 END_MESSAGE_MAP()
 
 
@@ -72,6 +76,8 @@ void CDlgData::OnSize(UINT nType, int cx, int cy)
 	int w = 100;
 	int h = 30;
 
+	m_date_start.SetFormat(_T("yyyy-MM-dd HH:mm:ss")); // 设置显示格式
+	m_date_end.SetFormat(_T("yyyy-MM-dd HH:mm:ss")); // 设置显示格式
 	m_sta_start.MoveWindow(edge, edge * 1.5, w * 0.7, h);
 	m_date_start.MoveWindow(edge + w, edge, w * 1.5, h);
 	m_sta_end.MoveWindow(edge * 6 + w * 2, edge * 1.5, w * 0.7, h);
@@ -123,4 +129,74 @@ void CDlgData::OnPaint()
 	CRect rect;
 	GetClientRect(rect);
 	dc.FillSolidRect(rect, RGB(0, 0, 0));   //控件背景色
+}
+
+bool CDlgData::GetScaleWoodFromJsonString(std::string& jsonstr, ScaleWood& scaleWood)
+{
+    Json::Value rootArray;
+    Json::Reader reader;
+    bool parsingSuccessful = reader.parse(jsonstr, rootArray);
+    if (!parsingSuccessful) {
+        std::cout << "解析 JSON 失败" << std::endl;
+        return false;
+    }
+
+	for (size_t i = 0; i < rootArray.size(); i++)
+	{
+		WoodAttr woodAttr = { 0 };
+		woodAttr.diameter = rootArray[i]["diameter"].asDouble();
+
+		Diameters diameters = { 0 };
+		diameters.d1 = rootArray[i]["diameters"]["d1"].asDouble();
+		diameters.d2 = rootArray[i]["diameters"]["d2"].asDouble();
+		woodAttr.diameters = diameters;
+		
+		WoodEllipse ellipse = { 0 };
+		ellipse.ab1 = rootArray[i]["ellipse"]["ab1"].asDouble();
+		ellipse.ab2 = rootArray[i]["ellipse"]["ab2"].asDouble();
+		ellipse.angel = rootArray[i]["ellipse"]["angel"].asDouble();
+		ellipse.cx = rootArray[i]["ellipse"]["cx"].asDouble();
+		ellipse.cy = rootArray[i]["ellipse"]["cy"].asDouble();
+		ellipse.lx1 = rootArray[i]["ellipse"]["lx1"].asDouble();
+		ellipse.lx2 = rootArray[i]["ellipse"]["lx2"].asDouble();
+		ellipse.ly1 = rootArray[i]["ellipse"]["ly1"].asDouble();
+		ellipse.ly2 = rootArray[i]["ellipse"]["ly2"].asDouble();
+		ellipse.sx1 = rootArray[i]["ellipse"]["sx1"].asDouble();
+		ellipse.sx2 = rootArray[i]["ellipse"]["sx2"].asDouble();
+		ellipse.sy1 = rootArray[i]["ellipse"]["sy1"].asDouble();
+		ellipse.sy2 = rootArray[i]["ellipse"]["sy2"].asDouble();
+		woodAttr.ellipse = ellipse;
+
+		scaleWood.wood_list.push_back(woodAttr);
+	}
+
+    return true;
+}
+void CDlgData::OnBnClickedButtonQuery()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CTime startTime, endTime;
+	m_date_start.GetTime(startTime);
+	m_date_end.GetTime(endTime);
+	// 将 CTime 转换为 time_t 类型，即时间戳
+	time_t start_timestamp = startTime.GetTime();
+	time_t end_timestamp = endTime.GetTime();
+
+	std::vector<WoodDataDB> showDataList;
+	db_query_by_time_range2(start_timestamp, end_timestamp, showDataList);
+
+	std::vector<WoodDBShow> woodDBShowList;
+	for (size_t i = 0; i < showDataList.size(); i++)
+	{
+		WoodDBShow woodDBShow;
+		woodDBShow.amount = showDataList[i].amount;
+		woodDBShow.checked = false;
+		woodDBShow.image_path = GetImagePathUTF8() + std::to_string(showDataList[i].id) + "_s.jpg";
+		woodDBShow.timestamp = GetFormatTimeByTimestamp(showDataList[i].id);
+		woodDBShow.total_v = showDataList[i].total_volume;
+		GetScaleWoodFromJsonString(showDataList[i].wood_list, woodDBShow.scaleWood);
+		woodDBShow.scaleWood.id = showDataList[i].id;
+		woodDBShowList.push_back(woodDBShow);
+	}
+	m_pScrollView->SetWoodDBShowList(woodDBShowList);
 }

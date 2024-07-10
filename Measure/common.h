@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <Wininet.h>
+//#include <Wininet.h>
+#include <Windows.h>
+#include <atlstr.h>
 
 static const int g_settings_btnId = 12000;//配置界面按钮ID
 static const int g_login_btnId = 13000;//登录界面按钮ID
@@ -248,8 +250,14 @@ bool FileExist(const char *fileName);
 bool ReadPhotoFile(std::basic_string<char> strFileName, std::string &strData);
 bool WritePhotoFile(std::basic_string<char> strFileName, std::string &strData);
 
-BOOL GetInternetConnectedState();
-bool GetBeginEndTimeStamps(CDateTimeCtrl &beginDateCtrl, CDateTimeCtrl &endDateCtrl, int &beginTime, int &endTime);
+//BOOL GetInternetConnectedState();
+//bool GetBeginEndTimeStamps(CDateTimeCtrl &beginDateCtrl, CDateTimeCtrl &endDateCtrl, int &beginTime, int &endTime);
 
 //  拼接完整路径
 CString SplicFullFilePath(CString strExeModuleName);
+std::string GetCurrentPathUTF8();
+std::string GetImagePathUTF8();
+
+CString GetImagePath();//获取图片的路径
+CString GetCurrentPath();//获取当前路径
+CString GetAppdataPath();//获取appdata路径
