@@ -211,6 +211,7 @@
     <ClInclude Include="Measure.h" />
     <ClInclude Include="MeasureDlg.h" />
     <ClInclude Include="MyButton.h" />
+    <ClInclude Include="MyImageStatic.h" />
     <ClInclude Include="MyScrollView.h" />
     <ClInclude Include="MyStatic.h" />
     <ClInclude Include="MyWnd.h" />
@@ -250,6 +251,7 @@
     <ClCompile Include="Measure.cpp" />
     <ClCompile Include="MeasureDlg.cpp" />
     <ClCompile Include="MyButton.cpp" />
+    <ClCompile Include="MyImageStatic.cpp" />
     <ClCompile Include="MyScrollView.cpp" />
     <ClCompile Include="MyStatic.cpp" />
     <ClCompile Include="MyWnd.cpp" />

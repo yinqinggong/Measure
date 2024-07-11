@@ -2,6 +2,7 @@
 #include <afxwin.h>
 #include <vector>
 #include "ScaleAPI.h"
+#include "MyImageStatic.h"
 
 typedef struct defWoodDBShow
 {
@@ -30,7 +31,7 @@ protected:
     afx_msg void OnDestroy();
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);
     //afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
-
+    afx_msg void OnStaticClicked(UINT nID);
 private:
     void LayoutChildWindows();
     void CreateChildWindows(int nCount);
@@ -41,7 +42,6 @@ private:
     int m_columns;
     CBrush m_brushBlack;  // 添加用于背景色的画刷
     std::vector<WoodDBShow> m_woodDBShowList;
-    
     DECLARE_MESSAGE_MAP()
 
 };

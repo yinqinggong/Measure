@@ -10,6 +10,7 @@ BEGIN_MESSAGE_MAP(CMyScrollView, CScrollView)
     ON_WM_DESTROY()
     ON_WM_ERASEBKGND()
     //ON_WM_CTLCOLOR()
+    ON_CONTROL_RANGE(STN_CLICKED, 20000, 30000 - 1, &CMyScrollView::OnStaticClicked)
 END_MESSAGE_MAP()
 
 CMyScrollView::CMyScrollView(): m_brushBlack(RGB(0, 0, 0))
@@ -65,11 +66,11 @@ void CMyScrollView::CreateChildWindows(int nCount)
     for (int i = 0; i < nCount; ++i)
     {
         CWnd* pChild = new CWnd();
-        pChild->Create(NULL, _T(""), WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), this, 10000 + i);
+        pChild->Create(NULL, _T(""), WS_CHILD | WS_VISIBLE, CRect(10, 10, 10, 10), this, 10000 + i);
         m_childWindows.push_back(pChild);
         // 1，创建图片子控件
-        CStatic* pImgSta = new CStatic();
-        if (pImgSta->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP, CRect(0, 0, 0, 0), pChild, 20000 + i))
+        CMyImageStatic* pImgSta = new CMyImageStatic();
+        if (pImgSta->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_NOTIFY, CRect(10, 10, 10, 10), pChild, 20000 + i))
         {
             CString imagePath;
             UTF8ToUnicode(m_woodDBShowList[i].image_path.c_str(), imagePath);
@@ -309,3 +310,14 @@ BOOL CMyScrollView::OnEraseBkgnd(CDC* pDC)
 //    //// TODO:  如果默认的不是所需画笔，则返回另一个画笔
 //    //return hbr;
 //}
+void CMyScrollView::OnStaticClicked(UINT nID)
+{
+    // 处理点击事件
+    // nID 是被点击的控件的ID
+    // pNMHDR 指向发送消息的控件的通知结构体
+    CString str;
+    str.Format(_T("%d"), nID);
+    AfxMessageBox(str);
+
+    //*pResult = 0;
+}
