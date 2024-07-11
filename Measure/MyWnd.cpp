@@ -949,3 +949,23 @@ void CMyWnd::ResetCapture()
     m_btnRec.ShowWindow(SW_HIDE);
     this->Invalidate();
 }
+
+void CMyWnd::ShowHistoryData(ScaleWood* pScaleWood)
+{
+    m_scaleWood.id = pScaleWood->id;
+    m_scaleWood.img = pScaleWood->img;
+    m_scaleWood.wood_list = pScaleWood->wood_list;
+
+    //std::string strImagePath = GetImagePathUTF8() + std::to_string(m_scaleWood.id) + ".jpg";
+    //cv::Mat img = cv::imread(strImagePath);
+
+    m_image.Destroy();
+    CString imagePath;
+    imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+    m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
+    SetStatus(0);
+    m_btnCapture.ShowWindow(SW_HIDE);
+    m_btnDis.ShowWindow(SW_HIDE);
+    m_btnRec.ShowWindow(SW_HIDE);
+    this->Invalidate();
+}

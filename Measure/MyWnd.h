@@ -68,6 +68,7 @@ public:
         m_scaleWood = { 0 };
     }
     void ResetCapture();
+    void ShowHistoryData(ScaleWood* pScaleWood);
 public:
     CMyWnd();
     ~CMyWnd();

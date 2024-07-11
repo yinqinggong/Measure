@@ -4,6 +4,8 @@
 #include "ScaleAPI.h"
 #include "MyImageStatic.h"
 
+#define WM_USER_MESSAGE (WM_USER + 100)
+
 typedef struct defWoodDBShow
 {
     std::string image_path;

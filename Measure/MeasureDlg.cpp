@@ -110,6 +110,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_DATA, &CMeasureDlg::OnBnClickedBtnData)
 	ON_BN_CLICKED(IDC_BTN_SAVE, &CMeasureDlg::OnBnClickedBtnSave)
 	ON_BN_CLICKED(IDC_BTN_DOWNLOAD, &CMeasureDlg::OnBnClickedBtnDownload)
+	ON_MESSAGE(WM_USER_MESSAGE, &CMeasureDlg::OnUserMessage)
 END_MESSAGE_MAP()
 
 
@@ -707,4 +708,13 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 	{
 		ExportToExcel(fileDlg.GetPathName());
 	}
+}
+
+LRESULT CMeasureDlg::OnUserMessage(WPARAM wParam, LPARAM lParam)
+{
+	ScaleWood * pScaleWood = (ScaleWood*)wParam;
+	OnBnClickedBtnScale();
+	m_imgWnd.ShowHistoryData(pScaleWood);
+	delete pScaleWood;
+	return 0;
 }

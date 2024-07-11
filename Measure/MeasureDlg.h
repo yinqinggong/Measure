@@ -65,5 +65,6 @@ public:
 	afx_msg void OnBnClickedBtnSave(); 
 	std::string GetStringWoodList(ScaleWood& scaleWood);
 	afx_msg void OnBnClickedBtnDownload();
+	afx_msg LRESULT OnUserMessage(WPARAM wParam, LPARAM lParam);
 	CButton m_btnDownLoad;
 };
