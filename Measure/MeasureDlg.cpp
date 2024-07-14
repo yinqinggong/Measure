@@ -528,8 +528,16 @@ void CMeasureDlg::OnBnClickedBtnSave()
 		
 		//获取woodlist串
 		std::string woollist = GetStringWoodList(scaleWood);
-		db_insert_record(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
-		AfxMessageBox(_T("保存数据成功"));
+		if (db_query_exist_by_create_time(scaleWood.id))
+		{
+			db_update_by_create_time(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
+			AfxMessageBox(_T("修改数据成功"));
+		}
+		else 
+		{
+			db_insert_record(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
+			AfxMessageBox(_T("保存数据成功"));
+		}
 		m_imgWnd.ResetCapture();
 		m_imgWnd.ClearScaleWood();
 	}

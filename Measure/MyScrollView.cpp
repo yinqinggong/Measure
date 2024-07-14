@@ -314,9 +314,9 @@ void CMyScrollView::OnStaticClicked(UINT nID)
 {
     // 处理点击事件
     // nID 是被点击的控件的ID
-    CString str;
-    str.Format(_T("%d"), nID);
-    AfxMessageBox(str);
+    //CString str;
+    //str.Format(_T("%d"), nID);
+    //AfxMessageBox(str);
     ScaleWood* pScaleWood = new ScaleWood(m_woodDBShowList[nID - 20000].scaleWood);
     ::PostMessage(AfxGetApp()->m_pMainWnd->m_hWnd, WM_USER_MESSAGE, (WPARAM)pScaleWood, 0);
 }

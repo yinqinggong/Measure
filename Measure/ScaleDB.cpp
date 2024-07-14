@@ -326,13 +326,72 @@ int db_query_by_time_range(int start_time, int end_time)
     return ret;
 }
 
-int db_query_by_id(int create_time)
+bool db_query_exist_by_create_time(int create_time)
+{
+    char* pcErrMsg = NULL;
+    sqlite3* pDB = NULL;
+    sqlite3_stmt* stmt;
+    bool ret = false;
+    // 格式化SQL语句
+    char cSql[512] = { 0 };
+    do
+    {
+        int nRes = sqlite3_open(db_path_name.c_str(), &pDB);
+        if (nRes != SQLITE_OK)
+        {
+            //打开数据库失败
+            // writeLog
+            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            ret = false;
+            break;
+        }
+
+        sqlite3_snprintf(512, cSql, "select count(1) from scale_result where create_time = %d", create_time);
+        nRes = sqlite3_prepare_v2(pDB, cSql, -1, &stmt, nullptr);
+       //nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
+        if (nRes != SQLITE_OK)
+        {
+            printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+            ret = false;
+            break;
+        }
+        sqlite3_bind_int(stmt, 1, create_time);
+        nRes = sqlite3_step(stmt);
+        if (nRes != SQLITE_ROW)
+        {
+            std::cerr << "Failed to execute statement: " << sqlite3_errmsg(pDB) << std::endl;
+            sqlite3_finalize(stmt);
+            return false;
+        }
+        int count = sqlite3_column_int(stmt, 0);
+        sqlite3_finalize(stmt);
+        ret = count > 0;
+        printf("insert test_table successful. \n");
+
+    } while (false);
+
+
+    //关闭数据库
+    sqlite3_close(pDB);
+    pDB = NULL;
+
+    if (pcErrMsg != NULL)
+    {
+        sqlite3_free(pcErrMsg); //释放内存
+        pcErrMsg = NULL;
+    }
+
+    return ret;
+}
+
+
+int db_update_by_create_time(int create_time, int amount, double lenght, double total_volume, std::string wood_list)
 {
     char* pcErrMsg = NULL;
     sqlite3* pDB = NULL;
     int ret = 0;
     // 格式化SQL语句
-    char cSql[512] = { 0 };
+    char cSql[4096] = { 0 };
     do
     {
         int nRes = sqlite3_open(db_path_name.c_str(), &pDB);
@@ -345,8 +404,8 @@ int db_query_by_id(int create_time)
             break;
         }
 
-        sqlite3_snprintf(512, cSql, "select * from scale_result where create_time = %d", create_time);
-        nRes = sqlite3_exec(pDB, cSql, callback, NULL, &pcErrMsg);
+        sqlite3_snprintf(4096, cSql, "UPDATE scale_result SET amount = %d, lenght = %f, total_volume = %f, wood_list = '%s' where create_time = %d", amount, lenght, total_volume, wood_list.c_str(), create_time);
+        nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
         if (nRes != SQLITE_OK)
         {
             printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
@@ -370,6 +429,7 @@ int db_query_by_id(int create_time)
 
     return ret;
 }
+
 int db_delete_all()
 {
     char* pcErrMsg = NULL;
