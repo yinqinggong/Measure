@@ -473,7 +473,7 @@ bool FolderExistUTF8(std::string strPath)   // ¼ì²éÄ¿Â¼ÊÇ·ñ´æÔÚ£¬´æÔÚÎªÕæ£¬²»´æÔ
 std::string GetImagePathUTF8()
 {
 	std::string strDir = GetCurrentPathUTF8();
-	strDir += ("\\Image");
+	strDir += ("Image");
 	if (!FolderExistUTF8(strDir))
 	{
 		BOOL bRet = CreateDirectoryA(strDir.c_str(), NULL);

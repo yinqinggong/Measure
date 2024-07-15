@@ -31,5 +31,12 @@ void CMyButton::PreSubclassWindow()
 void CMyButton::OnBnClicked()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	AfxMessageBox(_T("checkbox clicked!"));
+	//AfxMessageBox(_T("checkbox clicked!"));
+	int bCheck = GetCheck();
+	::PostMessage(GetParent()->GetParent()->m_hWnd, WM_USER_MESSAGE_CHECK, (WPARAM)&m_index, (LPARAM)&bCheck);
+}
+
+void CMyButton::SetDBIndex(int i)
+{
+	m_index = i;
 }

@@ -35,4 +35,5 @@ public:
 	afx_msg void OnPaint();
 	afx_msg void OnBnClickedButtonQuery();
 	bool GetScaleWoodFromJsonString(std::string& jsonstr, ScaleWood& scaleWood);
+	void GetWoodData(std::vector<WoodDBShow>& woodDBShowList);
 };

@@ -659,62 +659,85 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	//}
 }
 
-void ExportToExcel(const CString& strFileName)
+void CMeasureDlg::GetDownLoadData(std::vector<std::vector<CString>>& wood_data)
 {
-	//// 创建Excel应用程序对象
-	//CExcelApp excelApp;
-	//if (!excelApp.CreateDispatch(_T("Excel.Application")))
-	//{
-	//	AfxMessageBox(_T("无法启动Excel！"));
-	//	return;
-	//}
+	std::vector<WoodDBShow> woodDBShowList;
+	m_dlgData.GetWoodData(woodDBShowList);
 
-	//// 使Excel应用程序可见（可选）
-	//excelApp.SetVisible(TRUE);
-
-	//// 获取添加工作簿的Dispatch接口
-	//CWorkbooks books = excelApp.GetWorkbooks();
-	//CWorkbook book = books.Add(_variant_t(long(xlWBATWorksheet)));
-
-	//// 获取工作表的Dispatch接口
-	//CWorksheets sheets = book.GetWorksheets();
-	//CWorksheet sheet = sheets.GetItem(_T("Sheet1"));
-
-	//// 填充数据
-	//CRange range = sheet.GetRange(_T("A1"));
-	//range.SetValue2(_variant_t(_T("这里是数据")));
-
-	//// 保存工作簿
-	//books.SaveAs(COleVariant(strFileName),
-	//	_variant_t(long(xlOpenXMLWorkbook)),
-	//	vtMissing, vtMissing, vtMissing,
-	//	vtMissing, _variant_t(long(xlLocal)),
-	//	vtMissing, vtMissing, vtMissing);
-
-	//// 关闭工作簿和Excel应用程序
-	//book.Close(FALSE);
-	//excelApp.Quit();
-
-	//// 释放对象
-	//range.ReleaseDispatch();
-	//sheet.ReleaseDispatch();
-	//books.ReleaseDispatch();
-	//book.ReleaseDispatch();
-	//excelApp.ReleaseDispatch();
-
-	//AfxMessageBox(_T("导出成功！"));
+	std::vector<CString> titleVec{ _T("时间"), _T("根数"), _T("总方数"), _T("图片路径") };
+	wood_data.push_back(titleVec);
+	CString strTemp;
+	for (size_t i = 0; i < woodDBShowList.size(); i++)
+	{
+		std::vector<CString> contentVec;
+		UTF8ToUnicode(woodDBShowList[i].timestamp.c_str(), strTemp);
+		//时间在excel中显示全
+		strTemp += _T("\t");
+		contentVec.push_back(strTemp);
+		strTemp.Format(_T("%d"), woodDBShowList[i].amount);
+		contentVec.push_back(strTemp);
+		strTemp.Format(_T("%.3f"), woodDBShowList[i].total_v);
+		contentVec.push_back(strTemp);
+		UTF8ToUnicode(woodDBShowList[i].image_path.c_str(), strTemp);
+		contentVec.push_back(strTemp);
+		wood_data.push_back(contentVec);
+	}
 }
-
 void CMeasureDlg::OnBnClickedBtnDownload()
 {
-	// TODO: 在此添加控件通知处理程序代码
-	CFileDialog fileDlg(FALSE, _T("xlsx"), _T("Export.xlsx"),
-		OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		_T("Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*||"));
+	std::vector<std::vector<CString>> wood_data;
+	GetDownLoadData(wood_data);
+	if (wood_data.size() < 2)
+	{
+		AfxMessageBox(_T("没有数据保存！"));
+		return;
+	}
 
+	// 假设我们有一个二维数据vector，每个内部vector代表一行
+	//std::vector<std::vector<CString>> data = { {_T("hello"), _T("world")},{_T("1234"), _T("5678")},{_T("abcd")} }; // 你的数据源
+	// 使用文件对话框让用户选择保存位置和文件名
+	std::string tempFileName = GetCurFormatTime();
+	CString cstr_tempFileName;
+	UTF8ToUnicode(tempFileName.c_str(), cstr_tempFileName);
+	cstr_tempFileName += _T(".csv");
+	_tsetlocale(LC_CTYPE, _T("chs"));//设置语言环境为中文。
+	CFileDialog fileDlg(FALSE, _T("csv"), cstr_tempFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("CSV Files (*.csv)|*.csv|All Files (*.*)|*.*||"));
 	if (fileDlg.DoModal() == IDOK)
 	{
-		ExportToExcel(fileDlg.GetPathName());
+		CString fileName = fileDlg.GetPathName();
+
+		CStdioFile file;
+		if (file.Open(fileName, CFile::modeCreate | CFile::modeWrite))
+		{
+			// 写入标题行（如果有）
+			for (size_t i = 0; i < wood_data[0].size(); ++i)
+			{
+				file.WriteString(wood_data[0][i]);
+				file.WriteString(_T(", "));
+			}
+			file.WriteString(_T("\n"));
+
+			// 写入数据
+			for (size_t i = 1; i < wood_data.size(); ++i)
+			{
+				for (size_t j = 0; j < wood_data[i].size(); ++j)
+				{
+					file.WriteString(wood_data[i][j]);
+					if (j < wood_data[i].size() - 1)
+					{
+						file.WriteString(_T(", "));
+					}
+				}
+				file.WriteString(_T("\n"));
+			}
+
+			file.Close();
+			AfxMessageBox(_T("CSV文件导出成功。"));
+		}
+		else
+		{
+			AfxMessageBox(_T("无法创建CSV文件。"));
+		}
 	}
 }
 

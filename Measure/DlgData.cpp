@@ -200,3 +200,8 @@ void CDlgData::OnBnClickedButtonQuery()
 	}
 	m_pScrollView->SetWoodDBShowList(woodDBShowList);
 }
+
+void CDlgData::GetWoodData(std::vector<WoodDBShow>& woodDBShowList)
+{
+	m_pScrollView->GetWoodDBShowList(woodDBShowList);
+}

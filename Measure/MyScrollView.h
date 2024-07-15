@@ -26,6 +26,8 @@ public:
     virtual ~CMyScrollView();
     virtual void OnInitialUpdate();
     void SetWoodDBShowList(std::vector<WoodDBShow> woodDBShowList);
+    void GetWoodDBShowList(std::vector<WoodDBShow>& woodDBShowList);
+    afx_msg LRESULT OnUserMessageCheck(WPARAM wParam, LPARAM lParam);
 
 protected:
     virtual void OnDraw(CDC* pDC);

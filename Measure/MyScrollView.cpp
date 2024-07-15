@@ -11,6 +11,7 @@ BEGIN_MESSAGE_MAP(CMyScrollView, CScrollView)
     ON_WM_ERASEBKGND()
     //ON_WM_CTLCOLOR()
     ON_CONTROL_RANGE(STN_CLICKED, 20000, 30000 - 1, &CMyScrollView::OnStaticClicked)
+    ON_MESSAGE(WM_USER_MESSAGE_CHECK, &CMyScrollView::OnUserMessageCheck)
 END_MESSAGE_MAP()
 
 CMyScrollView::CMyScrollView(): m_brushBlack(RGB(0, 0, 0))
@@ -45,6 +46,18 @@ void CMyScrollView::SetWoodDBShowList(std::vector<WoodDBShow> woodDBShowList)
     m_woodDBShowList = woodDBShowList;
     m_totalDataCount = woodDBShowList.size();
     OnInitialUpdate();
+}
+
+void CMyScrollView::GetWoodDBShowList(std::vector<WoodDBShow>& woodDBShowList)
+{
+    woodDBShowList.clear();
+    for (size_t i = 0; i < m_woodDBShowList.size(); i++)
+    {
+        if (m_woodDBShowList[i].checked == true)
+        {
+            woodDBShowList.push_back(m_woodDBShowList[i]);
+        }
+    }
 }
 
 void CMyScrollView::OnDraw(CDC* pDC)
@@ -139,6 +152,7 @@ void CMyScrollView::CreateChildWindows(int nCount)
         CMyButton* pCheckBtn = new CMyButton();
         if (pCheckBtn->Create(_T(""), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX, CRect(0, 0, 0, 0), pChild, 60000 + i))
         {
+            pCheckBtn->SetDBIndex(i);
             pCheckBtn->SetCheck(m_woodDBShowList[i].checked);
         }
         else
@@ -319,4 +333,13 @@ void CMyScrollView::OnStaticClicked(UINT nID)
     //AfxMessageBox(str);
     ScaleWood* pScaleWood = new ScaleWood(m_woodDBShowList[nID - 20000].scaleWood);
     ::PostMessage(AfxGetApp()->m_pMainWnd->m_hWnd, WM_USER_MESSAGE, (WPARAM)pScaleWood, 0);
+}
+
+
+LRESULT CMyScrollView::OnUserMessageCheck(WPARAM wParam, LPARAM lParam)
+{
+    int* pIndex = (int*)wParam;
+    int* pCheck = (int*)lParam;
+    m_woodDBShowList[*pIndex].checked = *pCheck;
+    return 0;
 }
