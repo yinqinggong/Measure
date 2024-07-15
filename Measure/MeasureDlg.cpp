@@ -161,7 +161,7 @@ BOOL CMeasureDlg::OnInitDialog()
 	m_bgStatic.MoveWindow(100, 0, rcWorkArea.Width() - 200, rcWorkArea.Height());
 	m_bgStatic.ShowWindow(SW_SHOWNORMAL);
 
-	//中间图片区域
+	//中间图片区域4056*3040
 	RECT rect;
 	rect.left = 120;
 	rect.top = 20;

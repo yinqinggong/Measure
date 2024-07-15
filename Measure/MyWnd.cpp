@@ -244,6 +244,8 @@ void CMyWnd::OnPaint()
             //    m_image.ReleaseDC();
             //}
             //Õ÷‘≤ªÊ÷∆≥…π¶∫Û£¨‘Ÿª≠±≥æ∞Õº∆¨
+            ::SetStretchBltMode(dc, HALFTONE);
+            ::SetBrushOrgEx(dc, 0, 0, NULL);
             if (m_bDbClick)
             {
                 m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
@@ -255,6 +257,8 @@ void CMyWnd::OnPaint()
         }
         else if(m_status == 1)
         {
+            ::SetStretchBltMode(dc, HALFTONE);
+            ::SetBrushOrgEx(dc, 0, 0, NULL);
             if (m_bDbClick)
             {
                 m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
@@ -325,6 +329,8 @@ void CMyWnd::OnPaint()
         }
         else if (m_status == 3)
         {
+            ::SetStretchBltMode(dc, HALFTONE);
+            ::SetBrushOrgEx(dc, 0, 0, NULL);
             if (m_bDbClick)
             {
                 m_image.Draw(dc, m_ptOffset.x, m_ptOffset.y);
