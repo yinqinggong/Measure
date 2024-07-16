@@ -410,7 +410,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
             if (m_bDbClick)
             {
                 CPoint curPoint(point.x - m_ptOffset.x, point.y - m_ptOffset.y);
-                if (isPointInEllipse(curPoint))
+                if (isPointInEllipse(curPoint.x, curPoint.y))
                 {
                     SetFocus();
                     Invalidate();
@@ -422,7 +422,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
                 GetClientRect(&rect);   
                 CPoint curPoint(point.x * m_image.GetWidth() * 1.0 / (rect.right - rect.left), 
                     point.y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top));
-                if (isPointInEllipse(curPoint))
+                if (isPointInEllipse(curPoint.x, curPoint.y))
                 {
                     SetFocus();
                     Invalidate();
@@ -686,6 +686,42 @@ bool CMyWnd::isPointInEllipse(const CPoint& p)
             p.x <= m_scaleWood.wood_list[i].ellipse.cx + m_scaleWood.wood_list[i].ellipse.ab1 * 0.5 &&
             p.y >= m_scaleWood.wood_list[i].ellipse.cy - m_scaleWood.wood_list[i].ellipse.ab2 * 0.5 &&
             p.y <= m_scaleWood.wood_list[i].ellipse.cy + m_scaleWood.wood_list[i].ellipse.ab2 * 0.5)
+        {
+            m_scaleWood.wood_list[i].isDeleting = !m_scaleWood.wood_list[i].isDeleting;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool CMyWnd::isPointInEllipse(int px, int py)
+{
+    for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
+    {
+        double angle = m_scaleWood.wood_list[i].ellipse.angel;
+        int cx = m_scaleWood.wood_list[i].ellipse.cx;
+        int cy = m_scaleWood.wood_list[i].ellipse.cy;
+        int a = m_scaleWood.wood_list[i].ellipse.ab1;
+        int b = m_scaleWood.wood_list[i].ellipse.ab2;
+
+        // 将角度转换为弧度
+        double radianAngle = angle * M_PI / 180.0;
+
+        // 将点(px, py)绕椭圆中心(cx, cy)反向旋转angle角度
+        double cosAngle = cos(-radianAngle);
+        double sinAngle = sin(-radianAngle);
+
+        double dx = px - cx;
+        double dy = py - cy;
+
+        double rotatedX = dx * cosAngle - dy * sinAngle;
+        double rotatedY = dx * sinAngle + dy * cosAngle;
+
+        // 判断旋转后的点是否在标准椭圆内
+        double normalizedX = rotatedX / a;
+        double normalizedY = rotatedY / b;
+        if ((normalizedX * normalizedX + normalizedY * normalizedY) <= 1.0)
         {
             m_scaleWood.wood_list[i].isDeleting = !m_scaleWood.wood_list[i].isDeleting;
             return true;

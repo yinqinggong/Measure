@@ -37,6 +37,7 @@ protected:
     bool isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold);
     bool isPointInEllipse(const CPoint& p);
     bool IsPointInEllipse(int px, int py, int cx, int cy, int a, int b, double angle);
+    bool isPointInEllipse(int px, int py);
     bool IsPointInPolygon(int px, int py, const std::vector<CPoint>& polygon);
 
     void DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr& woodAttr);
