@@ -34,6 +34,8 @@ public:
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void OnPaint();
 	afx_msg void OnBnClickedButtonQuery();
+public:
 	bool GetScaleWoodFromJsonString(std::string& jsonstr, ScaleWood& scaleWood);
 	void GetWoodData(std::vector<WoodDBShow>& woodDBShowList);
+	void SetEndTimeCurTime();
 };

@@ -504,7 +504,7 @@ BOOL FolderExist(CString strPath)   // 检查目录是否存在，存在为真，不存在为假
 CString GetImagePath()
 {
 	CString strDir = GetCurrentPath();
-	strDir.Append(_T("\\Image"));
+	strDir.Append(_T("Image"));
 	if (!FolderExist(strDir))
 	{
 		BOOL bRet = CreateDirectory(strDir, NULL);

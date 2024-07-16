@@ -205,3 +205,9 @@ void CDlgData::GetWoodData(std::vector<WoodDBShow>& woodDBShowList)
 {
 	m_pScrollView->GetWoodDBShowList(woodDBShowList);
 }
+
+void CDlgData::SetEndTimeCurTime()
+{
+	CTime curTime = CTime::GetCurrentTime();   //获取当前时间日期
+	m_date_end.SetTime(&curTime);
+}

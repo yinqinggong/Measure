@@ -445,6 +445,7 @@ void CMeasureDlg::OnBnClickedBtnData()
 	// TODO: 在此添加控件通知处理程序代码
 	m_imgWnd.ShowWindow(SW_HIDE);
 	m_dlgData.ShowWindow(SW_SHOWNORMAL);
+	m_dlgData.SetEndTimeCurTime();
 
 	//右侧按钮切换显示
 	m_btnDel.ShowWindow(SW_HIDE);
@@ -539,7 +540,7 @@ void CMeasureDlg::OnBnClickedBtnSave()
 			AfxMessageBox(_T("保存数据成功"));
 		}
 		m_imgWnd.ResetCapture();
-		m_imgWnd.ClearScaleWood();
+		//m_imgWnd.ClearScaleWood();
 	}
 	else
 	{

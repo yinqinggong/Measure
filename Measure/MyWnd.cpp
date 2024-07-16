@@ -464,6 +464,23 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
                                 m_points[i].y = m_points[i].y * m_image.GetHeight() * 1.0 / (rect.bottom - rect.top);
                             }
                         }
+                        //处于多边形之外的数据直接剔除
+                        std::vector<WoodAttr> temp_wood_list;
+                        for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
+                        {
+                            if (IsPointInPolygon(m_scaleWood.wood_list[i].ellipse.cx, 
+                                m_scaleWood.wood_list[i].ellipse.cy, m_points))
+                            {
+                                temp_wood_list.push_back(m_scaleWood.wood_list[i]);
+                            }
+                        }
+                        m_scaleWood.wood_list = temp_wood_list;
+                        //之前的绘制的椭圆无效了，需要重新绘制
+                        m_image.Destroy();
+                        CString imagePath;
+                        imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+                        m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
+
                         SetStatus(0);
                     }
                 }
@@ -693,7 +710,6 @@ bool CMyWnd::isPointInEllipse(const CPoint& p)
     }
     return false;
 }
-
 
 bool CMyWnd::isPointInEllipse(int px, int py)
 {
@@ -983,25 +999,44 @@ void CMyWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 
 void CMyWnd::ResetCapture()
-{
-    //AfxMessageBox(_T("放弃")); 
+{ 
     m_image.Destroy();
     m_btnCapture.ShowWindow(SW_SHOW);
     m_btnDis.ShowWindow(SW_HIDE);
     m_btnRec.ShowWindow(SW_HIDE);
+
+    m_points.clear();
+
+    m_ptOffset = CPoint();
+    m_bDragging = FALSE;
+    m_bDbClick = FALSE;
+    m_ptLastMousePos = CPoint();
+
+    m_status = 0;
+    m_isPolygonComplete = false;
+
+    m_startPoint = CPoint();
+    m_endPoint = CPoint();
+
+    m_isDrawFinished = false;
+    m_scaleWood = { 0 };
+    m_ellipse_add = { 0 };
+
     this->Invalidate();
 }
 
 void CMyWnd::ShowHistoryData(ScaleWood* pScaleWood)
 {
+    ResetCapture();
+
     m_scaleWood.id = pScaleWood->id;
     m_scaleWood.img = pScaleWood->img;
     m_scaleWood.wood_list = pScaleWood->wood_list;
 
     //std::string strImagePath = GetImagePathUTF8() + std::to_string(m_scaleWood.id) + ".jpg";
     //cv::Mat img = cv::imread(strImagePath);
-
-    m_image.Destroy();
+   
+    //m_image.Destroy();
     CString imagePath;
     imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
     m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
