@@ -194,6 +194,7 @@ void CDlgData::OnBnClickedButtonQuery()
 		woodDBShow.image_path = GetImagePathUTF8() + std::to_string(showDataList[i].id) + "_s.jpg";
 		woodDBShow.timestamp = GetFormatTimeByTimestamp(showDataList[i].id);
 		woodDBShow.total_v = showDataList[i].total_volume;
+		woodDBShow.lenght = showDataList[i].lenght;
 		GetScaleWoodFromJsonString(showDataList[i].wood_list, woodDBShow.scaleWood);
 		woodDBShow.scaleWood.id = showDataList[i].id;
 		woodDBShowList.push_back(woodDBShow);

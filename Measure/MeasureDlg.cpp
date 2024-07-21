@@ -692,23 +692,77 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<CString>>& wood_data)
 	std::vector<WoodDBShow> woodDBShowList;
 	m_dlgData.GetWoodData(woodDBShowList);
 
-	std::vector<CString> titleVec{ _T("时间"), _T("根数"), _T("总方数"), _T("图片路径") };
+	std::vector<CString> titleVec{ _T("径级"), _T("根数"), _T("长度"), _T("材积") };
 	wood_data.push_back(titleVec);
-	CString strTemp;
-	for (size_t i = 0; i < woodDBShowList.size(); i++)
+
+	for (size_t j = 0; j < woodDBShowList.size(); j++)
 	{
-		std::vector<CString> contentVec;
-		UTF8ToUnicode(woodDBShowList[i].timestamp.c_str(), strTemp);
-		//时间在excel中显示全
-		strTemp += _T("\t");
-		contentVec.push_back(strTemp);
-		strTemp.Format(_T("%d"), woodDBShowList[i].amount);
-		contentVec.push_back(strTemp);
-		strTemp.Format(_T("%.3f"), woodDBShowList[i].total_v);
-		contentVec.push_back(strTemp);
-		UTF8ToUnicode(woodDBShowList[i].image_path.c_str(), strTemp);
-		contentVec.push_back(strTemp);
-		wood_data.push_back(contentVec);
+		std::map<std::string, ReportData> report_map;
+		double wood_len = woodDBShowList[j].lenght;
+		double total_v = 0.0;
+		for (size_t i = 0; i < woodDBShowList[j].scaleWood.wood_list.size(); i++)
+		{
+			double d = woodDBShowList[j].scaleWood.wood_list[i].diameter;
+
+			std::string str_wood_d = std::to_string(d);
+			str_wood_d = str_wood_d.substr(0, str_wood_d.find(".") + 1 + 1);
+			auto iter = report_map.find(str_wood_d);
+			if (iter != report_map.end())
+			{
+				iter->second.wood_num++;
+				double l = wood_len;
+				if (d < 14) {
+					iter->second.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+				}
+				else {
+					iter->second.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+				}
+
+				total_v += iter->second.wood_v;
+				iter->second.wood_v *= iter->second.wood_num;
+			}
+			else
+			{
+				ReportData reportData;
+				reportData.wood_d = d;
+				reportData.wood_l = wood_len;
+				reportData.wood_num = 1;
+				double l = wood_len;
+				if (d < 14) {
+					reportData.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+				}
+				else {
+					reportData.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+				}
+
+				report_map.insert(std::make_pair(str_wood_d, reportData));
+
+				total_v += reportData.wood_v;
+			}
+		}
+		CString strTemp;
+		for (auto iter = report_map.begin(); iter != report_map.end(); iter++)
+		{
+			std::vector<CString> contentVec;
+			std::string str_wood_d = iter->first;
+			UTF8ToUnicode(str_wood_d.c_str(), strTemp);
+			contentVec.push_back(strTemp);
+
+			std::string wood_num = std::to_string(iter->second.wood_num);
+			UTF8ToUnicode(wood_num.c_str(), strTemp);
+			contentVec.push_back(strTemp);
+
+			std::string wood_len = std::to_string(iter->second.wood_l);
+			wood_len = wood_len.substr(0, wood_len.find(".") + 1 + 1);
+			UTF8ToUnicode(wood_len.c_str(), strTemp);
+			contentVec.push_back(strTemp);
+
+			std::string wood_v = std::to_string(iter->second.wood_v);
+			wood_v = wood_v.substr(0, wood_v.find(".") + 1 + 3);
+			UTF8ToUnicode(wood_v.c_str(), strTemp);
+			contentVec.push_back(strTemp);
+			wood_data.push_back(contentVec);
+		}
 	}
 }
 void CMeasureDlg::OnBnClickedBtnDownload()

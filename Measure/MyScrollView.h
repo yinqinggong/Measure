@@ -13,6 +13,7 @@ typedef struct defWoodDBShow
     int amount;
     double total_v;
     bool checked;
+    double lenght;
     ScaleWood scaleWood;
 }WoodDBShow;
 
