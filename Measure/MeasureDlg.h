@@ -44,10 +44,8 @@ private:
 
 	CBrush m_brushBG;
 	CDevice* m_pDevice;
-public:
-	afx_msg void OnBnClickedBtnAdd();
-	afx_msg void OnBnClickedBtnCrop();
-	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	CButton m_btnDownLoad;
+	CStatic* m_pStaLogo;
 	CStatic m_bgStatic;
 	//左侧俩按钮
 	CButton m_btnScale;
@@ -58,6 +56,11 @@ public:
 	CButton m_btnDel;//删除
 	CButton m_btnReport;//报表
 	CButton m_btnSave;//保存
+public:
+	afx_msg void OnBnClickedBtnAdd();
+	afx_msg void OnBnClickedBtnCrop();
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	
 	afx_msg void OnBnClickedBtnDel();
 	afx_msg void OnBnClickedBtnReport();
 	afx_msg void OnBnClickedBtnScale();
@@ -67,5 +70,4 @@ public:
 	afx_msg void OnBnClickedBtnDownload();
 	void GetDownLoadData(std::vector<std::vector<CString>>& wood_data);
 	afx_msg LRESULT OnUserMessage(WPARAM wParam, LPARAM lParam);
-	CButton m_btnDownLoad;
 };

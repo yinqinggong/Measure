@@ -31,6 +31,7 @@
 #endif
 
 #define IDC_SUB_IMAGE_WND               9000+1
+#define IDC_LOGO_IMAGE_STA              9000+2
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -150,6 +151,7 @@ BOOL CMeasureDlg::OnInitDialog()
 	CRect rcWorkArea;
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWorkArea, 0);
 	MoveWindow(&rcWorkArea);
+
 	m_btnAdd.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
 	m_btnCrop.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 300, 5, 100, 30);
 	m_staVideo.MoveWindow(30, 50, rcWorkArea.Width() - 60, rcWorkArea.Height() - 100);
@@ -179,6 +181,26 @@ BOOL CMeasureDlg::OnInitDialog()
 	m_dlgData.Create(IDD_DIALOG_DATA, this);
 	m_dlgData.MoveWindow(&rect);
 	m_dlgData.ShowWindow(SW_HIDE);
+
+	//LOGO
+	m_pStaLogo = new CStatic();
+	if (m_pStaLogo->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_NOTIFY, CRect(0, 0, 100, 30), this, IDC_LOGO_IMAGE_STA))
+	{
+		CImage image;
+		if (image.Load(GetImagePath() + _T("logo1.jpg")) == S_OK)
+		{
+			// 设置静态控件的图片
+			m_pStaLogo->SetBitmap((HBITMAP)image.Detach());
+		}
+		else
+		{
+			// 图片加载失败的处理
+			TRACE(_T("Failed to load image.\n"));
+		}
+		m_pStaLogo->MoveWindow(0, 0, 100, 30);
+	}
+
+
 
 	//检尺和数据按钮
 	m_btnScale.MoveWindow(10, rcWorkArea.Height() * 0.5 - 40, 80, 40);
@@ -279,6 +301,11 @@ void CMeasureDlg::OnDestroy()
 		m_pDevice->StopRealPlay();
 		delete m_pDevice;
 		m_pDevice = NULL;
+	}
+	if (m_pStaLogo)
+	{
+		delete m_pStaLogo;
+		m_pStaLogo = NULL;
 	}
 }
 
