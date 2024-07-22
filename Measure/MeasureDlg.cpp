@@ -826,8 +826,11 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 LRESULT CMeasureDlg::OnUserMessage(WPARAM wParam, LPARAM lParam)
 {
 	ScaleWood * pScaleWood = (ScaleWood*)wParam;
+	double* pLenght = (double*)lParam;
 	OnBnClickedBtnScale();
 	m_imgWnd.ShowHistoryData(pScaleWood);
+	m_dlgReport.SetWoodLen(*pLenght);
 	delete pScaleWood;
+	delete pLenght;
 	return 0;
 }

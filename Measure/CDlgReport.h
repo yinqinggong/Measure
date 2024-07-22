@@ -50,10 +50,6 @@ public:
 	int InsertListCtrl(CListCtrl& evtListCtrl, CString items[]);
 	afx_msg void OnCbnSelchangeComboStandard();
 	afx_msg void OnEnChangeEditLen();
-	double GetWoodLen()
-	{
-		CString str_wood_len;
-		m_edit_len.GetWindowTextW(str_wood_len);
-		return _wtof(str_wood_len);
-	}
+	double GetWoodLen();
+	void SetWoodLen(double wood_len);
 };

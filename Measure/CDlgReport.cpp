@@ -251,3 +251,17 @@ void CDlgReport::OnEnChangeEditLen()
 	// TODO:  在此添加控件通知处理程序代码
 	OnCbnSelchangeComboStandard();
 }
+
+double CDlgReport::GetWoodLen()
+{
+	CString str_wood_len;
+	m_edit_len.GetWindowTextW(str_wood_len);
+	return _wtof(str_wood_len);
+}
+
+void CDlgReport::SetWoodLen(double wood_len)
+{
+	CString str_wood_len;
+	str_wood_len.Format(_T("%.1f"), wood_len);
+	m_edit_len.SetWindowTextW(str_wood_len);
+}

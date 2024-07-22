@@ -332,7 +332,8 @@ void CMyScrollView::OnStaticClicked(UINT nID)
     //str.Format(_T("%d"), nID);
     //AfxMessageBox(str);
     ScaleWood* pScaleWood = new ScaleWood(m_woodDBShowList[nID - 20000].scaleWood);
-    ::PostMessage(AfxGetApp()->m_pMainWnd->m_hWnd, WM_USER_MESSAGE, (WPARAM)pScaleWood, 0);
+    double *pLenght = new double(m_woodDBShowList[nID - 20000].lenght);
+    ::PostMessage(AfxGetApp()->m_pMainWnd->m_hWnd, WM_USER_MESSAGE, (WPARAM)pScaleWood, (LPARAM)pLenght);
 }
 
 
