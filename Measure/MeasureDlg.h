@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "RtspDevice.h"
+//#include "RtspDevice.h"
 #include "MyWnd.h"
 #include "CDlgReport.h"
 #include "DlgData.h"
@@ -43,7 +43,7 @@ private:
 	CDlgData m_dlgData;
 
 	CBrush m_brushBG;
-	CDevice* m_pDevice;
+	//CDevice* m_pDevice;
 	CButton m_btnDownLoad;
 	CStatic* m_pStaLogo;
 	CStatic m_bgStatic;

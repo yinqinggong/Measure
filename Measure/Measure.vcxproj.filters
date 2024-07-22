@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Device">
-      <UniqueIdentifier>{f5a03ff2-3389-4db0-9f41-60ddae1a58e8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="D3D">
       <UniqueIdentifier>{1ecb86ea-d481-440f-ab6a-29da38f6efe8}</UniqueIdentifier>
     </Filter>
@@ -59,12 +56,6 @@
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Device.h">
-      <Filter>Device</Filter>
-    </ClInclude>
-    <ClInclude Include="RtspDevice.h">
-      <Filter>Device</Filter>
     </ClInclude>
     <ClInclude Include="hwnd.h">
       <Filter>D3D</Filter>
@@ -157,12 +148,6 @@
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Device.cpp">
-      <Filter>Device</Filter>
-    </ClCompile>
-    <ClCompile Include="RtspDevice.cpp">
-      <Filter>Device</Filter>
     </ClCompile>
     <ClCompile Include="hwnd.cpp">
       <Filter>D3D</Filter>

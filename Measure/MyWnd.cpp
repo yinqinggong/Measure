@@ -7,8 +7,12 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-#include <libavutil/mathematics.h>
+//#include <libavutil/mathematics.h>
 #include "common.h"
+
+#ifndef M_PI
+#define M_PI   3.141592653589793238462643383279502884
+#endif
 
 #define IDC_BTN_CAPTURE                 8000+1
 #define IDC_BTN_REC                     8000+2

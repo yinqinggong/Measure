@@ -74,7 +74,7 @@ CMeasureDlg::CMeasureDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MEASURE_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	m_pDevice = NULL;
+	//m_pDevice = NULL;
 }
 
 CMeasureDlg::~CMeasureDlg()
@@ -296,12 +296,12 @@ void CMeasureDlg::OnDestroy()
 	CDialogEx::OnDestroy();
 
 	// TODO: 在此处添加消息处理程序代码
-	if (m_pDevice)
+	/*if (m_pDevice)
 	{
 		m_pDevice->StopRealPlay();
 		delete m_pDevice;
 		m_pDevice = NULL;
-	}
+	}*/
 	if (m_pStaLogo)
 	{
 		delete m_pStaLogo;
