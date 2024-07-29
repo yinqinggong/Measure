@@ -187,7 +187,7 @@ BOOL CMeasureDlg::OnInitDialog()
 	if (m_pStaLogo->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_NOTIFY, CRect(0, 0, 100, 30), this, IDC_LOGO_IMAGE_STA))
 	{
 		CImage image;
-		if (image.Load(GetImagePath() + _T("logo1.jpg")) == S_OK)
+		if (image.Load(GetImagePath() + _T("logo3.jpg")) == S_OK)
 		{
 			// 设置静态控件的图片
 			m_pStaLogo->SetBitmap((HBITMAP)image.Detach());

@@ -45,6 +45,9 @@ void CMyScrollView::SetWoodDBShowList(std::vector<WoodDBShow> woodDBShowList)
 {
     m_woodDBShowList = woodDBShowList;
     m_totalDataCount = woodDBShowList.size();
+    //先滚到开始位置，防止错位
+    ScrollToPosition(POINT());    // set upper left position
+
     OnInitialUpdate();
 }
 
