@@ -70,7 +70,7 @@ void CLogFile::GetLogFileName(WCHAR szName[])
 		lgt.nYear, lgt.nMon, lgt.nDay,
 		lgt.nHour, lgt.nMin, lgt.nSec);//"2010-09-21-09-23-34"
 
-	CString path = GetAppdataPath();
+	CString path = GetLogsPath();
 	WCHAR *wPath = path.GetBuffer(path.GetLength());
 	path.ReleaseBuffer();
 
@@ -78,7 +78,7 @@ void CLogFile::GetLogFileName(WCHAR szName[])
 	WCHAR *wVersion = version.GetBuffer(version.GetLength());
 	version.ReleaseBuffer();
 
-	wsprintf(szName, _T("%sMeasure_%s_%s.log"), wPath, wVersion, szTmp);
+	wsprintf(szName, _T("%sTensorScale_%s_%s.log"), wPath, wVersion, szTmp);
 }
 
 int CLogFile::GetLogFileSizeM(FILE * pFile, int &iSize)

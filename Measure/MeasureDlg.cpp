@@ -15,6 +15,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include "LogFile.h"
 
 //excel begin
 //#include <afxdisp.h>      // MFC 自动化类库
@@ -187,7 +188,7 @@ BOOL CMeasureDlg::OnInitDialog()
 	if (m_pStaLogo->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_NOTIFY, CRect(0, 0, 100, 30), this, IDC_LOGO_IMAGE_STA))
 	{
 		CImage image;
-		if (image.Load(GetImagePath() + _T("logo3.jpg")) == S_OK)
+		if (image.Load(GetCurrentPath() + _T("logo.jpg")) == S_OK)
 		{
 			// 设置静态控件的图片
 			m_pStaLogo->SetBitmap((HBITMAP)image.Detach());
@@ -771,6 +772,7 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 	GetDownLoadData(wood_data);
 	if (wood_data.size() < 2)
 	{
+		WriteLog(_T("No data saved!"));
 		AfxMessageBox(_T("没有数据保存！"));
 		return;
 	}

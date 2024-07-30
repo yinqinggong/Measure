@@ -472,7 +472,7 @@ bool FolderExistUTF8(std::string strPath)   // ¼ì²éÄ¿Â¼ÊÇ·ñ´æÔÚ£¬´æÔÚÎªÕæ£¬²»´æÔ
 
 std::string GetImagePathUTF8()
 {
-	std::string strDir = GetCurrentPathUTF8();
+	std::string strDir = GetAppdataPathUTF8();
 	strDir += ("Image");
 	if (!FolderExistUTF8(strDir))
 	{
@@ -503,7 +503,7 @@ BOOL FolderExist(CString strPath)   // ¼ì²éÄ¿Â¼ÊÇ·ñ´æÔÚ£¬´æÔÚÎªÕæ£¬²»´æÔÚÎª¼Ù
 
 CString GetImagePath()
 {
-	CString strDir = GetCurrentPath();
+	CString strDir = GetAppdataPath();
 	strDir.Append(_T("Image"));
 	if (!FolderExist(strDir))
 	{
@@ -532,10 +532,10 @@ CString GetCurrentPath()
 	return strFolderPath;
 }
 
-CString GetAppdataPath()
+CString GetLogsPath()
 {
-	CString strDir = GetCurrentPath();
-	strDir.Append(_T("\\logs"));
+	CString strDir = GetAppdataPath();
+	strDir.Append(_T("logs"));
 	if (!FolderExist(strDir))
 	{
 		BOOL bRet = CreateDirectory(strDir, NULL);
@@ -548,4 +548,48 @@ CString GetAppdataPath()
 	strDir.Append(_T("\\"));
 
 	return strDir;
+}
+
+CString GetAppdataPath()
+{
+	WCHAR	szPath[MAX_PATH] = { 0 };
+	BOOL hr = SHGetSpecialFolderPath(NULL, szPath, CSIDL_APPDATA, 1);
+	if (hr)
+	{
+		CString strDir = (WCHAR*)szPath;
+		strDir.Append(_T("\\TensorScale"));
+		if (!FolderExist(strDir))
+		{
+			BOOL bRet = CreateDirectory(strDir, NULL);
+			if (!bRet)
+			{
+				return _T("");
+			}
+		}
+		strDir.Append(_T("\\"));
+		return strDir;
+	}
+	return _T("");
+}
+
+std::string GetAppdataPathUTF8()
+{
+	char	szPath[MAX_PATH] = { 0 };
+	BOOL hr = SHGetSpecialFolderPathA(NULL, szPath, CSIDL_APPDATA, 1);
+	if (hr)
+	{
+		std::string strDir = (char*)szPath;
+		strDir += ("\\TensorScale");
+		if (!FolderExistUTF8(strDir))
+		{
+			BOOL bRet = CreateDirectoryA(strDir.c_str(), NULL);
+			if (!bRet)
+			{
+				return "";
+			}
+		}
+		strDir += ("\\");
+		return strDir;
+	}
+	return "";
 }

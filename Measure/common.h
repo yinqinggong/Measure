@@ -261,3 +261,5 @@ std::string GetImagePathUTF8();
 CString GetImagePath();//获取图片的路径
 CString GetCurrentPath();//获取当前路径
 CString GetAppdataPath();//获取appdata路径
+std::string GetAppdataPathUTF8();
+CString GetLogsPath();//获取appdata路径

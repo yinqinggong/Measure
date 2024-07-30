@@ -3,7 +3,7 @@
 #include "common.h"
 
 //#include <json/json.h>
-std::string db_path_name = GetCurrentPathUTF8() + "scale.db";
+std::string db_path_name = GetAppdataPathUTF8() + "scale.db";
 
 //#define DB_PATHNAME    "./scale.db"
 //
