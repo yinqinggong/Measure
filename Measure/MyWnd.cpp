@@ -815,6 +815,7 @@ void CMyWnd::OnBnClickedBtnCapture()
     wait.Restore();
     if (ret < 0)
     {
+        WriteLog(_T("PostPhoto API failed"));
         AfxMessageBox(_T("拍照失败，请重试"));
         return;
     }
@@ -824,22 +825,21 @@ void CMyWnd::OnBnClickedBtnCapture()
     }
     catch (const std::exception&)
     {
-        WriteLog(_T("invalid base64"));
+        WriteLog(_T("invalid base64 exception"));
         AfxMessageBox(_T("获取图片失败，请重试"));
         return;
     }
     if (limg.length() <= 0)
     {
+        WriteLog(_T("invalid base64 limg.length() <= 0"));
         AfxMessageBox(_T("获取图片失败，请重试"));
         return;
     }
 
 	std::vector<uchar> img_data(limg.begin(), limg.end());
 	cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-	//cv::imwrite("..\\Doc\\limg.jpg", img);
     cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
-#endif // 
-    //m_image.Load(_T("..\\Doc\\limg.jpg")); // 将"path_to_your_image"替换为你的图片路径
+#endif
     m_image.Load(GetImagePath() + _T("limg.jpg"));
     m_btnCapture.ShowWindow(SW_HIDE);
     m_btnDis.ShowWindow(SW_SHOW);
@@ -935,23 +935,20 @@ void CMyWnd::OnBnClickedBtnRec()
         AfxMessageBox(_T("识别失败，请重试"));
         return;
     }
-    //TODO limg,base64解密，存本地文件或者转为IStream
+    //img,base64解密
     std::vector<uchar> img_data(scalewood.img.begin(), scalewood.img.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    //cv::imwrite("..\\Doc\\img.jpg", img);
     std::string imagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
     cv::imwrite(imagePath, img);
 #endif
-    std::string strImagePath = GetCurrentPathUTF8() + "img.jpg";
-    img = cv::imread(strImagePath);
-    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
-    cv::imwrite(strImagePath, img);
-
+    //std::string strImagePath = GetCurrentPathUTF8() + "img.jpg";
+    //img = cv::imread(strImagePath);
+    //strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
+    //cv::imwrite(strImagePath, img);
     m_image.Destroy();
     CString strImagePathW;
     strImagePathW.Format(_T("%s%d.jpg"), GetImagePath(), scalewood.id);
-    m_image.Load(strImagePathW); // 将"path_to_your_image"替换为你的图片路径
-    //AfxMessageBox(_T("调用识别接口"));
+    m_image.Load(strImagePathW);
     m_scaleWood = scalewood;
     SetStatus(0);
     this->Invalidate();
@@ -990,7 +987,6 @@ void CMyWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         if (isDelete)
         {
             m_image.Destroy();
-            //m_image.Load(_T("..\\Doc\\img.jpg"));
             CString imagePath;
             imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
             m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径

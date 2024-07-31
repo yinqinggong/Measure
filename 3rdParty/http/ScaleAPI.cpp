@@ -42,7 +42,7 @@ int PostPreview(std::string& url)
 int PostPhoto(std::string &limg)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
-	cli.set_read_timeout(30, 0);
+	cli.set_read_timeout(20, 0);
 	auto res = cli.Post(g_photo_api);
 	if (res && res->status == 200) {
 		Json::Value value;
