@@ -46,6 +46,8 @@ private:
 	//CDevice* m_pDevice;
 	CButton m_btnDownLoad;
 	CStatic* m_pStaLogo;
+	CStatic* m_pStaMin;
+	CStatic* m_pStaExit;
 	CStatic m_bgStatic;
 	//左侧俩按钮
 	CButton m_btnScale;
@@ -70,4 +72,6 @@ public:
 	afx_msg void OnBnClickedBtnDownload();
 	void GetDownLoadData(std::vector<std::vector<CString>>& wood_data);
 	afx_msg LRESULT OnUserMessage(WPARAM wParam, LPARAM lParam);
+	afx_msg void OnClickStaMinExit(UINT nID);
+	afx_msg void OnClose();
 };

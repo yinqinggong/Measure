@@ -33,6 +33,8 @@
 
 #define IDC_SUB_IMAGE_WND               9000+1
 #define IDC_LOGO_IMAGE_STA              9000+2
+#define IDC_MIN_IMAGE_STA               9000+3
+#define IDC_EXIT_IMAGE_STA              9000+4
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -113,6 +115,8 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_SAVE, &CMeasureDlg::OnBnClickedBtnSave)
 	ON_BN_CLICKED(IDC_BTN_DOWNLOAD, &CMeasureDlg::OnBnClickedBtnDownload)
 	ON_MESSAGE(WM_USER_MESSAGE, &CMeasureDlg::OnUserMessage)
+	ON_CONTROL_RANGE(STN_CLICKED, IDC_MIN_IMAGE_STA, IDC_EXIT_IMAGE_STA, &CMeasureDlg::OnClickStaMinExit)
+	ON_WM_CLOSE()
 END_MESSAGE_MAP()
 
 
@@ -199,6 +203,42 @@ BOOL CMeasureDlg::OnInitDialog()
 			TRACE(_T("Failed to load image.\n"));
 		}
 		m_pStaLogo->MoveWindow(0, 0, 100, 30);
+	}
+
+	//Min
+	m_pStaMin = new CStatic();
+	if (m_pStaMin->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_NOTIFY, CRect(0, 0, 100, 30), this, IDC_MIN_IMAGE_STA))
+	{
+		CImage image;
+		if (image.Load(GetCurrentPath() + _T("min.png")) == S_OK)
+		{
+			// 设置静态控件的图片
+			m_pStaMin->SetBitmap((HBITMAP)image.Detach());
+		}
+		else
+		{
+			// 图片加载失败的处理
+			TRACE(_T("Failed to load image.\n"));
+		}
+		m_pStaMin->MoveWindow(rcWorkArea.Width() - 100, 0, 39, 26);
+	}
+
+	//Exit
+	m_pStaExit = new CStatic();
+	if (m_pStaExit->Create(_T(""), WS_CHILD | WS_VISIBLE | SS_BITMAP | SS_NOTIFY, CRect(0, 0, 100, 30), this, IDC_EXIT_IMAGE_STA))
+	{
+		CImage image;
+		if (image.Load(GetCurrentPath() + _T("close.png")) == S_OK)
+		{
+			// 设置静态控件的图片
+			m_pStaExit->SetBitmap((HBITMAP)image.Detach());
+		}
+		else
+		{
+			// 图片加载失败的处理
+			TRACE(_T("Failed to load image.\n"));
+		}
+		m_pStaExit->MoveWindow(rcWorkArea.Width() - 39, 0, 39, 26);
 	}
 
 
@@ -307,6 +347,16 @@ void CMeasureDlg::OnDestroy()
 	{
 		delete m_pStaLogo;
 		m_pStaLogo = NULL;
+	}
+	if (m_pStaMin)
+	{
+		delete m_pStaMin;
+		m_pStaMin = NULL;
+	}
+	if (m_pStaExit)
+	{
+		delete m_pStaExit;
+		m_pStaExit = NULL;
 	}
 }
 
@@ -835,4 +885,30 @@ LRESULT CMeasureDlg::OnUserMessage(WPARAM wParam, LPARAM lParam)
 	delete pScaleWood;
 	delete pLenght;
 	return 0;
+}
+void CMeasureDlg::OnClickStaMinExit(UINT nID)
+{
+	// 处理点击事件
+	// nID 是被点击的控件的ID
+	/*CString str;
+	str.Format(_T("%d"), nID);
+	AfxMessageBox(str);*/
+	if (nID == IDC_MIN_IMAGE_STA)
+	{
+		ShowWindow(SW_MINIMIZE);
+	}
+	else if (nID == IDC_EXIT_IMAGE_STA)
+	{
+		if (AfxMessageBox(_T("确定退出系统？"), MB_YESNO) == IDNO)
+		{
+			return;
+		}
+		PostMessage(WM_CLOSE);
+	}
+}
+
+void CMeasureDlg::OnClose()
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	CDialogEx::OnClose();
 }

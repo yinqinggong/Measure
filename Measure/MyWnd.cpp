@@ -837,10 +837,10 @@ void CMyWnd::OnBnClickedBtnCapture()
 	std::vector<uchar> img_data(limg.begin(), limg.end());
 	cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
 	//cv::imwrite("..\\Doc\\limg.jpg", img);
-    cv::imwrite(GetCurrentPathUTF8() + ("limg.jpg"));
+    cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
 #endif // 
     //m_image.Load(_T("..\\Doc\\limg.jpg")); // 将"path_to_your_image"替换为你的图片路径
-    m_image.Load(GetCurrentPath() + _T("limg.jpg"));
+    m_image.Load(GetImagePath() + _T("limg.jpg"));
     m_btnCapture.ShowWindow(SW_HIDE);
     m_btnDis.ShowWindow(SW_SHOW);
     m_btnRec.ShowWindow(SW_SHOW);
@@ -943,14 +943,14 @@ void CMyWnd::OnBnClickedBtnRec()
     cv::imwrite(imagePath, img);
 #endif
     std::string strImagePath = GetCurrentPathUTF8() + "img.jpg";
-    cv::Mat img = cv::imread(strImagePath);
+    img = cv::imread(strImagePath);
     strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
     cv::imwrite(strImagePath, img);
 
     m_image.Destroy();
-    CString imagePath;
-    imagePath.Format(_T("%s%d.jpg"), GetImagePath(), scalewood.id);
-    m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
+    CString strImagePathW;
+    strImagePathW.Format(_T("%s%d.jpg"), GetImagePath(), scalewood.id);
+    m_image.Load(strImagePathW); // 将"path_to_your_image"替换为你的图片路径
     //AfxMessageBox(_T("调用识别接口"));
     m_scaleWood = scalewood;
     SetStatus(0);
