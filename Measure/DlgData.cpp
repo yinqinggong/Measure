@@ -183,7 +183,17 @@ void CDlgData::OnBnClickedButtonQuery()
 	time_t end_timestamp = endTime.GetTime();
 
 	std::vector<WoodDataDB> showDataList;
-	db_query_by_time_range2(start_timestamp, end_timestamp, showDataList);
+	int ret = db_query_by_time_range2(start_timestamp, end_timestamp, showDataList);
+	if (ret == -1)
+	{
+		AfxMessageBox(_T("打开数据库失败"));
+		return;
+	}
+	else if (ret == -2)
+	{
+		AfxMessageBox(_T("查询数据失败"));
+		return;
+	}
 
 	std::vector<WoodDBShow> woodDBShowList;
 	for (size_t i = 0; i < showDataList.size(); i++)

@@ -189,8 +189,8 @@ void CDlgReport::InitCtrls()
 	m_sta_standard.MoveWindow(edge + sta_w + edit_w + edge * 5, edge + 5, sta_w, h);
 	m_combo_standard.MoveWindow(edge + sta_w + edit_w + edge * 5 + sta_w, edge, edit_w, h);
 
-	m_sta_num.MoveWindow(edge, rect.bottom - 50, sta_w, h);
-	m_sta_square.MoveWindow(edge * 5 + sta_w, rect.bottom - 50, sta_w, h);
+	m_sta_num.MoveWindow(edge, rect.bottom - 50, sta_w * 2, h);
+	m_sta_square.MoveWindow(edge * 6 + sta_w, rect.bottom - 50, sta_w * 2, h);
 	m_list_report.MoveWindow(edge, edge * 2 + h, rect.right - edge * 2, rect.bottom - (edge * 2 + h) * 2 - h);
 }
 

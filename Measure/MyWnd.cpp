@@ -811,12 +811,15 @@ void CMyWnd::OnBnClickedBtnCapture()
     ShowWindow(SW_SHOW);
     std::string limg;
     CWaitCursor wait;
-    int ret = PostPhoto(limg);
+    int errorCode = 0;
+    int ret = PostPhoto(limg, errorCode);
     wait.Restore();
     if (ret < 0)
     {
-        WriteLog(_T("PostPhoto API failed"));
-        AfxMessageBox(_T("拍照失败，请重试"));
+        WriteLog(_T("PostPhoto API failed, errorCode:%d"), errorCode);
+        CString tipStr;
+        tipStr.Format(_T("拍照失败，请重试, code:%d"), errorCode);
+        AfxMessageBox(tipStr);
         return;
     }
     try
@@ -899,8 +902,9 @@ void CMyWnd::OnBnClickedBtnRec()
     m_btnRec.SetWindowTextW(_T("识别中"));
     m_btnRec.EnableWindow(FALSE);
     m_btnDis.ShowWindow(SW_HIDE);
+    int errorCode = 0;
     ScaleWood scalewood = { 0 };
-    int ret = PostScale(scalewood);
+    int ret = PostScale(scalewood, errorCode);
     scalewood.id = time(0);
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("识别"));
@@ -908,8 +912,10 @@ void CMyWnd::OnBnClickedBtnRec()
     if (ret < 0)
     {
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
-        m_btnDis.ShowWindow(SW_SHOWNORMAL);
-        AfxMessageBox(_T("识别失败，请重试"));
+        m_btnDis.ShowWindow(SW_SHOWNORMAL); 
+        CString tipStr;
+        tipStr.Format(_T("识别失败，请重试, code:%d"), errorCode);
+        AfxMessageBox(tipStr);
         return;
     }
     else
@@ -925,14 +931,14 @@ void CMyWnd::OnBnClickedBtnRec()
         WriteLog(_T("invalid base64"));
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
         m_btnDis.ShowWindow(SW_SHOWNORMAL);
-        AfxMessageBox(_T("识别失败，请重试"));
+        AfxMessageBox(_T("识别失败，请重试, invalid base64-1"));
         return;
     }
     if (scalewood.img.length() <= 0)
     {
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
         m_btnDis.ShowWindow(SW_SHOWNORMAL);
-        AfxMessageBox(_T("识别失败，请重试"));
+        AfxMessageBox(_T("识别失败，请重试, invalid base64-2"));
         return;
     }
     //img,base64解密

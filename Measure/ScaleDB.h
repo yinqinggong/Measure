@@ -23,6 +23,6 @@ int db_query_by_time_range_n(int start_time, int end_time);
 int db_query_by_time_range(int start_time, int end_time);
 int db_query_by_time_range2(int start_time, int end_time, std::vector<WoodDataDB>& woodDataList);
 
-bool db_query_exist_by_create_time(int create_time);
+int db_query_exist_by_create_time(int create_time);
 int db_update_by_create_time(int create_time, int amount, double lenght, double total_volume, std::string wood_list);
 int db_delete_all();

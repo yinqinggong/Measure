@@ -1,6 +1,7 @@
 #include "ScaleDB.h"
 #include "sqlite3.h"
 #include "common.h"
+#include "LogFile.h"
 
 //#include <json/json.h>
 std::string db_path_name = GetAppdataPathUTF8() + "scale.db";
@@ -62,8 +63,8 @@ int create_db()
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            WriteLog(_T("create_db sqlite3_open failed: %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
             ret = -1;
             break;
         }
@@ -82,11 +83,13 @@ int create_db()
         nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
         if (nRes != SQLITE_OK)
         {
-            printf("创建数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+            WriteLog(_T("CREATE TABLE scale_result failed: %d"), nRes);
+            //printf("创建数据库表test_table 失败: %s --------------------\n", pcErrMsg);
             ret = -2;
             break;
         }
-        printf("create test_table successful. \n");
+        WriteLog(_T("create scale_result successful."));
+        //printf("create test_table successful. \n");
     } while (false);
 
     //关闭数据库
@@ -108,33 +111,37 @@ int db_insert_record(int create_time, int amount, double lenght, double total_vo
     sqlite3* pDB = NULL;
     int ret = 0;
     // 格式化SQL语句
-    char cSql[4096] = { 0 };
+    char *pSql = new char[409600]();
     do
     { 
         int nRes = sqlite3_open(db_path_name.c_str(), &pDB);
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            WriteLog(_T("db_insert_record sqlite3_open failed: %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
             ret = -1;
             break;
         }
 
         // 插入数据
-        sqlite3_snprintf(4096, cSql, "INSERT INTO scale_result(create_time, amount, lenght, total_volume, wood_list)\
+        sqlite3_snprintf(409600, pSql, "INSERT INTO scale_result(create_time, amount, lenght, total_volume, wood_list)\
          VALUES(%d, %d, %f, %f, '%s')", create_time, amount, lenght, total_volume, wood_list.c_str());
-        nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
+        nRes = sqlite3_exec(pDB, pSql, NULL, NULL, &pcErrMsg);
         if (nRes != SQLITE_OK)
         {
-            printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+            WriteLog(_T("INSERT INTO scale_result failed: %d"), nRes);
+            //printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
             ret = -2;
             break;
         }
-        printf("insert test_table successful. \n");
+        WriteLog(_T("db_insert_record successful."));
+        //printf("insert test_table successful. \n");
 
     } while (false);
    
+    delete[] pSql;
+    pSql = NULL;
 
     //关闭数据库
     sqlite3_close(pDB);
@@ -162,8 +169,8 @@ int db_query_all_n()
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            WriteLog(_T("sqlite3_open failed, %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
             ret = -1;
             break;
         }
@@ -206,8 +213,8 @@ int db_query_all()
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            WriteLog(_T("sqlite3_open failed, %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
             ret = -1;
             break;
         }
@@ -251,8 +258,8 @@ int db_query_by_time_range_n(int start_time, int end_time)
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            WriteLog(_T("sqlite3_open failed, %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
             ret = -1;
             break;
         }
@@ -294,8 +301,8 @@ int db_query_by_time_range(int start_time, int end_time)
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            WriteLog(_T("sqlite3_open failed, %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
             ret = -1;
             break;
         }
@@ -326,12 +333,12 @@ int db_query_by_time_range(int start_time, int end_time)
     return ret;
 }
 
-bool db_query_exist_by_create_time(int create_time)
+int db_query_exist_by_create_time(int create_time)
 {
     char* pcErrMsg = NULL;
     sqlite3* pDB = NULL;
     sqlite3_stmt* stmt;
-    bool ret = false;
+    int ret = 0;
     // 格式化SQL语句
     char cSql[512] = { 0 };
     do
@@ -340,9 +347,9 @@ bool db_query_exist_by_create_time(int create_time)
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
-            ret = false;
+            WriteLog(_T("db_query_exist_by_create_time sqlite3_open failed: %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            ret = -1;
             break;
         }
 
@@ -351,22 +358,23 @@ bool db_query_exist_by_create_time(int create_time)
        //nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
         if (nRes != SQLITE_OK)
         {
-            printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
-            ret = false;
+            WriteLog(_T("db_query_exist_by_create_time select count(1): %d"), nRes);
+            //printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+            ret = -2;
             break;
         }
         sqlite3_bind_int(stmt, 1, create_time);
         nRes = sqlite3_step(stmt);
         if (nRes != SQLITE_ROW)
         {
-            std::cerr << "Failed to execute statement: " << sqlite3_errmsg(pDB) << std::endl;
+            WriteLog(_T("Failed to execute statement: %d"), nRes);
+            //std::cerr << "Failed to execute statement: " << sqlite3_errmsg(pDB) << std::endl;
             sqlite3_finalize(stmt);
-            return false;
+            return -3;
         }
         int count = sqlite3_column_int(stmt, 0);
         sqlite3_finalize(stmt);
-        ret = count > 0;
-        printf("insert test_table successful. \n");
+        ret = count;
 
     } while (false);
 
@@ -390,32 +398,35 @@ int db_update_by_create_time(int create_time, int amount, double lenght, double 
     char* pcErrMsg = NULL;
     sqlite3* pDB = NULL;
     int ret = 0;
-    // 格式化SQL语句
-    char cSql[4096] = { 0 };
+    // 格式化SQL语句 
+    char* pSql = new char[409600]();
     do
     {
         int nRes = sqlite3_open(db_path_name.c_str(), &pDB);
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            WriteLog(_T("db_update_by_create_time sqlite3_open failed: %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
             ret = -1;
             break;
         }
 
-        sqlite3_snprintf(4096, cSql, "UPDATE scale_result SET amount = %d, lenght = %f, total_volume = %f, wood_list = '%s' where create_time = %d", amount, lenght, total_volume, wood_list.c_str(), create_time);
-        nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
+        sqlite3_snprintf(409600, pSql, "UPDATE scale_result SET amount = %d, lenght = %f, total_volume = %f, wood_list = '%s' where create_time = %d", amount, lenght, total_volume, wood_list.c_str(), create_time);
+        nRes = sqlite3_exec(pDB, pSql, NULL, NULL, &pcErrMsg);
         if (nRes != SQLITE_OK)
         {
-            printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
+            WriteLog(_T("UPDATE scale_result SET failed: %d"), nRes);
+            //printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
             ret = -2;
             break;
         }
-        printf("insert test_table successful. \n");
+        //printf("insert test_table successful. \n");
 
     } while (false);
 
+    delete[] pSql;
+    pSql = NULL;
 
     //关闭数据库
     sqlite3_close(pDB);
@@ -443,8 +454,8 @@ int db_delete_all()
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            WriteLog(_T("sqlite3_open failed, %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
             ret = -1;
             break;
         }
@@ -489,8 +500,8 @@ int db_query_by_time_range2(int start_time, int end_time, std::vector<WoodDataDB
         if (nRes != SQLITE_OK)
         {
             //打开数据库失败
-            // writeLog
-            printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
+            WriteLog(_T("db_query_by_time_range2 sqlite3_open failed: %d"), nRes);
+            //printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
             ret = -1;
             break;
         }
@@ -498,11 +509,12 @@ int db_query_by_time_range2(int start_time, int end_time, std::vector<WoodDataDB
         nRes = sqlite3_prepare_v2(pDB, cSql, -1, &stmt, NULL);
         if (nRes != SQLITE_OK)
         {
-            std::cerr << "准备SQL语句失败: " << sqlite3_errmsg(pDB) << std::endl;
+            WriteLog(_T("select * from scale_result failed: %d"), nRes);
+            //std::cerr << "准备SQL语句失败: " << sqlite3_errmsg(pDB) << std::endl;
             ret = -2;
             break;
         }
-        printf("insert test_table successful. \n");
+        //printf("insert test_table successful. \n");
         while (sqlite3_step(stmt) == SQLITE_ROW)
         {
             // 整型数据 处理
@@ -529,5 +541,5 @@ int db_query_by_time_range2(int start_time, int end_time, std::vector<WoodDataDB
         sqlite3_free(pcErrMsg); //释放内存
         pcErrMsg = NULL;
     }
-    return 0;
+    return ret;
 }

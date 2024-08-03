@@ -39,7 +39,7 @@ int PostPreview(std::string& url)
 }
 
 
-int PostPhoto(std::string &limg)
+int PostPhoto(std::string &limg, int& errorCode)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
 	cli.set_read_timeout(20, 0);
@@ -51,19 +51,21 @@ int PostPhoto(std::string &limg)
 		int code = value["code"].asInt();
 		if (code != 200)
 		{
+			errorCode = code;
 			WriteLog(_T("PostPhoto fail, code:%d"), code);
 			return -1;
 		}
 		limg = value["limg"].asString();
-
+		errorCode = code;
 		WriteLog(_T("PostPhoto - code: %d"), code);
 		return 1;
 	}
-	WriteLog(_T("PostPhoto fail"));
+	errorCode = (int)res.error();
+	WriteLog(_T("PostPhoto fail, httplib.err:%d"), res.error());
 	return -1;
 }
 
-int PostScale(ScaleWood& scalewood)
+int PostScale(ScaleWood& scalewood, int& errorCode)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
 	cli.set_read_timeout(60, 0);
@@ -75,6 +77,7 @@ int PostScale(ScaleWood& scalewood)
 		int code = value["code"].asInt();
 		if (code != 200)
 		{
+			errorCode = code;
 			WriteLog(_T("PostScale fail, code:%d"), code);
 			return -1;
 		}
@@ -119,10 +122,11 @@ int PostScale(ScaleWood& scalewood)
 			}
 			scalewood.wood_list.push_back(woodAttr);
 		}
-
+		errorCode = code;
 		WriteLog(_T("PostScale - code: %d"), code);
 		return 1;
 	}
-	WriteLog(_T("PostScale fail"));
+	errorCode = (int)res.error();
+	WriteLog(_T("PostScale fail, httplib.err:%d"), res.error());
 	return -1;
 }

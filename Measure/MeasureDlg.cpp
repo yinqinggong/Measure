@@ -271,7 +271,15 @@ BOOL CMeasureDlg::OnInitDialog()
 	//{
 	//	AfxMessageBox(_T("播放失败！"));
 	//}
-	create_db();
+	int ret = create_db();
+	if (ret == -1)
+	{
+		AfxMessageBox(_T("打开数据库失败"));
+	}
+	/*else if (ret == -2)
+	{
+		AfxMessageBox(_T("创建数据表失败"));
+	}*/
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -607,15 +615,51 @@ void CMeasureDlg::OnBnClickedBtnSave()
 		
 		//获取woodlist串
 		std::string woollist = GetStringWoodList(scaleWood);
-		if (db_query_exist_by_create_time(scaleWood.id))
+		int ret = db_query_exist_by_create_time(scaleWood.id);
+		if (ret < 0)
 		{
-			db_update_by_create_time(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
-			AfxMessageBox(_T("修改数据成功"));
+			if (ret == -1)
+			{
+				AfxMessageBox(_T("打开数据库失败"));
+				return;
+			}
+			else
+			{
+				AfxMessageBox(_T("查询数据失败"));
+				return;
+			}
+		}
+		else if (ret > 0)
+		{
+			ret = db_update_by_create_time(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
+			if (ret == -1)
+			{
+				AfxMessageBox(_T("打开数据库失败"));
+			}
+			else if (ret == -2)
+			{
+				AfxMessageBox(_T("修改数据失败"));
+			}
+			else
+			{
+				AfxMessageBox(_T("修改数据成功"));
+			}
 		}
 		else 
 		{
-			db_insert_record(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
-			AfxMessageBox(_T("保存数据成功"));
+			ret = db_insert_record(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
+			if (ret == -1)
+			{
+				AfxMessageBox(_T("打开数据库失败"));
+			}
+			else if (ret == -2)
+			{
+				AfxMessageBox(_T("插入数据失败"));
+			}
+			else
+			{
+				AfxMessageBox(_T("保存数据成功"));
+			}
 		}
 		m_imgWnd.ResetCapture();
 		//m_imgWnd.ClearScaleWood();

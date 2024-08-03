@@ -552,7 +552,20 @@ CString GetLogsPath()
 
 CString GetAppdataPath()
 {
-	WCHAR	szPath[MAX_PATH] = { 0 };
+	CString strDir = _T("C:\\TensorScale");
+	if (!FolderExist(strDir))
+	{
+		BOOL bRet = CreateDirectory(strDir, NULL);
+		if (!bRet)
+		{
+			return _T("");
+		}
+	}
+	strDir.Append(_T("\\"));
+	return strDir;
+
+
+	/*WCHAR	szPath[MAX_PATH] = { 0 };
 	BOOL hr = SHGetSpecialFolderPath(NULL, szPath, CSIDL_APPDATA, 1);
 	if (hr)
 	{
@@ -569,12 +582,24 @@ CString GetAppdataPath()
 		strDir.Append(_T("\\"));
 		return strDir;
 	}
-	return _T("");
+	return _T("");*/
 }
 
 std::string GetAppdataPathUTF8()
 {
-	char	szPath[MAX_PATH] = { 0 };
+	std::string strDir = "C:\\TensorScale";
+	if (!FolderExistUTF8(strDir))
+	{
+		BOOL bRet = CreateDirectoryA(strDir.c_str(), NULL);
+		if (!bRet)
+		{
+			return "";
+		}
+	}
+	strDir += ("\\");
+	return strDir;
+
+	/*char	szPath[MAX_PATH] = { 0 };
 	BOOL hr = SHGetSpecialFolderPathA(NULL, szPath, CSIDL_APPDATA, 1);
 	if (hr)
 	{
@@ -591,5 +616,5 @@ std::string GetAppdataPathUTF8()
 		strDir += ("\\");
 		return strDir;
 	}
-	return "";
+	return "";*/
 }
