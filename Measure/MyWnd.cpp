@@ -897,6 +897,11 @@ void CMyWnd::OnBnClickedBtnRec()
     scalewood.wood_list.push_back(woodAttr3);
     scalewood.wood_list.push_back(woodAttr4);
 
+    std::string strImagePath = GetImagePathUTF8() + "img.jpg";
+    cv::Mat img = cv::imread(strImagePath);
+    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
+    cv::imwrite(strImagePath, img);
+
 #else
     CWaitCursor wait;
     m_btnRec.SetWindowTextW(_T("Ê¶±ðÖÐ"));
@@ -947,10 +952,7 @@ void CMyWnd::OnBnClickedBtnRec()
     std::string imagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
     cv::imwrite(imagePath, img);
 #endif
-    //std::string strImagePath = GetCurrentPathUTF8() + "img.jpg";
-    //img = cv::imread(strImagePath);
-    //strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
-    //cv::imwrite(strImagePath, img);
+    
     m_image.Destroy();
     CString strImagePathW;
     strImagePathW.Format(_T("%s%d.jpg"), GetImagePath(), scalewood.id);

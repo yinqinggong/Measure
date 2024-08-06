@@ -10,6 +10,12 @@ typedef struct typeReportData
 	double wood_v;
 }ReportData;
 
+struct Wood_D_Sort {
+	bool operator()(const std::string& lhs, const std::string& rhs) const {
+		return atof(lhs.c_str()) < atof(rhs.c_str());
+	}
+};
+
 // CDlgReport 对话框
 
 class CDlgReport : public CDialogEx
@@ -40,7 +46,7 @@ public:
 	CStatic m_sta_num;
 	CStatic m_sta_square;
 
-	std::map<std::string, ReportData> m_report_map;
+	std::map<std::string, ReportData, Wood_D_Sort> m_report_map;
 	ScaleWood m_scaleWood;
 	void SetScaleWood(ScaleWood scaleWood);
 	void UpdateWoodData(int sd);

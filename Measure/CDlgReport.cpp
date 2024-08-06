@@ -142,7 +142,6 @@ void CDlgReport::UpdateWoodData(int sd)
 		}
 	}
 
-
 	CString items[4];
 	for (auto iter = m_report_map.begin(); iter != m_report_map.end(); iter++)
 	{
