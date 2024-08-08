@@ -54,9 +54,9 @@ BOOL CDlgReport::OnInitDialog()
 
 	// TODO:  在此添加额外的初始化
 	m_edit_len.SetWindowTextW(_T("2.6"));
-	m_combo_standard.InsertString(0, _T("原始"));
-	m_combo_standard.InsertString(1, _T("国标"));
-	m_combo_standard.InsertString(2, _T("广西"));
+	m_combo_standard.InsertString(0, _T("原始径级"));
+	m_combo_standard.InsertString(1, _T("国家标准"));
+	m_combo_standard.InsertString(2, _T("三进制"));
 	m_combo_standard.SetCurSel(0);
 
 	m_inited = TRUE;
@@ -170,7 +170,7 @@ void CDlgReport::UpdateWoodData(int sd)
 	std::string strSquare = std::to_string(total_v);
 	strSquare = strSquare.substr(0, strSquare.find(".") + 1 + 3);
 	UTF8ToUnicode(strSquare.c_str(), strTemp);
-	m_sta_square.SetWindowTextW(_T("方数：") + strTemp);
+	m_sta_square.SetWindowTextW(_T("材积：") + strTemp);
 }
 
 void CDlgReport::InitCtrls()
