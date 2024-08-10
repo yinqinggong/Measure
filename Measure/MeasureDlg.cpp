@@ -500,11 +500,19 @@ void CMeasureDlg::OnBnClickedBtnDel()
 void CMeasureDlg::OnBnClickedBtnReport()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	m_imgWnd.ShowWindow(SW_HIDE);
-	m_dlgReport.ShowWindow(SW_SHOWNORMAL);
-	ScaleWood scaleWood;
-	m_imgWnd.GetScaleWood(scaleWood);
-	m_dlgReport.SetScaleWood(scaleWood);
+	if (m_dlgReport.IsWindowVisible())
+	{
+		m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+		m_dlgReport.ShowWindow(SW_HIDE);
+	}
+	else
+	{
+		m_imgWnd.ShowWindow(SW_HIDE);
+		m_dlgReport.ShowWindow(SW_SHOWNORMAL);
+		ScaleWood scaleWood;
+		m_imgWnd.GetScaleWood(scaleWood);
+		m_dlgReport.SetScaleWood(scaleWood);
+	}
 }
 
 
@@ -513,6 +521,7 @@ void CMeasureDlg::OnBnClickedBtnScale()
 	// TODO: 在此添加控件通知处理程序代码
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	m_dlgData.ShowWindow(SW_HIDE);
+	m_dlgReport.ShowWindow(SW_HIDE);
 	//std::string url;
 	//int ret = PostPreview(url);
 
@@ -524,6 +533,7 @@ void CMeasureDlg::OnBnClickedBtnScale()
 	m_btnSave.ShowWindow(SW_SHOWNORMAL);
 	m_btnDownLoad.ShowWindow(SW_HIDE);
 
+	m_imgWnd.ResetCapture();
 }
 
 void CMeasureDlg::OnBnClickedBtnData()
@@ -592,9 +602,29 @@ void CMeasureDlg::OnBnClickedBtnSave()
 		cv::Mat src = cv::imread(GetImagePathUTF8() + std::to_string(scaleWood.id) + ".jpg");
 		if (src.data)
 		{
-			cv::Mat dst;
-			cv::resize(src, dst, cv::Size(src.cols/8, src.rows/8));
-			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWood.id) + "_s.jpg", dst);
+			//保存结果图
+			cv::Mat r_dst = src.clone(); 
+			char text[8] = { 0 };
+			for (size_t i = 0; i < scaleWood.wood_list.size(); i++)
+			{
+				cv::ellipse(r_dst,
+					cv::Point(scaleWood.wood_list[i].ellipse.cx, scaleWood.wood_list[i].ellipse.cy),
+					cv::Size(scaleWood.wood_list[i].ellipse.ab1, scaleWood.wood_list[i].ellipse.ab2),
+					scaleWood.wood_list[i].ellipse.angel, 
+					0.0, 360.0, cv::Scalar(0, 255, 0), 2);
+				
+				sprintf_s(text, 8, "% .2f", scaleWood.wood_list[i].diameter);
+				cv::putText(r_dst, text,
+					cv::Point(scaleWood.wood_list[i].ellipse.cx - scaleWood.wood_list[i].ellipse.ab1 * 0.7,
+						scaleWood.wood_list[i].ellipse.cy/* - scaleWood.wood_list[i].ellipse.ab1 * 0.3*/),
+					cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 4);
+			}
+			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWood.id) + "_r.jpg", r_dst);
+
+			//保存小图
+			cv::Mat s_dst;
+			cv::resize(src, s_dst, cv::Size(src.cols/8, src.rows/8));
+			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWood.id) + "_s.jpg", s_dst);
 		}
 		
 		//计算总容积

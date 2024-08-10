@@ -93,7 +93,7 @@ void CMyWnd::DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr &woodAttr)
     Gdiplus::FontFamily fontFamily(L"Arial");
     Gdiplus::Font font(&fontFamily, 30, FontStyleRegular, UnitPixel);
     Gdiplus::PointF pointF(static_cast<float>(woodAttr.ellipse.cx - woodAttr.ellipse.ab2 * 0.5), static_cast<float>(woodAttr.ellipse.cy - woodAttr.ellipse.ab1 * 0.3));
-    Gdiplus::SolidBrush solidBrush(Gdiplus::Color(255, 255, 0, 0)); // 黑色画刷
+    Gdiplus::SolidBrush solidBrush(Gdiplus::Color(255, 255, 0, 0)); // 红色画刷
     graphics->DrawString(text, -1, &font, pointF, &solidBrush);
 
     // 恢复图形状态，以确保绘制其他图形不受影响
