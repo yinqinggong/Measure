@@ -17,7 +17,7 @@ protected:
 
     int m_status; //-1：播放 0：截图 1：新增 2：删除 3：多边形
     std::vector<CPoint> m_points; // 用于存储多边形的顶点
-    bool m_isPolygonComplete; // 标志多边形是否绘制完成
+    //bool m_isPolygonComplete; // 标志多边形是否绘制完成
 
 
     CPoint m_startPoint;

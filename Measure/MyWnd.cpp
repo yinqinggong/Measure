@@ -36,7 +36,7 @@ CMyWnd::CMyWnd()
 	m_bDragging = FALSE;
     m_bDbClick = FALSE;
     m_status = 0;
-    m_isPolygonComplete = false;
+    //m_isPolygonComplete = false;
     m_scaleWood = { 0 };
     m_ellipse_add = { 0 };
 }
@@ -144,7 +144,7 @@ void CMyWnd::OnPaint()
             }
 
             // 绘制三角形
-            if (m_points.size() > 0)
+           /* if (m_points.size() > 0)
             {
                 Gdiplus::PointF* points = new Gdiplus::PointF[m_points.size()];
                 for (size_t i = 0; i < m_points.size(); i++)
@@ -154,7 +154,7 @@ void CMyWnd::OnPaint()
                 }
                 DrawPolygon(&graphics, points, m_points.size());
                 delete[]points;
-            }
+            }*/
 
             // 释放GDI+图形对象
             m_image.ReleaseDC();
@@ -359,11 +359,11 @@ void CMyWnd::OnPaint()
                     dc.LineTo(m_points[i + 1]);
                 }
                 //dc.Polyline(&m_points[0], static_cast<int>(m_points.size()));
-                if (m_isPolygonComplete)
+                /*if (m_isPolygonComplete)
                 {
                     dc.MoveTo(m_points.front());
                     dc.LineTo(m_points.back());
-                }
+                }*/
             }
             // 恢复原来的画笔和画刷
             dc.SelectObject(pOldPen);
@@ -435,7 +435,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
         }
         else if (m_status == 3)
         {
-            if (!m_isPolygonComplete)
+            //if (!m_isPolygonComplete)
             {
                 // 左键点击时，记录顶点
                 if (m_points.size() > 0 && isCloseEnough(m_points.front(), point, 10))
@@ -449,7 +449,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
                     }
                     else
                     {
-                        m_isPolygonComplete = true;
+                        //m_isPolygonComplete = false;
                         if (m_bDbClick)
                         {
                             for (size_t i = 0; i < m_points.size(); i++)
@@ -486,6 +486,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
                         m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
 
                         SetStatus(0);
+                        m_points.clear();
                     }
                 }
                 else
@@ -663,12 +664,12 @@ void CMyWnd::OnMouseMove(UINT nFlags, CPoint point)
     else if (m_status == 3)
     {
         //鼠标按下第一个点后，鼠标移动先加入第二个点
-        if (!m_isPolygonComplete && m_points.size() == 1)
+        if (/*!m_isPolygonComplete && */m_points.size() == 1)
         {
             m_points.push_back(point);
         }
         //随着鼠标移动，不断修改最后一个点
-        if (!m_isPolygonComplete && m_points.size() > 1)
+        if (/*!m_isPolygonComplete && */m_points.size() > 1)
         {
             m_points[m_points.size() - 1].SetPoint(point.x, point.y);
         }
@@ -1021,7 +1022,7 @@ void CMyWnd::ResetCapture()
     m_ptLastMousePos = CPoint();
 
     m_status = 0;
-    m_isPolygonComplete = false;
+    //m_isPolygonComplete = false;
 
     m_startPoint = CPoint();
     m_endPoint = CPoint();
