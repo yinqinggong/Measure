@@ -92,7 +92,7 @@ void CMyWnd::DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr &woodAttr)
     text.Format(_T("%.2f"), woodAttr.diameter);
     Gdiplus::FontFamily fontFamily(L"Arial");
     Gdiplus::Font font(&fontFamily, 30, FontStyleRegular, UnitPixel);
-    Gdiplus::PointF pointF(static_cast<float>(woodAttr.ellipse.cx - woodAttr.ellipse.ab2 * 0.5), static_cast<float>(woodAttr.ellipse.cy - woodAttr.ellipse.ab1 * 0.3));
+    Gdiplus::PointF pointF(static_cast<float>(woodAttr.ellipse.cx - woodAttr.ellipse.ab1 * 0.5), static_cast<float>(woodAttr.ellipse.cy - woodAttr.ellipse.ab2 * 0.3));
     Gdiplus::SolidBrush solidBrush(Gdiplus::Color(255, 255, 0, 0)); // 红色画刷
     graphics->DrawString(text, -1, &font, pointF, &solidBrush);
 
@@ -796,6 +796,8 @@ bool CMyWnd::IsPointInPolygon(int px, int py, const std::vector<CPoint>& polygon
 
 double CMyWnd::CalculateAngle(int startX, int startY, int endX, int endY)
 {
+    //不需要倾角
+    return 0.0;
     // 计算两点之间的角度（以度为单位）
     double dx = endX - startX;
     double dy = endY - startY;
