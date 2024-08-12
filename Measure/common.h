@@ -237,6 +237,7 @@ void  UTF8ToUnicode(const char* strUTF8, CString &strUnicode);
 void  UnicodeToUtf8(const CString &unicode, char** strUTF8, int *strUTF8Len);
 void  AnsiToUnicode(const char* strAnsi, CString &strUnicode);
 void  UnicodeToAnsi(const CString &unicode, char** strAnsi, int *strAnsiLen);
+std::string GBKToUTF8(const char* strGBK);
 
 long DiskFree(std::string strDevice);
 void FindDirectory(const char* pathName, std::vector<std::string> &files);

@@ -16,6 +16,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include "LogFile.h"
+#include "xlsxwriter.h"
 
 //excel begin
 //#include <afxdisp.h>      // MFC 自动化类库
@@ -892,6 +893,32 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<CString>>& wood_data)
 }
 void CMeasureDlg::OnBnClickedBtnDownload()
 {
+	//保存为xlsx
+	lxw_workbook* workbook = workbook_new("C://hello_world.xlsx");
+	lxw_worksheet* worksheet = workbook_add_worksheet(workbook, GBKToUTF8("原始径级").data());
+	worksheet_write_string(worksheet, 0, 0, GBKToUTF8("径级").data(), NULL);
+	worksheet_write_string(worksheet, 0, 1, GBKToUTF8("根数").data(), NULL);
+	worksheet_write_string(worksheet, 0, 2, GBKToUTF8("长度").data(), NULL);
+	worksheet_write_string(worksheet, 0, 3, GBKToUTF8("材积").data(), NULL);
+	worksheet_write_number(worksheet, 1, 0, 12, NULL);
+	worksheet_write_number(worksheet, 1, 1, 3, NULL);
+	worksheet_write_number(worksheet, 1, 2, 2.6, NULL);
+	worksheet_write_number(worksheet, 1, 3, 0.109, NULL);
+
+	lxw_worksheet* worksheet2 = workbook_add_worksheet(workbook, GBKToUTF8("国家标准").data());
+	worksheet_write_string(worksheet2, 0, 0, GBKToUTF8("径级").data(), NULL);
+	worksheet_write_string(worksheet2, 0, 1, GBKToUTF8("根数").data(), NULL);
+	worksheet_write_string(worksheet2, 0, 2, GBKToUTF8("长度").data(), NULL);
+	worksheet_write_string(worksheet2, 0, 3, GBKToUTF8("材积").data(), NULL);
+	worksheet_write_number(worksheet2, 1, 0, 13.4, NULL);
+	worksheet_write_number(worksheet2, 1, 1, 1, NULL);
+	worksheet_write_number(worksheet2, 1, 2, 2.6, NULL);
+	worksheet_write_number(worksheet2, 1, 3, 0.022, NULL);
+
+	workbook_close(workbook);
+
+	return;
+
 	std::vector<std::vector<CString>> wood_data;
 	GetDownLoadData(wood_data);
 	if (wood_data.size() < 2)
