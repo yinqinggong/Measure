@@ -18,6 +18,7 @@ CDlgReport::CDlgReport(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DIALOG_REPORT, pParent)
 {
 	m_inited = FALSE;
+	m_scaleStandard = 0;
 }
 
 CDlgReport::~CDlgReport()
@@ -56,8 +57,25 @@ BOOL CDlgReport::OnInitDialog()
 	m_edit_len.SetWindowTextW(_T("2.6"));
 	m_combo_standard.InsertString(0, _T("原始径级"));
 	m_combo_standard.InsertString(1, _T("国家标准"));
-	m_combo_standard.InsertString(2, _T("三进制"));
-	m_combo_standard.SetCurSel(0);
+	m_combo_standard.InsertString(2, _T("二进制"));
+	m_combo_standard.InsertString(3, _T("三进制"));
+	m_combo_standard.InsertString(4, _T("四进制"));
+	m_combo_standard.InsertString(5, _T("五进制"));
+	m_combo_standard.InsertString(6, _T("六进制"));
+	m_combo_standard.InsertString(7, _T("七进制"));
+	m_combo_standard.InsertString(8, _T("八进制"));
+	m_combo_standard.InsertString(9, _T("九进制"));
+
+	CString  strIniFile = GetAppdataPath() + _T("config.ini");
+	m_scaleStandard = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_STANDARD, 0, strIniFile);
+	if (m_scaleStandard >=0 && m_scaleStandard < 10)
+	{
+		m_combo_standard.SetCurSel(m_scaleStandard);
+	}
+	else
+	{
+		m_combo_standard.SetCurSel(0);
+	}
 
 	m_inited = TRUE;
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -77,7 +95,15 @@ BOOL CDlgReport::OnInitDialog()
 void CDlgReport::SetScaleWood(ScaleWood scaleWood)
 {
 	m_scaleWood = scaleWood;
-	UpdateWoodData(0);
+	if (m_scaleStandard >= 0 && m_scaleStandard < 10)
+	{
+		UpdateWoodData(m_scaleStandard);
+	}
+	else
+	{
+		UpdateWoodData(0);
+	}
+	
 }
 
 void CDlgReport::UpdateWoodData(int sd)
@@ -92,14 +118,24 @@ void CDlgReport::UpdateWoodData(int sd)
 	for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
 	{
 		double d = m_scaleWood.wood_list[i].diameter;
-		if (sd == 1)//国标
+		if (sd == 0)
+		{
+			//原始d
+		}
+		else if (sd == 1)//国标
 		{
 			d = round(d / 2) * 2;
 			d = round(d * 10) / 10;
 		}
-		else if (sd == 2)//广西
+		//else if (sd == 2)//广西
+		//{
+		//	d = round(((d - 0.3) / 2)) * 2;
+		//}
+		else
 		{
-			d = round(((d - 0.3) / 2)) * 2;
+			//其他进制，三进制 = 0.1 * 3
+			d = round(((d - 0.1 * sd) / 2)) * 2;
+			d = d < 0.0 ? 0.0 : d;//应该不会有负值，防止万一
 		}
 		
 		std::string str_wood_d = std::to_string(d);
@@ -233,12 +269,16 @@ void CDlgReport::OnCbnSelchangeComboStandard()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	int sel = m_combo_standard.GetCurSel();
-	if (sel >= 0 && sel < 3)
+	if (sel >= 0 && sel < 10)
 	{
 		UpdateWoodData(sel);
+		//保存到配置文件中
+		CString  strIniFile = GetAppdataPath() + _T("config.ini");
+		CString tempStr;
+		tempStr.Format(_T("%d"), sel);
+		WritePrivateProfileString(APP_NAME_USERINFO, KEY_NAME_STANDARD, tempStr, strIniFile);
 	}
 }
-
 
 void CDlgReport::OnEnChangeEditLen()
 {

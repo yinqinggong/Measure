@@ -23,6 +23,7 @@ class CDlgReport : public CDialogEx
 	DECLARE_DYNAMIC(CDlgReport)
 private:
 	BOOL m_inited;
+	int m_scaleStandard;
 public:
 	CDlgReport(CWnd* pParent = nullptr);   // 标准构造函数
 	virtual ~CDlgReport();
@@ -58,4 +59,8 @@ public:
 	afx_msg void OnEnChangeEditLen();
 	double GetWoodLen();
 	void SetWoodLen(double wood_len);
+	void SetScaleStandard(int scaleStandard)
+	{
+		m_scaleStandard = scaleStandard;
+	}
 };

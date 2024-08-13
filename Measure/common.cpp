@@ -25,6 +25,19 @@ void  UnicodeToUtf8(const CString &unicode, char** strUTF8, int *strUTF8Len) {
 	*strUTF8 = szUtf8;
 	*strUTF8Len = len;
 }
+
+std::string UnicodeToUtf8(const CString& unicode) {
+	int len;
+	len = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)unicode, -1, NULL, 0, NULL, NULL); //返回需要的utf8长度,包括\0字符
+	char* szUtf8 = new char[len];
+	memset(szUtf8, 0, len);
+	WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR)unicode, -1, szUtf8, len, NULL, NULL);
+	std::string strUTF8 = szUtf8;
+	delete[] szUtf8;
+	szUtf8 = NULL;
+	return strUTF8;
+}
+
 void  AnsiToUnicode(const char* strAnsi, CString &strUnicode) {
 	int nLen = ::MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, (LPCCH)strAnsi, -1, NULL, 0);  //返回需要的unicode长度,包括\0字符
 	WCHAR * wszUnicode = new WCHAR[nLen];
@@ -218,10 +231,20 @@ std::string GetCurFormatTimeTime()
 	return retTime;
 }
 
-bool FileExist(const char * fileName)
+bool FileExist(const char* fileName)
 {
 	WIN32_FIND_DATAA wfd;
 	if (FindFirstFileA(fileName, &wfd) == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+	return true;
+}
+
+bool FileExistW(CString fileName)
+{
+	WIN32_FIND_DATA wfd;
+	if (FindFirstFile(fileName, &wfd) == INVALID_HANDLE_VALUE)
 	{
 		return false;
 	}

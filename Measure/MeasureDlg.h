@@ -70,7 +70,9 @@ public:
 	afx_msg void OnBnClickedBtnSave(); 
 	std::string GetStringWoodList(ScaleWood& scaleWood);
 	afx_msg void OnBnClickedBtnDownload();
+	void OnBnClickedBtnDownload1();
 	void GetDownLoadData(std::vector<std::vector<CString>>& wood_data);
+	void GetDownLoadData(std::vector<std::vector<std::string>>& wood_data);
 	afx_msg LRESULT OnUserMessage(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnClickStaMinExit(UINT nID);
 	afx_msg void OnClose();

@@ -34,6 +34,9 @@ static const int g_help_btnId = 18000;//首页界面按钮ID
 #define PNG_BIG_SHIP                _T("img\\window\\ship.png")
 #define WINDOW_LOGO					_T("img\\window\\logo.png")
 
+#define APP_NAME_USERINFO           _T("UserInfo")    // 用户数据
+#define KEY_NAME_STANDARD           _T("standard")    // 检尺标准
+
 typedef struct typeVideoData
 {
 	int channel;
@@ -235,6 +238,7 @@ typedef struct typeShipCabin
 
 void  UTF8ToUnicode(const char* strUTF8, CString &strUnicode);
 void  UnicodeToUtf8(const CString &unicode, char** strUTF8, int *strUTF8Len);
+std::string UnicodeToUtf8(const CString& unicode);
 void  AnsiToUnicode(const char* strAnsi, CString &strUnicode);
 void  UnicodeToAnsi(const CString &unicode, char** strAnsi, int *strAnsiLen);
 std::string GBKToUTF8(const char* strGBK);
@@ -248,6 +252,7 @@ std::string GetCurFormatTime();
 std::string GetCurFormatTimeDate();
 std::string GetCurFormatTimeTime();
 bool FileExist(const char *fileName);
+bool FileExistW(CString fileName);
 bool ReadPhotoFile(std::basic_string<char> strFileName, std::string &strData);
 bool WritePhotoFile(std::basic_string<char> strFileName, std::string &strData);
 
