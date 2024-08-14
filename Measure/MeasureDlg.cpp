@@ -892,23 +892,34 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<CString>>& wood_data)
 	}
 }
 
-void CMeasureDlg::GetDownLoadData(std::vector<std::vector<std::string>>& wood_data)
+void CMeasureDlg::GetDownLoadData(std::vector<std::vector<std::string>>& wood_data, int scaleStandard, int& num, double& total_v)
 {
 	std::vector<WoodDBShow> woodDBShowList;
 	m_dlgData.GetWoodData(woodDBShowList);
 
-	/*std::vector<std::string> titleVec{ "径级", "根数", "长度", "材积" };
-	wood_data.push_back(titleVec);*/
-
 	std::map<std::string, ReportData, Wood_D_Sort> report_map;
-
 	for (size_t j = 0; j < woodDBShowList.size(); j++)
 	{
+		num += woodDBShowList[j].amount;
 		double wood_len = woodDBShowList[j].lenght;
-		double total_v = 0.0;
 		for (size_t i = 0; i < woodDBShowList[j].scaleWood.wood_list.size(); i++)
 		{
 			double d = woodDBShowList[j].scaleWood.wood_list[i].diameter;
+			if (scaleStandard == 0)
+			{
+				//原始d
+			}
+			else if (scaleStandard == 1)//国标
+			{
+				d = round(d / 2) * 2;
+				d = round(d * 10) / 10;
+			}
+			else
+			{
+				//其他进制，三进制 = 0.1 * 3
+				d = round(((d - 0.1 * scaleStandard) / 2)) * 2;
+				d = d < 0.0 ? 0.0 : d;//应该不会有负值，防止万一
+			}
 
 			std::string str_wood_d = std::to_string(d);
 			str_wood_d = str_wood_d.substr(0, str_wood_d.find(".") + 1 + 1);
@@ -1027,11 +1038,40 @@ void CMeasureDlg::OnBnClickedBtnDownload1()
 	}
 }
 
+
+std::string CMeasureDlg::GetWorkSheetNameByScaleStandard(int scaleStandard)
+{
+	std::vector<std::string> standardNames = { 
+		"原始径级", "国家标准",
+		"二进制", "三进制", 
+		"四进制", "五进制", 
+		"六进制", "七进制", 
+		"八进制", "九进制" };
+	if (scaleStandard > 1 && scaleStandard < 10)
+	{
+		return standardNames[scaleStandard];
+	}
+	else
+	{
+		return standardNames[1];
+	}
+}
+
 void CMeasureDlg::OnBnClickedBtnDownload()
 {
-	std::vector<std::vector<std::string>> wood_data;
-	GetDownLoadData(wood_data);
-	if (wood_data.size() < 2)
+	std::vector<std::vector<std::string>> src_wood_data;
+	int src_num = 0;
+	double src_total_v = 0.0;
+	GetDownLoadData(src_wood_data, 0, src_num, src_total_v);
+
+	CString  strIniFile = GetAppdataPath() + _T("config.ini");
+	int scaleStandard = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_STANDARD, 0, strIniFile);
+	std::vector<std::vector<std::string>> user_wood_data;
+	int user_num = 0;
+	double user_total_v = 0.0;
+	GetDownLoadData(user_wood_data, scaleStandard < 2 ? 1 : scaleStandard, user_num, user_total_v);
+
+	if (src_wood_data.size() < 1)
 	{
 		WriteLog(_T("No data saved!"));
 		AfxMessageBox(_T("没有数据保存！"));
@@ -1049,48 +1089,59 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 		std::string strName = UnicodeToUtf8(fileName);
 		//保存为xlsx
 		lxw_workbook* workbook = workbook_new(strName.data());
+
+		lxw_format* format = workbook_add_format(workbook);
+		format_set_num_format(format, "0.000");
+
 		lxw_worksheet* worksheet = workbook_add_worksheet(workbook, GBKToUTF8("原始径级").data());
 		worksheet_write_string(worksheet, 0, 0, GBKToUTF8("径级").data(), NULL);
 		worksheet_write_string(worksheet, 0, 1, GBKToUTF8("根数").data(), NULL);
 		worksheet_write_string(worksheet, 0, 2, GBKToUTF8("长度").data(), NULL);
 		worksheet_write_string(worksheet, 0, 3, GBKToUTF8("材积").data(), NULL);
 
-		for (size_t i = 0; i < wood_data.size(); i++)
+		for (size_t i = 0; i < src_wood_data.size(); i++)
 		{
-			for (size_t j = 0; j < wood_data[i].size(); j++)
+			for (size_t j = 0; j < src_wood_data[i].size(); j++)
 			{
 				//worksheet_write_string(worksheet, i + 1, j, wood_data[i][j].data(), NULL);
-				//需要左对其
-				worksheet_write_number(worksheet, i + 1, j, atof(wood_data[i][j].data()), NULL);
-
-				/*worksheet_write_string(worksheet, 0, 0, GBKToUTF8("径级").data(), NULL);
-				worksheet_write_string(worksheet, 0, 1, GBKToUTF8("根数").data(), NULL);
-				worksheet_write_string(worksheet, 0, 2, GBKToUTF8("长度").data(), NULL);
-				worksheet_write_string(worksheet, 0, 3, GBKToUTF8("材积").data(), NULL);
-				worksheet_write_number(worksheet, 1, 0, 12, NULL);
-				worksheet_write_number(worksheet, 1, 1, 3, NULL);
-				worksheet_write_number(worksheet, 1, 2, 2.6, NULL);
-				worksheet_write_number(worksheet, 1, 3, 0.109, NULL);*/
+				worksheet_write_number(worksheet, i + 1, j, atof(src_wood_data[i][j].data()), NULL);
 			}
 		}
-		
 
-		lxw_worksheet* worksheet2 = workbook_add_worksheet(workbook, GBKToUTF8("国家标准").data());
+		worksheet_write_string(worksheet, src_wood_data.size() + 2, 0, GBKToUTF8("总根数：").data(), NULL);
+		worksheet_write_number(worksheet, src_wood_data.size() + 2, 1, src_num, NULL);
+		worksheet_write_string(worksheet, src_wood_data.size() + 2, 2, GBKToUTF8("总材积：").data(), NULL);
+		worksheet_write_number(worksheet, src_wood_data.size() + 2, 3, src_total_v, format);
+		
+		std::string userWorkSheetName = GetWorkSheetNameByScaleStandard(scaleStandard);
+		lxw_worksheet* worksheet2 = workbook_add_worksheet(workbook, GBKToUTF8(userWorkSheetName.data()).data());
 		worksheet_write_string(worksheet2, 0, 0, GBKToUTF8("径级").data(), NULL);
 		worksheet_write_string(worksheet2, 0, 1, GBKToUTF8("根数").data(), NULL);
 		worksheet_write_string(worksheet2, 0, 2, GBKToUTF8("长度").data(), NULL);
 		worksheet_write_string(worksheet2, 0, 3, GBKToUTF8("材积").data(), NULL);
-		worksheet_write_number(worksheet2, 1, 0, 13.4, NULL);
-		worksheet_write_number(worksheet2, 1, 1, 1, NULL);
-		worksheet_write_number(worksheet2, 1, 2, 2.6, NULL);
-		worksheet_write_number(worksheet2, 1, 3, 0.022, NULL);
+
+		for (size_t i = 0; i < user_wood_data.size(); i++)
+		{
+			for (size_t j = 0; j < user_wood_data[i].size(); j++)
+			{
+				//worksheet_write_string(worksheet2, i + 1, j, wood_data[i][j].data(), NULL);
+				worksheet_write_number(worksheet2, i + 1, j, atof(user_wood_data[i][j].data()), NULL);
+			}
+		}
+
+		worksheet_write_string(worksheet2, user_wood_data.size() + 2, 0, GBKToUTF8("总根数：").data(), NULL);
+		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 1, user_num, NULL);
+		worksheet_write_string(worksheet2, user_wood_data.size() + 2, 2, GBKToUTF8("总材积：").data(), NULL);
+		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 3, user_total_v, format);
 
 		workbook_close(workbook);
+
+		AfxMessageBox(_T("xlsx文件导出成功。"));
 	}
-
-
-
-	
+	else
+	{
+		AfxMessageBox(_T("无法创建xlsx文件。"));
+	}
 }
 
 LRESULT CMeasureDlg::OnUserMessage(WPARAM wParam, LPARAM lParam)

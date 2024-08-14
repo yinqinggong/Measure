@@ -72,7 +72,8 @@ public:
 	afx_msg void OnBnClickedBtnDownload();
 	void OnBnClickedBtnDownload1();
 	void GetDownLoadData(std::vector<std::vector<CString>>& wood_data);
-	void GetDownLoadData(std::vector<std::vector<std::string>>& wood_data);
+	void GetDownLoadData(std::vector<std::vector<std::string>>& wood_data, int scaleStandard, int& num, double& total_v);
+	std::string GetWorkSheetNameByScaleStandard(int scaleStandard);
 	afx_msg LRESULT OnUserMessage(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnClickStaMinExit(UINT nID);
 	afx_msg void OnClose();
