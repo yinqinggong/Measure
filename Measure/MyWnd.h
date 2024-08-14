@@ -6,6 +6,8 @@
 #include <gdiplus.h>
 using namespace Gdiplus;
 
+#define WM_USER_MESSAGE_FINISHED (WM_USER + 102)
+
 class CMyWnd :  public CWnd
 {
 protected:
@@ -63,6 +65,10 @@ public:
         }
         scaleWood = m_scaleWood;
         return true;
+    }
+    int GetScaleWoodID()
+    {
+        return m_scaleWood.id;
     }
     void ClearScaleWood()
     {

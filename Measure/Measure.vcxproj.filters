@@ -138,6 +138,9 @@
     <ClInclude Include="MyImageStatic.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="BgColorBtn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -204,6 +207,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="MyImageStatic.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BgColorBtn.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

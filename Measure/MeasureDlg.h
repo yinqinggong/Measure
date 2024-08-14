@@ -7,6 +7,7 @@
 #include "MyWnd.h"
 #include "CDlgReport.h"
 #include "DlgData.h"
+#include "BgColorBtn.h"
 
 // CMeasureDlg 对话框
 class CMeasureDlg : public CDialogEx
@@ -53,9 +54,10 @@ private:
 	CButton m_btnScale;
 	CButton m_btnData;
 	//右侧五个按钮
-	CButton m_btnAdd;//添加
-	CButton m_btnCrop;//裁剪
-	CButton m_btnDel;//删除
+	
+	CBgColorBtn m_btnAdd;//添加
+	CBgColorBtn m_btnCrop;//裁剪
+	CBgColorBtn m_btnDel;//删除
 	CButton m_btnReport;//报表
 	CButton m_btnSave;//保存
 public:
@@ -75,6 +77,9 @@ public:
 	void GetDownLoadData(std::vector<std::vector<std::string>>& wood_data, int scaleStandard, int& num, double& total_v);
 	std::string GetWorkSheetNameByScaleStandard(int scaleStandard);
 	afx_msg LRESULT OnUserMessage(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnUserMessageFinished(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnClickStaMinExit(UINT nID);
 	afx_msg void OnClose();
+	//修改五个按钮的颜色
+	void ResetBtnBgColor();
 };

@@ -116,6 +116,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_SAVE, &CMeasureDlg::OnBnClickedBtnSave)
 	ON_BN_CLICKED(IDC_BTN_DOWNLOAD, &CMeasureDlg::OnBnClickedBtnDownload)
 	ON_MESSAGE(WM_USER_MESSAGE, &CMeasureDlg::OnUserMessage)
+	ON_MESSAGE(WM_USER_MESSAGE_FINISHED, &CMeasureDlg::OnUserMessageFinished)
 	ON_CONTROL_RANGE(STN_CLICKED, IDC_MIN_IMAGE_STA, IDC_EXIT_IMAGE_STA, &CMeasureDlg::OnClickStaMinExit)
 	ON_WM_CLOSE()
 END_MESSAGE_MAP()
@@ -281,6 +282,11 @@ BOOL CMeasureDlg::OnInitDialog()
 	{
 		AfxMessageBox(_T("创建数据表失败"));
 	}*/
+
+	m_btnAdd.ModifyStyle(NULL, BS_OWNERDRAW);
+	m_btnCrop.ModifyStyle(NULL, BS_OWNERDRAW);
+	m_btnDel.ModifyStyle(NULL, BS_OWNERDRAW);
+
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -419,7 +425,7 @@ void CMeasureDlg::OnBnClickedBtnAdd()
 	// TODO: 在此添加控件通知处理程序代码
 	m_dlgReport.ShowWindow(SW_HIDE);
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
-	if (m_imgWnd.GetStatus() == -1)
+	if (m_imgWnd.GetStatus() == -1 || m_imgWnd.GetScaleWoodID() <= 0)
 	{
 		AfxMessageBox(_T("请先截图！"));
 		return;
@@ -427,31 +433,43 @@ void CMeasureDlg::OnBnClickedBtnAdd()
 	else if(m_imgWnd.GetStatus() == 0)
 	{
 		m_imgWnd.SetStatus(1);
+		ResetBtnBgColor();
+		m_btnAdd.SetBackgroundColor(RGB(241, 112, 122));
 	}
 	else if (m_imgWnd.GetStatus() == 1)
 	{
 		m_imgWnd.SetStatus(0);
+		ResetBtnBgColor();
 	}
 	else
 	{
 		m_imgWnd.SetStatus(1);
+		ResetBtnBgColor();
+		m_btnAdd.SetBackgroundColor(RGB(241, 112, 122));
 	}
 }
-
 
 void CMeasureDlg::OnBnClickedBtnCrop()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	m_dlgReport.ShowWindow(SW_HIDE);
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
-	if (m_imgWnd.GetStatus() == -1)
+	if (m_imgWnd.GetStatus() == -1 || m_imgWnd.GetScaleWoodID() <= 0)
 	{
 		AfxMessageBox(_T("请先截图！"));
 		return;
 	}
-	else
+	else if(m_imgWnd.GetStatus() == 3)
+	{
+		m_imgWnd.SetStatus(0);
+		ResetBtnBgColor();
+	}
+	else 
 	{
 		m_imgWnd.SetStatus(3);
+
+		ResetBtnBgColor();
+		m_btnCrop.SetBackgroundColor(RGB(241, 112, 122));
 	}
 }
 
@@ -482,7 +500,7 @@ void CMeasureDlg::OnBnClickedBtnDel()
 	// TODO: 在此添加控件通知处理程序代码
 	m_dlgReport.ShowWindow(SW_HIDE);
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
-	if (m_imgWnd.GetStatus() == -1)
+	if (m_imgWnd.GetStatus() == -1 || m_imgWnd.GetScaleWoodID() <= 0)
 	{
 		AfxMessageBox(_T("请先截图！"));
 		return;
@@ -490,10 +508,13 @@ void CMeasureDlg::OnBnClickedBtnDel()
 	else if (m_imgWnd.GetStatus() == 2)
 	{
 		m_imgWnd.SetStatus(0);
+		ResetBtnBgColor();
 	}
 	else
 	{
 	    m_imgWnd.SetStatus(2);
+		ResetBtnBgColor();
+		m_btnDel.SetBackgroundColor(RGB(241, 112, 122));
 	}
 }
 
@@ -501,6 +522,7 @@ void CMeasureDlg::OnBnClickedBtnDel()
 void CMeasureDlg::OnBnClickedBtnReport()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	ResetBtnBgColor();
 	if (m_dlgReport.IsWindowVisible())
 	{
 		m_imgWnd.ShowWindow(SW_SHOWNORMAL);
@@ -520,6 +542,7 @@ void CMeasureDlg::OnBnClickedBtnReport()
 void CMeasureDlg::OnBnClickedBtnScale()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	ResetBtnBgColor();
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	m_dlgData.ShowWindow(SW_HIDE);
 	m_dlgReport.ShowWindow(SW_HIDE);
@@ -540,6 +563,7 @@ void CMeasureDlg::OnBnClickedBtnScale()
 void CMeasureDlg::OnBnClickedBtnData()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	ResetBtnBgColor();
 	m_imgWnd.ShowWindow(SW_HIDE);
 	m_dlgData.ShowWindow(SW_SHOWNORMAL);
 	m_dlgData.SetEndTimeCurTime();
@@ -592,6 +616,7 @@ std::string CMeasureDlg::GetStringWoodList(ScaleWood& scaleWood)
 void CMeasureDlg::OnBnClickedBtnSave()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	ResetBtnBgColor();
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	m_dlgReport.ShowWindow(SW_HIDE);
 
@@ -1155,6 +1180,13 @@ LRESULT CMeasureDlg::OnUserMessage(WPARAM wParam, LPARAM lParam)
 	delete pLenght;
 	return 0;
 }
+
+LRESULT CMeasureDlg::OnUserMessageFinished(WPARAM wParam, LPARAM lParam)
+{
+	ResetBtnBgColor();
+	
+	return 0;
+}
 void CMeasureDlg::OnClickStaMinExit(UINT nID)
 {
 	// 处理点击事件
@@ -1180,4 +1212,11 @@ void CMeasureDlg::OnClose()
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	CDialogEx::OnClose();
+}
+
+void CMeasureDlg::ResetBtnBgColor()
+{
+	m_btnAdd.SetBackgroundColor(RGB(255, 255, 255));
+	m_btnCrop.SetBackgroundColor(RGB(255, 255, 255));
+	m_btnDel.SetBackgroundColor(RGB(255, 255, 255));
 }

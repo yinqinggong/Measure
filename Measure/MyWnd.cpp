@@ -486,6 +486,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
                         m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
 
                         SetStatus(0);
+                        ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
                         m_points.clear();
                     }
                 }
@@ -559,6 +560,7 @@ void CMyWnd::OnLButtonUp(UINT nFlags, CPoint point)
   //          m_ellipseRects.erase(--m_ellipseRects.end());
   //      }
         SetStatus(0);
+        ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
         m_isDrawFinished = true;
         Invalidate();
     }
@@ -962,6 +964,7 @@ void CMyWnd::OnBnClickedBtnRec()
     m_image.Load(strImagePathW);
     m_scaleWood = scalewood;
     SetStatus(0);
+    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
     this->Invalidate();
 }
 
@@ -1052,6 +1055,7 @@ void CMyWnd::ShowHistoryData(ScaleWood* pScaleWood)
     imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
     m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
     SetStatus(0);
+    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
     m_btnCapture.ShowWindow(SW_HIDE);
     m_btnDis.ShowWindow(SW_HIDE);
     m_btnRec.ShowWindow(SW_HIDE);
