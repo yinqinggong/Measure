@@ -220,6 +220,7 @@
     <ClInclude Include="MyScrollView.h" />
     <ClInclude Include="MyStatic.h" />
     <ClInclude Include="MyWnd.h" />
+    <ClInclude Include="MyWnd2.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ScaleDB.h" />
@@ -265,6 +266,7 @@
     <ClCompile Include="MyScrollView.cpp" />
     <ClCompile Include="MyStatic.cpp" />
     <ClCompile Include="MyWnd.cpp" />
+    <ClCompile Include="MyWnd2.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

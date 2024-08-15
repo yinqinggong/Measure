@@ -5,6 +5,7 @@
 #pragma once
 //#include "RtspDevice.h"
 #include "MyWnd.h"
+#include "MyWnd2.h"
 #include "CDlgReport.h"
 #include "DlgData.h"
 #include "BgColorBtn.h"
@@ -39,7 +40,7 @@ public:
 	afx_msg void OnDestroy();
 private:
 	CStatic m_staVideo;
-	CMyWnd m_imgWnd;
+	CMyWnd2 m_imgWnd;
 	CDlgReport m_dlgReport;
 	CDlgData m_dlgData;
 
