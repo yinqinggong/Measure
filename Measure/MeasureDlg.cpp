@@ -178,7 +178,7 @@ BOOL CMeasureDlg::OnInitDialog()
 	rect.bottom = rcWorkArea.Height() - 20;
 	m_imgWnd.Create(NULL, _T(""), WS_VISIBLE | WS_CHILD, rect, this, IDC_SUB_IMAGE_WND);
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
-	m_imgWnd.LoadImage(_T("C:\\TensorScale\\Image\\img.jpg"));
+	//m_imgWnd.LoadImage(_T("C:\\TensorScale\\Image\\img.jpg"));
 	//报表
 	m_dlgReport.Create(IDD_DIALOG_REPORT, this);
 	m_dlgReport.MoveWindow(&rect);
