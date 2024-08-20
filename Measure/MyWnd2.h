@@ -96,6 +96,7 @@ private:
 //public:
     BOOL LoadLocalImage(LPCTSTR lpszPath, bool firstInit);
     CPoint ScreenToImage(CPoint screenPoint);
+    CPoint ImageToScreen(CPoint imagePoint);
 };
 
 

@@ -232,8 +232,9 @@ void CMyWnd2::OnPaint()
             {
                 for (size_t i = 0; i < m_points.size() - 1; i++)
                 {
-                    dc.MoveTo(m_points[i]);
-                    dc.LineTo(m_points[i + 1]);
+                    //先转换为屏幕坐标再绘制
+                    dc.MoveTo(ImageToScreen(m_points[i]));
+                    dc.LineTo(ImageToScreen(m_points[i + 1]));
                 }
             }
             // 恢复原来的画笔和画刷
@@ -317,10 +318,12 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
                 }
 				else
 				{
-					for (size_t i = 0; i < m_points.size(); i++)
+                    //注释此处的转换，m_points修改为一直保存的是图片坐标，
+                    //防止图片放大和缩小时可以适应，绘制图片时候，再转换成屏幕坐标
+					/*for (size_t i = 0; i < m_points.size(); i++)
 					{
 						m_points[i] = ScreenToImage(m_points[i]);
-					}
+					}*/
 
 					//处于多边形之外的数据直接剔除
 					std::vector<WoodAttr> temp_wood_list;
@@ -345,7 +348,8 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
 			}
             else
             {
-                m_points.push_back(point);
+                CPoint imgPoint = ScreenToImage(point);
+                m_points.push_back(imgPoint);
             }
             Invalidate();
         }
@@ -438,12 +442,14 @@ void CMyWnd2::OnMouseMove(UINT nFlags, CPoint point)
         //鼠标按下第一个点后，鼠标移动先加入第二个点
         if (m_points.size() == 1)
         {
-            m_points.push_back(point);
+            CPoint imgPoint = ScreenToImage(point);
+            m_points.push_back(imgPoint);
         }
         //随着鼠标移动，不断修改最后一个点
         if (m_points.size() > 1)
         {
-            m_points[m_points.size() - 1].SetPoint(point.x, point.y);
+            CPoint imgPoint = ScreenToImage(point);
+            m_points[m_points.size() - 1].SetPoint(imgPoint.x, imgPoint.y);
         }
 
         Invalidate();
@@ -496,8 +502,10 @@ void CMyWnd2::LimitScalingFactor()
 
 bool CMyWnd2::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
 {
-    int dx = p1.x - p2.x;
-    int dy = p1.y - p2.y;
+    //先把第一个点转为屏幕点
+    CPoint screenPoint = ImageToScreen(p1);
+    int dx = screenPoint.x - p2.x;
+    int dy = screenPoint.y - p2.y;
     return (dx * dx + dy * dy) <= (threshold * threshold);
 }
 
@@ -865,4 +873,17 @@ CPoint CMyWnd2::ScreenToImage(CPoint screenPoint)
     imagePoint.y = static_cast<int>((screenPoint.y - m_imageOrigin.y) / m_scaleFactor);
 
     return imagePoint;
+}
+
+CPoint CMyWnd2::ImageToScreen(CPoint imagePoint)
+{
+    // 将屏幕坐标转换为窗口的客户区坐标
+    //ScreenToClient(&screenPoint);
+
+    // 考虑缩放和图片的原点位置，将客户区坐标转换为图片坐标
+    CPoint screenPoint;
+    screenPoint.x = static_cast<int>(imagePoint.x * m_scaleFactor + m_imageOrigin.x);
+    screenPoint.y = static_cast<int>(imagePoint.y * m_scaleFactor + m_imageOrigin.y);
+
+    return screenPoint;
 }
