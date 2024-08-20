@@ -306,51 +306,61 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
         }
         else if (m_status == 3)
         {
-            // 左键点击时，记录顶点
-            if (m_points.size() > 0 && isCloseEnough(m_points.front(), point, 10))
+            if (IsShiftKeyDown())
             {
-                // 如果最后一个点与第一个点距离小于5，则完成多边形
-                m_points[m_points.size() - 1].SetPoint(m_points.front().x, m_points.front().y);
-                int ret = AfxMessageBox(_T("确认保留多边形区域的木材？"), MB_OKCANCEL);
-                if (ret != IDOK)
-                {
-                    m_points.clear();
-                }
-				else
-				{
-                    //注释此处的转换，m_points修改为一直保存的是图片坐标，
-                    //防止图片放大和缩小时可以适应，绘制图片时候，再转换成屏幕坐标
-					/*for (size_t i = 0; i < m_points.size(); i++)
-					{
-						m_points[i] = ScreenToImage(m_points[i]);
-					}*/
-
-					//处于多边形之外的数据直接剔除
-					std::vector<WoodAttr> temp_wood_list;
-					for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
-					{
-						if (IsPointInPolygon(m_scaleWood.wood_list[i].ellipse.cx,
-							m_scaleWood.wood_list[i].ellipse.cy, m_points))
-						{
-							temp_wood_list.push_back(m_scaleWood.wood_list[i]);
-						}
-					}
-					m_scaleWood.wood_list = temp_wood_list;
-					//之前的绘制的椭圆无效了，需要重新绘制
-					m_image.Destroy();
-					CString imagePath;
-					imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
-					LoadLocalImage(imagePath, false);
-					SetStatus(0);
-					::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
-					m_points.clear();
-				}
-			}
+                m_dragging = true;
+                m_lastMousePos = point;
+                SetCapture(); // 捕获鼠标，处理拖动事件
+            }
             else
             {
-                CPoint imgPoint = ScreenToImage(point);
-                m_points.push_back(imgPoint);
+                // 左键点击时，记录顶点
+                if (m_points.size() > 0 && isCloseEnough(m_points.front(), point, 10))
+                {
+                    // 如果最后一个点与第一个点距离小于5，则完成多边形
+                    m_points[m_points.size() - 1].SetPoint(m_points.front().x, m_points.front().y);
+                    int ret = AfxMessageBox(_T("确认保留多边形区域的木材？"), MB_OKCANCEL);
+                    if (ret != IDOK)
+                    {
+                        m_points.clear();
+                    }
+                    else
+                    {
+                        //注释此处的转换，m_points修改为一直保存的是图片坐标，
+                        //防止图片放大和缩小时可以适应，绘制图片时候，再转换成屏幕坐标
+                        /*for (size_t i = 0; i < m_points.size(); i++)
+                        {
+                            m_points[i] = ScreenToImage(m_points[i]);
+                        }*/
+
+                        //处于多边形之外的数据直接剔除
+                        std::vector<WoodAttr> temp_wood_list;
+                        for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
+                        {
+                            if (IsPointInPolygon(m_scaleWood.wood_list[i].ellipse.cx,
+                                m_scaleWood.wood_list[i].ellipse.cy, m_points))
+                            {
+                                temp_wood_list.push_back(m_scaleWood.wood_list[i]);
+                            }
+                        }
+                        m_scaleWood.wood_list = temp_wood_list;
+                        //之前的绘制的椭圆无效了，需要重新绘制
+                        m_image.Destroy();
+                        CString imagePath;
+                        imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+                        LoadLocalImage(imagePath, false);
+                        SetStatus(0);
+                        ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
+                        m_points.clear();
+                    }
+                }
+                else
+                {
+                    CPoint imgPoint = ScreenToImage(point);
+                    m_points.push_back(imgPoint);
+                }
             }
+
             Invalidate();
         }
     }
@@ -360,7 +370,7 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
 
 void CMyWnd2::OnLButtonUp(UINT nFlags, CPoint point)
 {
-    if (m_status == 0 || m_status == 2)
+    if (m_status == 0 || m_status == 2 || (m_status == 3 /*&& IsShiftKeyDown()*/))
     {
         if (m_dragging)
         {
@@ -400,7 +410,7 @@ void CMyWnd2::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CMyWnd2::OnMouseMove(UINT nFlags, CPoint point)
 {
-    if (m_status == 0 || m_status == 2)
+    if (m_status == 0 || m_status == 2 || (m_status == 3 && IsShiftKeyDown()))
     {
         if (m_dragging)
         {
@@ -437,7 +447,7 @@ void CMyWnd2::OnMouseMove(UINT nFlags, CPoint point)
 			Invalidate();
         }
     }
-    else if (m_status == 3)
+    else if (m_status == 3 && !IsShiftKeyDown())
     {
         //鼠标按下第一个点后，鼠标移动先加入第二个点
         if (m_points.size() == 1)

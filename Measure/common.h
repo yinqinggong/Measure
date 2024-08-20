@@ -269,3 +269,5 @@ CString GetCurrentPath();//获取当前路径
 CString GetAppdataPath();//获取appdata路径
 std::string GetAppdataPathUTF8();
 CString GetLogsPath();//获取appdata路径
+
+bool IsShiftKeyDown();//shift键是否被一直按下

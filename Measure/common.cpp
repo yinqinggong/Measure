@@ -657,3 +657,9 @@ std::string GetAppdataPathUTF8()
 	}
 	return "";*/
 }
+
+bool IsShiftKeyDown()
+{
+	short state = GetAsyncKeyState(VK_SHIFT);
+	return (state & 0x8000) != 0;
+}
