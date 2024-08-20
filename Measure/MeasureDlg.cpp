@@ -1220,3 +1220,21 @@ void CMeasureDlg::ResetBtnBgColor()
 	m_btnCrop.SetBackgroundColor(RGB(255, 255, 255));
 	m_btnDel.SetBackgroundColor(RGB(255, 255, 255));
 }
+
+BOOL CMeasureDlg::PreTranslateMessage(MSG* pMsg)
+{
+	// TODO: 在此添加专用代码和/或调用基类
+	//屏蔽ESC键按下
+	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_ESCAPE)
+	{
+		return TRUE;
+	}
+
+	//屏蔽Enter键按下
+	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN && pMsg->wParam)
+	{
+		return TRUE;
+	}
+	
+	return CDialogEx::PreTranslateMessage(pMsg);
+}

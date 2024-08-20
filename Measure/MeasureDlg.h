@@ -83,4 +83,5 @@ public:
 	afx_msg void OnClose();
 	//修改五个按钮的颜色
 	void ResetBtnBgColor();
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };
