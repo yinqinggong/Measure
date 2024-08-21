@@ -57,6 +57,7 @@ int CMyWnd2::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_btnCapture.MoveWindow(rect.right - 120, rect.Height() * 0.5, 100, 50);
     m_btnRec.MoveWindow(rect.right - 120, rect.Height() * 0.5 - 100, 100, 50);
     m_btnDis.MoveWindow(rect.right - 120, rect.Height() * 0.5 + 100, 100, 50);
+
     return 0;
 }
 BOOL CMyWnd2::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
@@ -160,9 +161,18 @@ void CMyWnd2::OnPaint()
         return;
 	}
 
-    // 设置平滑缩放模式
-    dc.SetStretchBltMode(HALFTONE);
+    /*使用双缓冲，避免同时绘制背景和图片时发生闪烁*/
+    CDC memDC; // 内存中的设备上下文
+    CBitmap memBitmap; // 内存中的位图
+    memBitmap.CreateCompatibleBitmap(&dc, clientRect.Width(), clientRect.Height());// 创建一个与窗口大小相同的位图
+    memDC.CreateCompatibleDC(&dc);
+    CBitmap* pOldBitmap = memDC.SelectObject(&memBitmap);
 
+    //背景色，当图片缩放小于窗口是，需要背景色
+    memDC.FillSolidRect(clientRect, RGB(42, 42, 43));   //控件背景色
+
+    // 设置平滑缩放模式
+    memDC.SetStretchBltMode(HALFTONE);
     // 计算图像在当前缩放下的显示尺寸
     int scaledWidth = static_cast<int>(m_image.GetWidth() * m_scaleFactor);
     int scaledHeight = static_cast<int>(m_image.GetHeight() * m_scaleFactor);
@@ -197,15 +207,15 @@ void CMyWnd2::OnPaint()
             //椭圆绘制成功后，再画背景图片
             //::SetStretchBltMode(dc, HALFTONE);
             //::SetBrushOrgEx(dc, 0, 0, NULL);
-            m_image.Draw(dc, destRect);
+            m_image.Draw(memDC, destRect);
         }
         else if (m_status == 1)
         {
             //::SetStretchBltMode(dc, HALFTONE);
             //::SetBrushOrgEx(dc, 0, 0, NULL);
-            m_image.Draw(dc, destRect);
+            m_image.Draw(memDC, destRect);
             // 获取GDI+图形对象
-            Gdiplus::Graphics graphics(dc.GetSafeHdc());
+            Gdiplus::Graphics graphics(memDC.GetSafeHdc());
             // 创建一个画笔
             Pen pen(Gdiplus::Color(255, 255, 255, 255), 2);
             int cx = (m_startPoint.x + m_endPoint.x) * 0.5;
@@ -219,13 +229,13 @@ void CMyWnd2::OnPaint()
         {
             //::SetStretchBltMode(dc, HALFTONE);
             //::SetBrushOrgEx(dc, 0, 0, NULL);
-            m_image.Draw(dc, destRect);
+            m_image.Draw(memDC, destRect);
             // 设置透明背景模式
-            dc.SetBkMode(TRANSPARENT);
+            memDC.SetBkMode(TRANSPARENT);
             // 创建画笔和画刷
             CPen pen(PS_SOLID, 2, RGB(255, 255, 255)); // 红色边框
-            CBrush* pOldBrush = static_cast<CBrush*>(dc.SelectStockObject(NULL_BRUSH)); // 空画刷
-            CPen* pOldPen = dc.SelectObject(&pen);
+            CBrush* pOldBrush = static_cast<CBrush*>(memDC.SelectStockObject(NULL_BRUSH)); // 空画刷
+            CPen* pOldPen = memDC.SelectObject(&pen);
 
             // 绘制多边形
             if (m_points.size() > 1)
@@ -233,15 +243,21 @@ void CMyWnd2::OnPaint()
                 for (size_t i = 0; i < m_points.size() - 1; i++)
                 {
                     //先转换为屏幕坐标再绘制
-                    dc.MoveTo(ImageToScreen(m_points[i]));
-                    dc.LineTo(ImageToScreen(m_points[i + 1]));
+                    memDC.MoveTo(ImageToScreen(m_points[i]));
+                    memDC.LineTo(ImageToScreen(m_points[i + 1]));
                 }
             }
             // 恢复原来的画笔和画刷
-            dc.SelectObject(pOldPen);
-            dc.SelectObject(pOldBrush);
+            memDC.SelectObject(pOldPen);
+            memDC.SelectObject(pOldBrush);
         }
     }
+
+    /*双缓冲技术处理*/
+    // 将内存中的位图一次性复制到屏幕上
+    dc.BitBlt(0, 0, clientRect.Width(), clientRect.Height(), &memDC, 0, 0, SRCCOPY);
+    // 恢复原来的位图
+    memDC.SelectObject(pOldBitmap);
 }
 
 BOOL CMyWnd2::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
@@ -504,7 +520,7 @@ void CMyWnd2::LimitScalingFactor()
     // 限制缩放因子，防止图像缩小到比窗口还小
     float minScaleX = static_cast<float>(clientRect.Width()) / m_image.GetWidth();
     float minScaleY = static_cast<float>(clientRect.Height()) / m_image.GetHeight();
-    float minScale = std::max(minScaleX, minScaleY);
+    float minScale = std::max(minScaleX/2, minScaleY/2);
 
     m_scaleFactor = std::max(m_scaleFactor, minScale);
     m_scaleFactor = std::min(m_scaleFactor, 10.0f); // 也可以限制最大缩放比例
