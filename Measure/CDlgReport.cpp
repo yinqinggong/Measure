@@ -304,3 +304,21 @@ void CDlgReport::SetWoodLen(double wood_len)
 	str_wood_len.Format(_T("%.1f"), wood_len);
 	m_edit_len.SetWindowTextW(str_wood_len);
 }
+
+BOOL CDlgReport::PreTranslateMessage(MSG* pMsg)
+{
+	// TODO: 在此添加专用代码和/或调用基类
+	//屏蔽ESC键按下
+	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_ESCAPE)
+	{
+		return TRUE;
+	}
+
+	//屏蔽Enter键按下
+	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN && pMsg->wParam)
+	{
+		return TRUE;
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
+}

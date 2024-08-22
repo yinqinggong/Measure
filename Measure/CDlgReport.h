@@ -63,4 +63,5 @@ public:
 	{
 		m_scaleStandard = scaleStandard;
 	}
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };

@@ -38,4 +38,5 @@ public:
 	bool GetScaleWoodFromJsonString(std::string& jsonstr, ScaleWood& scaleWood);
 	void GetWoodData(std::vector<WoodDBShow>& woodDBShowList);
 	void SetEndTimeCurTime();
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };

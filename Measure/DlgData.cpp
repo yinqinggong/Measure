@@ -222,3 +222,21 @@ void CDlgData::SetEndTimeCurTime()
 	CTime curTime = CTime::GetCurrentTime();   //获取当前时间日期
 	m_date_end.SetTime(&curTime);
 }
+
+
+BOOL CDlgData::PreTranslateMessage(MSG* pMsg)
+{
+	// TODO: 在此添加专用代码和/或调用基类
+	//屏蔽ESC键按下
+	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_ESCAPE)
+	{
+		return TRUE;
+	}
+
+	//屏蔽Enter键按下
+	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN && pMsg->wParam)
+	{
+		return TRUE;
+	}
+	return CDialogEx::PreTranslateMessage(pMsg);
+}
