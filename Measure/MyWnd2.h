@@ -37,6 +37,10 @@ protected:
     CButton m_btnCapture;
     CButton m_btnRec;
     CButton m_btnDis;
+    //透传的参数
+    std::string m_limg;
+    std::string m_rimg;
+    std::string m_cam_params;
 
     bool isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold);
     bool isPointInEllipse(const CPoint& p);

@@ -47,7 +47,7 @@ typedef struct defScaleWood
 }ScaleWood;
 
 int PostPreview(std::string& url);
-int PostPhoto(std::string& limg, int& errorCode);
-int PostScale(ScaleWood& scalewood, int& errorCode);
+int PostPhoto(std::string& limg, int& errorCode, std::string& rimg, std::string& cam_params);
+int PostScale(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& cam_params);
 
 #endif

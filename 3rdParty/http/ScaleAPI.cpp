@@ -9,6 +9,8 @@
 const char* g_scale_domain = "192.168.2.1";
 const int   g_scale_port = 5000;
 
+const char* g_cloud_scale_domain = "api.tensorplus.cn";
+
 const char* g_preview_api = "/preview";
 const char* g_photo_api = "/photo";
 const char* g_scale_api = "/scale";
@@ -39,7 +41,7 @@ int PostPreview(std::string& url)
 }
 
 
-int PostPhoto(std::string &limg, int& errorCode)
+int PostPhoto(std::string &limg, int& errorCode, std::string& rimg, std::string& cam_params)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
 	cli.set_read_timeout(20, 0);
@@ -56,6 +58,10 @@ int PostPhoto(std::string &limg, int& errorCode)
 			return -1;
 		}
 		limg = value["limg"].asString();
+#if CloudAPI
+		rimg = value["rimg"].asString();
+		cam_params = value["cam_params"].asString();
+#endif
 		errorCode = code;
 		WriteLog(_T("PostPhoto - code: %d"), code);
 		return 1;
@@ -65,11 +71,20 @@ int PostPhoto(std::string &limg, int& errorCode)
 	return -1;
 }
 
-int PostScale(ScaleWood& scalewood, int& errorCode)
+int PostScale(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& cam_params)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
 	cli.set_read_timeout(60, 0);
+#if CloudAPI
+	httplib::Params params{
+		{ "limg", limg },
+		{ "rimg", rimg },
+		{ "cam_params", cam_params }
+	};
+	auto res = cli.Post(g_cloud_scale_domain, params);
+#else
 	auto res = cli.Post(g_scale_api);
+#endif // Cloud_API
 	if (res && res->status == 200) {
 		Json::Value value;
 		Json::Reader reader;

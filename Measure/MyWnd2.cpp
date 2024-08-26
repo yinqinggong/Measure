@@ -650,7 +650,7 @@ void CMyWnd2::OnBnClickedBtnCapture()
     std::string limg;
     CWaitCursor wait;
     int errorCode = 0;
-    int ret = PostPhoto(limg, errorCode);
+    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_cam_params);
     wait.Restore();
     if (ret < 0)
     {
@@ -662,6 +662,7 @@ void CMyWnd2::OnBnClickedBtnCapture()
     }
     try
     {
+        limg = m_limg;
         limg = base64_decode(limg);
     }
     catch (const std::exception&)
@@ -747,7 +748,10 @@ void CMyWnd2::OnBnClickedBtnRec()
     m_btnDis.ShowWindow(SW_HIDE);
     int errorCode = 0;
     ScaleWood scalewood = { 0 };
-    int ret = PostScale(scalewood, errorCode);
+    int ret = PostScale(scalewood, errorCode, m_limg, m_rimg, m_cam_params);
+    m_limg.clear();
+    m_rimg.clear();
+    m_cam_params.clear();
     scalewood.id = time(0);
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("Ê¶±ð"));
