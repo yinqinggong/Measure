@@ -41,7 +41,20 @@ int PostPreview(std::string& url)
 }
 
 
-int PostPhoto(std::string &limg, int& errorCode, std::string& rimg, std::string& cam_params)
+int PostPhoto(std::string &limg, int& errorCode, std::string& rimg,
+	std::string& D1,
+	std::string& D2,
+	std::string& E,
+	std::string& F,
+	std::string& K1,
+	std::string& K2,
+	std::string& P1,
+	std::string& P2,
+	std::string& Q,
+	std::string& R,
+	std::string& R1,
+	std::string& R2,
+	std::string& T)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
 	cli.set_read_timeout(20, 0);
@@ -60,7 +73,20 @@ int PostPhoto(std::string &limg, int& errorCode, std::string& rimg, std::string&
 		limg = value["limg"].asString();
 #if CloudAPI
 		rimg = value["rimg"].asString();
-		cam_params = value["cam_params"].asString();
+		//cam_params = value["cam_params"].asString();
+		D1 = value["D1"].asString();
+		D2 = value["D2"].asString();
+		E = value["E"].asString();
+		F = value["F"].asString();
+		K1 = value["K1"].asString();
+		K2 = value["K2"].asString();
+		P1 = value["P1"].asString();
+		P2 = value["P2"].asString();
+		Q = value["Q"].asString();
+		R = value["R"].asString();
+		R1 = value["R1"].asString();
+		R2 = value["R2"].asString();
+		T = value["T"].asString();
 #endif
 		errorCode = code;
 		WriteLog(_T("PostPhoto - code: %d"), code);
@@ -71,18 +97,45 @@ int PostPhoto(std::string &limg, int& errorCode, std::string& rimg, std::string&
 	return -1;
 }
 
-int PostScale(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& cam_params)
+int PostScale(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg,
+	std::string& D1,
+	std::string& D2,
+	std::string& E,
+	std::string& F,
+	std::string& K1,
+	std::string& K2,
+	std::string& P1,
+	std::string& P2,
+	std::string& Q,
+	std::string& R,
+	std::string& R1,
+	std::string& R2,
+	std::string& T)
 {
-	httplib::Client cli(g_scale_domain, g_scale_port);
-	cli.set_read_timeout(60, 0);
 #if CloudAPI
+	httplib::Client cli(g_cloud_scale_domain, g_scale_port);
+	cli.set_read_timeout(60, 0);
 	httplib::Params params{
 		{ "limg", limg },
 		{ "rimg", rimg },
-		{ "cam_params", cam_params }
+		{ "D1",D1},
+		{ "D2",D2},
+		{ "E",E},
+		{ "F",F},
+		{ "K1",K1},
+		{ "K2",K2},
+		{ "P1",P1},
+		{ "P2",P2},
+		{ "Q",Q},
+		{ "R",R},
+		{ "R1",R1},
+		{ "R2",R2},
+		{ "T",T }
 	};
-	auto res = cli.Post(g_cloud_scale_domain, params);
+	auto res = cli.Post(g_scale_api, params);
 #else
+	httplib::Client cli(g_scale_domain, g_scale_port);
+	cli.set_read_timeout(60, 0);
 	auto res = cli.Post(g_scale_api);
 #endif // Cloud_API
 	if (res && res->status == 200) {

@@ -9,6 +9,13 @@
 #include <opencv2/imgproc.hpp>
 #include "common.h"
 
+#if (CloudAPI == 1 && QGDebug == 1)
+#include <fstream>
+#include <string>
+#include <sstream>
+#endif // (CloudAPI == 1 && QGDebug == 1)
+
+
 #ifndef M_PI
 #define M_PI   3.141592653589793238462643383279502884
 #endif
@@ -650,7 +657,7 @@ void CMyWnd2::OnBnClickedBtnCapture()
     std::string limg;
     CWaitCursor wait;
     int errorCode = 0;
-    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_cam_params);
+    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_D1, m_D2, m_E, m_F, m_K1, m_K2, m_P1, m_P2, m_Q, m_R, m_R1, m_R2, m_T);
     wait.Restore();
     if (ret < 0)
     {
@@ -682,6 +689,56 @@ void CMyWnd2::OnBnClickedBtnCapture()
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
     cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
 #endif
+
+#if (CloudAPI == 1 && QGDebug == 1)
+    std::ifstream file(GetImagePathUTF8() + "stereo_params.xml");
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open file");
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    m_cam_params = buffer.str();
+
+    std::ifstream file1(GetImagePathUTF8() + "l.jpg", std::ios::binary);
+    if (!file1) {
+        std::cerr << "Unable to open file" << std::endl;
+        return;
+    }
+    std::ostringstream oss1;
+    oss1 << file1.rdbuf();
+    m_limg = base64_encode(oss1.str());
+
+    std::ifstream file2(GetImagePathUTF8() + "r.jpg", std::ios::binary);
+    if (!file2) {
+        std::cerr << "Unable to open file" << std::endl;
+        return;
+    }
+    std::ostringstream oss2;
+    oss2 << file2.rdbuf();
+    m_rimg = base64_encode(oss2.str());
+
+    std::string limg;
+    try
+    {
+        limg = base64_decode(m_limg);
+    }
+    catch (const std::exception&)
+    {
+        WriteLog(_T("invalid base64 exception"));
+        AfxMessageBox(_T("获取图片失败，请重试"));
+        return;
+    }
+    if (limg.length() <= 0)
+    {
+        WriteLog(_T("invalid base64 limg.length() <= 0"));
+        AfxMessageBox(_T("获取图片失败，请重试"));
+        return;
+    }
+
+    std::vector<uchar> img_data(limg.begin(), limg.end());
+    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
+    cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
+#endif
     LoadLocalImage(GetImagePath() + _T("limg.jpg"), true);
     m_btnCapture.ShowWindow(SW_HIDE);
     m_btnDis.ShowWindow(SW_SHOW);
@@ -691,7 +748,7 @@ void CMyWnd2::OnBnClickedBtnCapture()
 
 void CMyWnd2::OnBnClickedBtnRec()
 {
-#if (QGDebug == 1) 
+#if (QGDebug == 1 && CloudAPI == 0) 
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("识别"));
     m_btnRec.ShowWindow(SW_HIDE);
@@ -748,10 +805,23 @@ void CMyWnd2::OnBnClickedBtnRec()
     m_btnDis.ShowWindow(SW_HIDE);
     int errorCode = 0;
     ScaleWood scalewood = { 0 };
-    int ret = PostScale(scalewood, errorCode, m_limg, m_rimg, m_cam_params);
+	int ret = PostScale(scalewood, errorCode, m_limg, m_rimg,
+		m_D1,
+		m_D2,
+		m_E,
+		m_F,
+		m_K1,
+		m_K2,
+		m_P1,
+		m_P2,
+		m_Q,
+		m_R,
+		m_R1,
+		m_R2,
+		m_T);
     m_limg.clear();
     m_rimg.clear();
-    m_cam_params.clear();
+    //m_cam_params.clear();
     scalewood.id = time(0);
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("识别"));

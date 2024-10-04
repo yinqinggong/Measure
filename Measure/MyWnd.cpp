@@ -616,7 +616,7 @@ void CMyWnd::OnBnClickedBtnCapture()
     std::string limg;
     CWaitCursor wait;
     int errorCode = 0;
-    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_cam_params);
+    int ret = 0 /*PostPhoto(m_limg, errorCode, m_rimg, m_cam_params)*/;
     wait.Restore();
     if (ret < 0)
     {
@@ -714,7 +714,7 @@ void CMyWnd::OnBnClickedBtnRec()
     m_btnDis.ShowWindow(SW_HIDE);
     int errorCode = 0;
     ScaleWood scalewood = { 0 };
-    int ret = PostScale(scalewood, errorCode, m_limg, m_rimg, m_cam_params);
+    int ret = 0/*PostScale(scalewood, errorCode, m_limg, m_rimg, m_cam_params)*/;
     m_limg.clear();
     m_rimg.clear();
     m_cam_params.clear();
