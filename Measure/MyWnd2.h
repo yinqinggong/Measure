@@ -40,8 +40,8 @@ protected:
     //透传的参数
     std::string m_limg;
     std::string m_rimg;
-    //std::string m_cam_params;
-    std::string m_D1;
+    std::string m_camparam;
+    /*std::string m_D1;
     std::string m_D2;
     std::string m_E;
     std::string m_F;
@@ -53,7 +53,7 @@ protected:
     std::string m_R;
     std::string m_R1;
     std::string m_R2;
-    std::string m_T;
+    std::string m_T;*/
 
     bool isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold);
     bool isPointInEllipse(const CPoint& p);

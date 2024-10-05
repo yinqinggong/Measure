@@ -9,12 +9,16 @@
 const char* g_scale_domain = "192.168.2.1";
 const int   g_scale_port = 5000;
 
-const char* g_cloud_scale_domain = "api.tensorplus.cn";
+const char* g_cloud_scale_domain = "6oh00qla.cloud.lanyun.net";
+const int   g_cloud_port = 8866;
 
 const char* g_preview_api = "/preview";
 const char* g_photo_api = "/photo";
+#if CloudAPI
+const char* g_scale_api = "/infer";
+#else
 const char* g_scale_api = "/scale";
-
+#endif
 int PostPreview(std::string& url)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
@@ -41,20 +45,7 @@ int PostPreview(std::string& url)
 }
 
 
-int PostPhoto(std::string &limg, int& errorCode, std::string& rimg,
-	std::string& D1,
-	std::string& D2,
-	std::string& E,
-	std::string& F,
-	std::string& K1,
-	std::string& K2,
-	std::string& P1,
-	std::string& P2,
-	std::string& Q,
-	std::string& R,
-	std::string& R1,
-	std::string& R2,
-	std::string& T)
+int PostPhoto(std::string &limg, int& errorCode, std::string& rimg, std::string& m_camparam)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
 	cli.set_read_timeout(20, 0);
@@ -73,20 +64,48 @@ int PostPhoto(std::string &limg, int& errorCode, std::string& rimg,
 		limg = value["limg"].asString();
 #if CloudAPI
 		rimg = value["rimg"].asString();
-		//cam_params = value["cam_params"].asString();
-		D1 = value["D1"].asString();
-		D2 = value["D2"].asString();
-		E = value["E"].asString();
-		F = value["F"].asString();
-		K1 = value["K1"].asString();
-		K2 = value["K2"].asString();
-		P1 = value["P1"].asString();
-		P2 = value["P2"].asString();
-		Q = value["Q"].asString();
-		R = value["R"].asString();
-		R1 = value["R1"].asString();
-		R2 = value["R2"].asString();
-		T = value["T"].asString();
+		// 新建 JSON 对象K1, D1, K2, D2, R, T, E, F, R1, R2, P1, P2, Q
+		Json::Value root(Json::arrayValue);// 给 JSON 对象添加键值对
+		root.append(value["K1"].asString());
+		root.append(value["D1"].asString());
+		root.append(value["K2"].asString());
+		root.append(value["D2"].asString());
+		root.append(value["R"].asString());
+		root.append(value["T"].asString());
+		root.append(value["E"].asString());
+		root.append(value["F"].asString());
+		root.append(value["R1"].asString());
+		root.append(value["R2"].asString());
+		root.append(value["P1"].asString());
+		root.append(value["P2"].asString());
+		root.append(value["Q"].asString());
+		Json::StyledWriter writer;
+		m_camparam = writer.write(root);// 将字符串转为 char*const char* data = json_str.c_str();// 打印结果
+		if (m_camparam.length() > 0)
+		{
+			//去掉引号
+			m_camparam.erase(std::remove_if(m_camparam.begin(), m_camparam.end(), [&](char ch) {
+				return ch == '\"';
+				}), m_camparam.end());
+			//去掉换行
+			m_camparam.erase(std::remove_if(m_camparam.begin(), m_camparam.end(), [&](char ch) {
+				return ch == '\n';
+				}), m_camparam.end());
+			//去掉空格
+			m_camparam.erase(std::remove_if(m_camparam.begin(), m_camparam.end(), [&](char ch) {
+				return ch == ' ';
+				}), m_camparam.end());
+			//去掉内部[]
+			std::string::size_type start_pos = 0;
+			std::string from = "],[";
+			std::string to = ",";
+			while ((start_pos = m_camparam.find(from, start_pos)) != std::string::npos) {
+				m_camparam.replace(start_pos, from.length(), to);
+				start_pos += to.length(); // 防止无限循环，如果`to`包含`from`
+			}
+			m_camparam.erase(m_camparam.begin());
+			m_camparam.erase(m_camparam.end() - 1);
+		}
 #endif
 		errorCode = code;
 		WriteLog(_T("PostPhoto - code: %d"), code);
@@ -97,47 +116,11 @@ int PostPhoto(std::string &limg, int& errorCode, std::string& rimg,
 	return -1;
 }
 
-int PostScale(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg,
-	std::string& D1,
-	std::string& D2,
-	std::string& E,
-	std::string& F,
-	std::string& K1,
-	std::string& K2,
-	std::string& P1,
-	std::string& P2,
-	std::string& Q,
-	std::string& R,
-	std::string& R1,
-	std::string& R2,
-	std::string& T)
+int PostScale(ScaleWood& scalewood, int& errorCode)
 {
-#if CloudAPI
-	httplib::Client cli(g_cloud_scale_domain, g_scale_port);
-	cli.set_read_timeout(60, 0);
-	httplib::Params params{
-		{ "limg", limg },
-		{ "rimg", rimg },
-		{ "D1",D1},
-		{ "D2",D2},
-		{ "E",E},
-		{ "F",F},
-		{ "K1",K1},
-		{ "K2",K2},
-		{ "P1",P1},
-		{ "P2",P2},
-		{ "Q",Q},
-		{ "R",R},
-		{ "R1",R1},
-		{ "R2",R2},
-		{ "T",T }
-	};
-	auto res = cli.Post(g_scale_api, params);
-#else
 	httplib::Client cli(g_scale_domain, g_scale_port);
 	cli.set_read_timeout(60, 0);
 	auto res = cli.Post(g_scale_api);
-#endif // Cloud_API
 	if (res && res->status == 200) {
 		Json::Value value;
 		Json::Reader reader;
@@ -190,6 +173,96 @@ int PostScale(ScaleWood& scalewood, int& errorCode, std::string& limg, std::stri
 			}
 			scalewood.wood_list.push_back(woodAttr);
 		}
+		errorCode = code;
+		WriteLog(_T("PostScale - code: %d"), code);
+		return 1;
+	}
+	errorCode = (int)res.error();
+	WriteLog(_T("PostScale fail, httplib.err:%d"), res.error());
+	return -1;
+}
+
+int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& m_camparam, int& w, int& h, int& c)
+{
+	httplib::Client cli(g_cloud_scale_domain, g_cloud_port);
+	cli.set_read_timeout(60, 0);
+	//limg = "123456";
+	//rimg = "654321";
+	std::string params = "{\"camparam\":" + m_camparam;
+	params += ",\"limg\":\"" + limg;
+	params += "\",\"rimg\":\"" + rimg;
+	params += "\"}";
+	auto res = cli.Post(g_scale_api, params, "application/json");
+	if (res && res->status == 200) {
+		Json::Value value;
+		Json::Reader reader;
+		if (!reader.parse(res->body, value, false)) return -1;
+		int code = value["error"].asInt();
+		if (code != 0)
+		{
+			errorCode = code;
+			WriteLog(_T("PostScale fail, code:%d"), code);
+			return -1;
+		}
+		/*std::ofstream file("D:\\example.txt", std::ios::out);
+		if (!file.is_open()) {
+			std::cerr << "无法打开文件" << std::endl;
+			return 1;
+		}
+		file << res->body;
+		file.close();*/
+		Json::Value arrayWinfo = value["winfo"];
+		if (arrayWinfo.size() <= 0)
+		{
+			WriteLog(_T("wood_list empty"));
+			return -1;
+		}
+
+		for (size_t i = 0; i < arrayWinfo.size(); i++)
+		{
+			WoodAttr woodAttr = { 0 };
+
+			std::string ellipseStr = arrayWinfo[i].asString();
+			Json::Value valueEllipse;
+			Json::Reader readerEllipse;
+
+			if (!readerEllipse.parse(ellipseStr, valueEllipse, false)) return -1;
+
+			woodAttr.ellipse.angel = valueEllipse["ellipse"]["angle"].asDouble();
+			int j = 0;
+			woodAttr.ellipse.ab1 = round(valueEllipse["ellipse"]["ab"][j].asDouble() / 2);
+			woodAttr.ellipse.ab2 = round(valueEllipse["ellipse"]["ab"][++j].asDouble() / 2);
+			j = 0;
+			woodAttr.ellipse.cx = valueEllipse["ellipse"]["center"][j].asDouble();
+			woodAttr.ellipse.cy = valueEllipse["ellipse"]["center"][++j].asDouble();
+			j = 0;
+			woodAttr.ellipse.lx1 = valueEllipse["longaxis"]["pt1"][j].asDouble();
+			woodAttr.ellipse.lx2 = valueEllipse["longaxis"]["pt1"][++j].asDouble();
+			j = 0;
+			woodAttr.ellipse.ly1 = valueEllipse["longaxis"]["pt2"][j].asDouble();
+			woodAttr.ellipse.ly2 = valueEllipse["longaxis"]["pt2"][++j].asDouble();
+			j = 0;
+			woodAttr.ellipse.sx1 = valueEllipse["shortaxis"]["pt1"][j].asDouble();
+			woodAttr.ellipse.sx2 = valueEllipse["shortaxis"]["pt1"][++j].asDouble();
+			j = 0;
+			woodAttr.ellipse.sy1 = valueEllipse["shortaxis"]["pt2"][j].asDouble();
+			woodAttr.ellipse.sy2 = valueEllipse["shortaxis"]["pt2"][++j].asDouble();
+
+			woodAttr.diameters.d1 = round((valueEllipse["shortaxis"]["plength"].asDouble()) * 100 * 10) / 10.0;
+			woodAttr.diameters.d2 = round((valueEllipse["longaxis"]["plength"].asDouble()) * 100 * 10) / 10.0;
+			woodAttr.diameter = std::min(woodAttr.diameters.d1, woodAttr.diameters.d2);
+
+			scalewood.wood_list.push_back(woodAttr);
+		}
+
+		Json::Value rgbData = value["rgb"];
+		scalewood.img = rgbData["data"].asString();
+		Json::Value arrayShape = rgbData["shape"];
+		unsigned int i = 0;
+		w = arrayShape[i++].asInt();
+		h = arrayShape[i++].asInt();
+		c = arrayShape[i++].asInt();
+		
 		errorCode = code;
 		WriteLog(_T("PostScale - code: %d"), code);
 		return 1;

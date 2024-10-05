@@ -13,7 +13,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#endif // (CloudAPI == 1 && QGDebug == 1)
+#endif
 
 
 #ifndef M_PI
@@ -657,7 +657,7 @@ void CMyWnd2::OnBnClickedBtnCapture()
     std::string limg;
     CWaitCursor wait;
     int errorCode = 0;
-    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_D1, m_D2, m_E, m_F, m_K1, m_K2, m_P1, m_P2, m_Q, m_R, m_R1, m_R2, m_T);
+    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_camparam);
     wait.Restore();
     if (ret < 0)
     {
@@ -805,23 +805,15 @@ void CMyWnd2::OnBnClickedBtnRec()
     m_btnDis.ShowWindow(SW_HIDE);
     int errorCode = 0;
     ScaleWood scalewood = { 0 };
-	int ret = PostScale(scalewood, errorCode, m_limg, m_rimg,
-		m_D1,
-		m_D2,
-		m_E,
-		m_F,
-		m_K1,
-		m_K2,
-		m_P1,
-		m_P2,
-		m_Q,
-		m_R,
-		m_R1,
-		m_R2,
-		m_T);
-    m_limg.clear();
-    m_rimg.clear();
-    //m_cam_params.clear();
+#if CloudAPI
+    int w = 0, h = 0, c = 0;
+    int ret = PostInfer(scalewood, errorCode, m_limg, m_rimg, m_camparam, w, h, c);
+#else
+    int ret = PostScale(scalewood, errorCode);
+#endif
+    //m_limg.clear();
+    //m_rimg.clear();
+    //m_camparam.clear();
     scalewood.id = time(0);
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("识别"));
@@ -858,12 +850,21 @@ void CMyWnd2::OnBnClickedBtnRec()
         AfxMessageBox(_T("识别失败，请重试, invalid base64-2"));
         return;
     }
-    //img,base64解密
+#endif
+
+#if CloudAPI
+    cv::Mat img(w, h, CV_8UC3, (char*)scalewood.img.c_str());
+#else
     std::vector<uchar> img_data(scalewood.img.begin(), scalewood.img.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
+#endif
+    if (img.empty())
+    {
+        AfxMessageBox(_T("识别失败，请重试, invalid base64-3"));
+        return;
+    }
     std::string imagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
     cv::imwrite(imagePath, img);
-#endif
 
     m_image.Destroy();
     CString strImagePathW;
