@@ -119,7 +119,7 @@ int PostPhoto(std::string &limg, int& errorCode, std::string& rimg, std::string&
 int PostScale(ScaleWood& scalewood, int& errorCode)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
-	cli.set_read_timeout(60, 0);
+	cli.set_read_timeout(90, 0);
 	auto res = cli.Post(g_scale_api);
 	if (res && res->status == 200) {
 		Json::Value value;
@@ -185,7 +185,7 @@ int PostScale(ScaleWood& scalewood, int& errorCode)
 int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& m_camparam, int& w, int& h, int& c)
 {
 	httplib::Client cli(g_cloud_scale_domain, g_cloud_port);
-	cli.set_read_timeout(60, 0);
+	cli.set_read_timeout(90, 0);
 	//limg = "123456";
 	//rimg = "654321";
 	std::string params = "{\"camparam\":" + m_camparam;
