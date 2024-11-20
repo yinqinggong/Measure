@@ -124,7 +124,12 @@ int PostScale(ScaleWood& scalewood, int& errorCode)
 	if (res && res->status == 200) {
 		Json::Value value;
 		Json::Reader reader;
-		if (!reader.parse(res->body, value, false)) return -1;
+		if (!reader.parse(res->body, value, false))
+		{
+			errorCode = -1;
+			WriteLog(_T("PostScale Json fail"));
+			return -1;
+		}
 		int code = value["code"].asInt();
 		if (code != 200)
 		{
@@ -138,6 +143,7 @@ int PostScale(ScaleWood& scalewood, int& errorCode)
 		Json::Value arrayData = value["wood_list"];
 		if (arrayData.size() <= 0)
 		{
+			errorCode = -2;
 			WriteLog(_T("wood_list empty"));
 			return -1;
 		}
@@ -196,12 +202,17 @@ int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::stri
 	if (res && res->status == 200) {
 		Json::Value value;
 		Json::Reader reader;
-		if (!reader.parse(res->body, value, false)) return -1;
+		if (!reader.parse(res->body, value, false))
+		{
+			errorCode = -1;
+			WriteLog(_T("PostInfer Json fail"));
+			return -1;
+		}
 		int code = value["error"].asInt();
 		if (code != 0)
 		{
 			errorCode = code;
-			WriteLog(_T("PostScale fail, code:%d"), code);
+			WriteLog(_T("PostInfer fail, code:%d"), code);
 			return -1;
 		}
 		/*std::ofstream file("D:\\example.txt", std::ios::out);
@@ -214,6 +225,7 @@ int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::stri
 		Json::Value arrayWinfo = value["winfo"];
 		if (arrayWinfo.size() <= 0)
 		{
+			errorCode = -2;
 			WriteLog(_T("wood_list empty"));
 			return -1;
 		}
@@ -226,7 +238,12 @@ int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::stri
 			Json::Value valueEllipse;
 			Json::Reader readerEllipse;
 
-			if (!readerEllipse.parse(ellipseStr, valueEllipse, false)) return -1;
+			if (!readerEllipse.parse(ellipseStr, valueEllipse, false))
+			{
+				errorCode = -3;
+				WriteLog(_T("ellipseStr empty"));
+				return -1;
+			}
 
 			woodAttr.ellipse.angel = valueEllipse["ellipse"]["angle"].asDouble();
 			int j = 0;
@@ -264,10 +281,10 @@ int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::stri
 		c = arrayShape[i++].asInt();
 		
 		errorCode = code;
-		WriteLog(_T("PostScale - code: %d"), code);
+		WriteLog(_T("PostInfer - code: %d"), code);
 		return 1;
 	}
 	errorCode = (int)res.error();
-	WriteLog(_T("PostScale fail, httplib.err:%d"), res.error());
+	WriteLog(_T("PostInfer fail, httplib.err:%d"), res.error());
 	return -1;
 }
