@@ -33,7 +33,7 @@ public:
 private:
 	CCriticalSection* m_pCS;
 };
-const CString  VERSION_INFO = _T("1.0");
+const CString  VERSION_INFO = _T("2.3");
 
 void WaitAndTermThread(HANDLE hThread, DWORD dwTimeSec = 5);
 

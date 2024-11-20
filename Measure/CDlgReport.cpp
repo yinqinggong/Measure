@@ -68,14 +68,12 @@ BOOL CDlgReport::OnInitDialog()
 
 	CString  strIniFile = GetAppdataPath() + _T("config.ini");
 	m_scaleStandard = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_STANDARD, 0, strIniFile);
-	if (m_scaleStandard >=0 && m_scaleStandard < 10)
+	if (!(m_scaleStandard >= 0 && m_scaleStandard < 10))
 	{
-		m_combo_standard.SetCurSel(m_scaleStandard);
+		m_scaleStandard = 0;
 	}
-	else
-	{
-		m_combo_standard.SetCurSel(0);
-	}
+	m_combo_standard.SetCurSel(m_scaleStandard);
+	UpdateWoodData(m_scaleStandard);
 
 	m_inited = TRUE;
 	return TRUE;  // return TRUE unless you set the focus to a control
@@ -271,6 +269,7 @@ void CDlgReport::OnCbnSelchangeComboStandard()
 	int sel = m_combo_standard.GetCurSel();
 	if (sel >= 0 && sel < 10)
 	{
+		m_scaleStandard = sel;
 		UpdateWoodData(sel);
 		//保存到配置文件中
 		CString  strIniFile = GetAppdataPath() + _T("config.ini");
