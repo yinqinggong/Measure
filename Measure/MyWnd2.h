@@ -41,19 +41,6 @@ protected:
     std::string m_limg;
     std::string m_rimg;
     std::string m_camparam;
-    /*std::string m_D1;
-    std::string m_D2;
-    std::string m_E;
-    std::string m_F;
-    std::string m_K1;
-    std::string m_K2;
-    std::string m_P1;
-    std::string m_P2;
-    std::string m_Q;
-    std::string m_R;
-    std::string m_R1;
-    std::string m_R2;
-    std::string m_T;*/
 
     bool isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold);
     bool isPointInEllipse(const CPoint& p);
@@ -110,7 +97,7 @@ public:
 private:
     void AdjustImageOrigin();
     void LimitScalingFactor();
-//public:
+
     BOOL LoadLocalImage(LPCTSTR lpszPath, bool firstInit);
     CPoint ScreenToImage(CPoint screenPoint);
     CPoint ImageToScreen(CPoint imagePoint);
