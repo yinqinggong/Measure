@@ -103,15 +103,24 @@ private:
     CPoint ImageToScreen(CPoint imagePoint);
 
 private:
-    CWinThread* m_pktThread;
-    HANDLE m_hPktThreadHandle;
-    static UINT ReceivePacket(LPVOID lpParam);
-    CEvent m_evt_checkRecordEvent;
-    bool m_bRun;
+    CWinThread* m_recThread;
+    HANDLE m_hRecThreadHandle;
+    static UINT RecThread(LPVOID lpParam);
+    CEvent m_evt_beginRecEvent;
+    bool m_bRun;//线程退出标识
+    bool m_recing;//是否正在识别中
 public:
     bool StartThread();
     bool StopThread();
-    void RecThread();
+    void RecMethod();
+    bool GetRecing()
+    {
+        return m_recing;
+    }
+    void SetRecing(bool bRec)
+    {
+        m_recing = bRec;
+    }
 };
 
 

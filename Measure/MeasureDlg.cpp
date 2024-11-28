@@ -425,6 +425,11 @@ void CMeasureDlg::OnBnClickedBtnAdd()
 	// TODO: 在此添加控件通知处理程序代码
 	m_dlgReport.ShowWindow(SW_HIDE);
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	if (m_imgWnd.GetRecing())
+	{
+		AfxMessageBox(_T("正在识别中，请稍后！"));
+		return;
+	}
 	if (m_imgWnd.GetStatus() == -1 || m_imgWnd.GetScaleWoodID() <= 0)
 	{
 		AfxMessageBox(_T("请先截图！"));
@@ -454,6 +459,11 @@ void CMeasureDlg::OnBnClickedBtnCrop()
 	// TODO: 在此添加控件通知处理程序代码
 	m_dlgReport.ShowWindow(SW_HIDE);
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	if (m_imgWnd.GetRecing())
+	{
+		AfxMessageBox(_T("正在识别中，请稍后！"));
+		return;
+	}
 	if (m_imgWnd.GetStatus() == -1 || m_imgWnd.GetScaleWoodID() <= 0)
 	{
 		AfxMessageBox(_T("请先截图！"));
@@ -500,6 +510,11 @@ void CMeasureDlg::OnBnClickedBtnDel()
 	// TODO: 在此添加控件通知处理程序代码
 	m_dlgReport.ShowWindow(SW_HIDE);
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	if (m_imgWnd.GetRecing())
+	{
+		AfxMessageBox(_T("正在识别中，请稍后！"));
+		return;
+	}
 	if (m_imgWnd.GetStatus() == -1 || m_imgWnd.GetScaleWoodID() <= 0)
 	{
 		AfxMessageBox(_T("请先截图！"));
@@ -522,6 +537,11 @@ void CMeasureDlg::OnBnClickedBtnDel()
 void CMeasureDlg::OnBnClickedBtnReport()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_imgWnd.GetRecing())
+	{
+		AfxMessageBox(_T("正在识别中，请稍后！"));
+		return;
+	}
 	ResetBtnBgColor();
 	if (m_dlgReport.IsWindowVisible())
 	{
@@ -538,10 +558,14 @@ void CMeasureDlg::OnBnClickedBtnReport()
 	}
 }
 
-
 void CMeasureDlg::OnBnClickedBtnScale()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_imgWnd.GetRecing())
+	{
+		AfxMessageBox(_T("正在识别中，请稍后！"));
+		return;
+	}
 	ResetBtnBgColor();
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	m_dlgData.ShowWindow(SW_HIDE);
@@ -563,6 +587,11 @@ void CMeasureDlg::OnBnClickedBtnScale()
 void CMeasureDlg::OnBnClickedBtnData()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_imgWnd.GetRecing())
+	{
+		AfxMessageBox(_T("正在识别中，请稍后！"));
+		return;
+	}
 	ResetBtnBgColor();
 	m_imgWnd.ShowWindow(SW_HIDE);
 	m_dlgData.ShowWindow(SW_SHOWNORMAL);
@@ -616,6 +645,11 @@ std::string CMeasureDlg::GetStringWoodList(ScaleWood& scaleWood)
 void CMeasureDlg::OnBnClickedBtnSave()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_imgWnd.GetRecing())
+	{
+		AfxMessageBox(_T("正在识别中，请稍后！"));
+		return;
+	}
 	ResetBtnBgColor();
 	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	m_dlgReport.ShowWindow(SW_HIDE);

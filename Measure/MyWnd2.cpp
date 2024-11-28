@@ -42,6 +42,8 @@ CMyWnd2::CMyWnd2()
 	, m_imageOrigin(0, 0)
 	, m_dragging(false)
 	, m_status(0)
+    , m_bRun(false)
+    , m_recing(false)
 {
     m_scaleWood = { 0 };
     m_ellipse_add = { 0 };
@@ -752,7 +754,7 @@ void CMyWnd2::OnBnClickedBtnCapture()
 
 void CMyWnd2::OnBnClickedBtnRec()
 {
-    m_evt_checkRecordEvent.SetEvent();
+    m_evt_beginRecEvent.SetEvent();
 }
 
 void CMyWnd2::OnBnClickedBtnDis()
@@ -872,31 +874,31 @@ bool CMyWnd2::StartThread()
 {
     //开启收流线程
     m_bRun = true;
-    m_pktThread = AfxBeginThread(ReceivePacket, (LPVOID)this);
-    if (m_pktThread == NULL)
+    m_recThread = AfxBeginThread(RecThread, (LPVOID)this);
+    if (m_recThread == NULL)
     {
         m_bRun = false;
         return false;
     }
-    m_hPktThreadHandle = m_pktThread->m_hThread;
+    m_hRecThreadHandle = m_recThread->m_hThread;
     //m_evt_checkRecordEvent.SetEvent();
     return true;
 }
 
 
-UINT CMyWnd2::ReceivePacket(LPVOID lpParam)
+UINT CMyWnd2::RecThread(LPVOID lpParam)
 {
     CMyWnd2* pDecode = (CMyWnd2*)lpParam;
     if (!pDecode)
     {
         return 0;
     }
-    while (WaitForSingleObject(pDecode->m_evt_checkRecordEvent, INFINITE) == WAIT_OBJECT_0)
+    while (WaitForSingleObject(pDecode->m_evt_beginRecEvent, INFINITE) == WAIT_OBJECT_0)
     {
         if (pDecode->m_bRun == false) break;
-        //TODO
-        pDecode->RecThread();
-
+        pDecode->SetRecing(true);
+        pDecode->RecMethod();
+        pDecode->SetRecing(false);
         if (pDecode->m_bRun == false) break;
     }
 
@@ -905,19 +907,19 @@ UINT CMyWnd2::ReceivePacket(LPVOID lpParam)
 
 bool CMyWnd2::StopThread()
 {
-   // bStopPkt_ = true;
+    m_recing = false;
     m_bRun = false;
-    m_evt_checkRecordEvent.SetEvent();
-    if (m_hPktThreadHandle != INVALID_HANDLE_VALUE)
+    m_evt_beginRecEvent.SetEvent();
+    if (m_hRecThreadHandle != INVALID_HANDLE_VALUE)
     {
-        WaitAndTermThread(m_hPktThreadHandle, 10000);
-        m_hPktThreadHandle = INVALID_HANDLE_VALUE;
-        m_pktThread = NULL;
+        WaitAndTermThread(m_hRecThreadHandle, 10000);
+        m_hRecThreadHandle = INVALID_HANDLE_VALUE;
+        m_recThread = NULL;
     }
     return true;
 }
 
-void CMyWnd2::RecThread()
+void CMyWnd2::RecMethod()
 {
 #if (QGDebug == 1 && CloudAPI == 0) 
     m_btnRec.EnableWindow(TRUE);
