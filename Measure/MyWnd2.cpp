@@ -49,6 +49,7 @@ CMyWnd2::CMyWnd2()
 
 CMyWnd2::~CMyWnd2()
 {
+    StopThread();
 }
 
 int CMyWnd2::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -65,6 +66,7 @@ int CMyWnd2::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_btnRec.MoveWindow(rect.right - 120, rect.Height() * 0.5 - 100, 100, 50);
     m_btnDis.MoveWindow(rect.right - 120, rect.Height() * 0.5 + 100, 100, 50);
 
+    StartThread();
     return 0;
 }
 BOOL CMyWnd2::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
@@ -750,6 +752,173 @@ void CMyWnd2::OnBnClickedBtnCapture()
 
 void CMyWnd2::OnBnClickedBtnRec()
 {
+    m_evt_checkRecordEvent.SetEvent();
+}
+
+void CMyWnd2::OnBnClickedBtnDis()
+{
+    m_image.Destroy();
+    m_btnCapture.ShowWindow(SW_SHOW);
+    m_btnDis.ShowWindow(SW_HIDE);
+    m_btnRec.ShowWindow(SW_HIDE);
+    this->Invalidate();
+}
+
+void CMyWnd2::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    // TODO: 在此添加消息处理程序代码和/或调用默认值
+    //检查是否是删除键的按下
+    if (nChar == VK_DELETE && m_status == 2)
+    {
+        bool isDelete = false;
+        auto iter = m_scaleWood.wood_list.begin();
+        while (iter != m_scaleWood.wood_list.end())
+        {
+            if (iter->isDeleting)
+            {
+                iter = m_scaleWood.wood_list.erase(iter);
+                isDelete = true;
+            }
+            else
+            {
+                iter++;
+            }
+        }
+        if (isDelete)
+        {
+            m_image.Destroy();
+            CString imagePath;
+            imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+            LoadLocalImage(imagePath, false);
+            Invalidate();
+        }
+    }
+    CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+
+void CMyWnd2::ResetCapture()
+{
+    m_image.Destroy();
+    m_btnCapture.ShowWindow(SW_SHOW);
+    m_btnDis.ShowWindow(SW_HIDE);
+    m_btnRec.ShowWindow(SW_HIDE);
+
+    m_points.clear();
+
+    m_dragging = false;
+    m_lastMousePos = CPoint();
+    m_imageOrigin = CPoint();
+    m_status = 0;
+    m_scaleFactor = 1.0;
+    m_startPoint = CPoint();
+    m_endPoint = CPoint();
+
+    m_isDrawFinished = false;
+    m_scaleWood = { 0 };
+    m_ellipse_add = { 0 };
+
+    this->Invalidate();
+}
+
+
+void CMyWnd2::ShowHistoryData(ScaleWood* pScaleWood)
+{
+    ResetCapture();
+
+    m_scaleWood.id = pScaleWood->id;
+    m_scaleWood.img = pScaleWood->img;
+    m_scaleWood.wood_list = pScaleWood->wood_list;
+
+    CString imagePath;
+    imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+    //m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
+    LoadLocalImage(imagePath, true);
+    SetStatus(0);
+    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
+    m_btnCapture.ShowWindow(SW_HIDE);
+    m_btnDis.ShowWindow(SW_HIDE);
+    m_btnRec.ShowWindow(SW_HIDE);
+    this->Invalidate();
+}
+
+CPoint CMyWnd2::ScreenToImage(CPoint screenPoint)
+{
+    // 将屏幕坐标转换为窗口的客户区坐标
+    //ScreenToClient(&screenPoint);
+
+    // 考虑缩放和图片的原点位置，将客户区坐标转换为图片坐标
+    CPoint imagePoint;
+    imagePoint.x = static_cast<int>((screenPoint.x - m_imageOrigin.x) / m_scaleFactor);
+    imagePoint.y = static_cast<int>((screenPoint.y - m_imageOrigin.y) / m_scaleFactor);
+
+    return imagePoint;
+}
+
+CPoint CMyWnd2::ImageToScreen(CPoint imagePoint)
+{
+    // 将屏幕坐标转换为窗口的客户区坐标
+    //ScreenToClient(&screenPoint);
+
+    // 考虑缩放和图片的原点位置，将客户区坐标转换为图片坐标
+    CPoint screenPoint;
+    screenPoint.x = static_cast<int>(imagePoint.x * m_scaleFactor + m_imageOrigin.x);
+    screenPoint.y = static_cast<int>(imagePoint.y * m_scaleFactor + m_imageOrigin.y);
+
+    return screenPoint;
+}
+
+bool CMyWnd2::StartThread()
+{
+    //开启收流线程
+    m_bRun = true;
+    m_pktThread = AfxBeginThread(ReceivePacket, (LPVOID)this);
+    if (m_pktThread == NULL)
+    {
+        m_bRun = false;
+        return false;
+    }
+    m_hPktThreadHandle = m_pktThread->m_hThread;
+    //m_evt_checkRecordEvent.SetEvent();
+    return true;
+}
+
+
+UINT CMyWnd2::ReceivePacket(LPVOID lpParam)
+{
+    CMyWnd2* pDecode = (CMyWnd2*)lpParam;
+    if (!pDecode)
+    {
+        return 0;
+    }
+    while (WaitForSingleObject(pDecode->m_evt_checkRecordEvent, INFINITE) == WAIT_OBJECT_0)
+    {
+        if (pDecode->m_bRun == false) break;
+        //TODO
+        pDecode->RecThread();
+
+        if (pDecode->m_bRun == false) break;
+    }
+
+    return 1;
+}
+
+bool CMyWnd2::StopThread()
+{
+   // bStopPkt_ = true;
+    m_bRun = false;
+    m_evt_checkRecordEvent.SetEvent();
+    if (m_hPktThreadHandle != INVALID_HANDLE_VALUE)
+    {
+        WaitAndTermThread(m_hPktThreadHandle, 10000);
+        m_hPktThreadHandle = INVALID_HANDLE_VALUE;
+        m_pktThread = NULL;
+    }
+    return true;
+}
+
+void CMyWnd2::RecThread()
+{
 #if (QGDebug == 1 && CloudAPI == 0) 
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("识别"));
@@ -876,117 +1045,4 @@ void CMyWnd2::OnBnClickedBtnRec()
     SetStatus(0);
     ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
     this->Invalidate();
-}
-
-void CMyWnd2::OnBnClickedBtnDis()
-{
-    m_image.Destroy();
-    m_btnCapture.ShowWindow(SW_SHOW);
-    m_btnDis.ShowWindow(SW_HIDE);
-    m_btnRec.ShowWindow(SW_HIDE);
-    this->Invalidate();
-}
-
-void CMyWnd2::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-    // TODO: 在此添加消息处理程序代码和/或调用默认值
-    //检查是否是删除键的按下
-    if (nChar == VK_DELETE && m_status == 2)
-    {
-        bool isDelete = false;
-        auto iter = m_scaleWood.wood_list.begin();
-        while (iter != m_scaleWood.wood_list.end())
-        {
-            if (iter->isDeleting)
-            {
-                iter = m_scaleWood.wood_list.erase(iter);
-                isDelete = true;
-            }
-            else
-            {
-                iter++;
-            }
-        }
-        if (isDelete)
-        {
-            m_image.Destroy();
-            CString imagePath;
-            imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
-            LoadLocalImage(imagePath, false);
-            Invalidate();
-        }
-    }
-    CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
-}
-
-
-void CMyWnd2::ResetCapture()
-{
-    m_image.Destroy();
-    m_btnCapture.ShowWindow(SW_SHOW);
-    m_btnDis.ShowWindow(SW_HIDE);
-    m_btnRec.ShowWindow(SW_HIDE);
-
-    m_points.clear();
-
-    m_dragging = false;
-    m_lastMousePos = CPoint();
-    m_imageOrigin = CPoint();
-    m_status = 0;
-    m_scaleFactor = 1.0;
-    m_startPoint = CPoint();
-    m_endPoint = CPoint();
-
-    m_isDrawFinished = false;
-    m_scaleWood = { 0 };
-    m_ellipse_add = { 0 };
-
-    this->Invalidate();
-}
-
-
-void CMyWnd2::ShowHistoryData(ScaleWood* pScaleWood)
-{
-    ResetCapture();
-
-    m_scaleWood.id = pScaleWood->id;
-    m_scaleWood.img = pScaleWood->img;
-    m_scaleWood.wood_list = pScaleWood->wood_list;
-
-    CString imagePath;
-    imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
-    //m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
-    LoadLocalImage(imagePath, true);
-    SetStatus(0);
-    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
-    m_btnCapture.ShowWindow(SW_HIDE);
-    m_btnDis.ShowWindow(SW_HIDE);
-    m_btnRec.ShowWindow(SW_HIDE);
-    this->Invalidate();
-}
-
-CPoint CMyWnd2::ScreenToImage(CPoint screenPoint)
-{
-    // 将屏幕坐标转换为窗口的客户区坐标
-    //ScreenToClient(&screenPoint);
-
-    // 考虑缩放和图片的原点位置，将客户区坐标转换为图片坐标
-    CPoint imagePoint;
-    imagePoint.x = static_cast<int>((screenPoint.x - m_imageOrigin.x) / m_scaleFactor);
-    imagePoint.y = static_cast<int>((screenPoint.y - m_imageOrigin.y) / m_scaleFactor);
-
-    return imagePoint;
-}
-
-CPoint CMyWnd2::ImageToScreen(CPoint imagePoint)
-{
-    // 将屏幕坐标转换为窗口的客户区坐标
-    //ScreenToClient(&screenPoint);
-
-    // 考虑缩放和图片的原点位置，将客户区坐标转换为图片坐标
-    CPoint screenPoint;
-    screenPoint.x = static_cast<int>(imagePoint.x * m_scaleFactor + m_imageOrigin.x);
-    screenPoint.y = static_cast<int>(imagePoint.y * m_scaleFactor + m_imageOrigin.y);
-
-    return screenPoint;
 }

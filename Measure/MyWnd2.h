@@ -114,6 +114,17 @@ private:
     BOOL LoadLocalImage(LPCTSTR lpszPath, bool firstInit);
     CPoint ScreenToImage(CPoint screenPoint);
     CPoint ImageToScreen(CPoint imagePoint);
+
+private:
+    CWinThread* m_pktThread;
+    HANDLE m_hPktThreadHandle;
+    static UINT ReceivePacket(LPVOID lpParam);
+    CEvent m_evt_checkRecordEvent;
+    bool m_bRun;
+public:
+    bool StartThread();
+    bool StopThread();
+    void RecThread();
 };
 
 
