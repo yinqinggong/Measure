@@ -1,8 +1,8 @@
 #pragma once
 #include <stdio.h>
 
-#define QGDebug 0
-#define CloudAPI 1
+#define QGDebug 1
+#define CloudAPI 0
 
 #ifndef _WIN32
 #include <pthread.h>

@@ -144,6 +144,15 @@
     <ClInclude Include="MyWnd2.h">
       <Filter>ImgWnd</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayWnd.h">
+      <Filter>ImgWnd</Filter>
+    </ClInclude>
+    <ClInclude Include="EditWoodWnd.h">
+      <Filter>ImgWnd</Filter>
+    </ClInclude>
+    <ClInclude Include="WoodEditDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -217,6 +226,15 @@
     </ClCompile>
     <ClCompile Include="MyWnd2.cpp">
       <Filter>ImgWnd</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayWnd.cpp">
+      <Filter>ImgWnd</Filter>
+    </ClCompile>
+    <ClCompile Include="EditWoodWnd.cpp">
+      <Filter>ImgWnd</Filter>
+    </ClCompile>
+    <ClCompile Include="WoodEditDlg.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

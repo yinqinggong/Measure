@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "MyWnd2.h"
+#include "ArrayWnd.h"
 #include <iostream>
 #include "CDlgDiameter.h"
 #include "base64.h"
@@ -8,6 +8,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include "common.h"
+#include "WoodEditDlg.h"
 
 #if (CloudAPI == 1 && QGDebug == 1)
 #include <fstream>
@@ -24,54 +25,56 @@
 #define IDC_BTN_REC                     8000+2
 #define IDC_BTN_DIS                     8000+3
 
-BEGIN_MESSAGE_MAP(CMyWnd2, CWnd)
+BEGIN_MESSAGE_MAP(CArrayWnd, CWnd)
     ON_WM_PAINT()
     ON_WM_MOUSEWHEEL()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
     ON_WM_MOUSEMOVE()
     ON_WM_CREATE()
-    ON_BN_CLICKED(IDC_BTN_CAPTURE, &CMyWnd2::OnBnClickedBtnCapture)
-    ON_BN_CLICKED(IDC_BTN_REC, &CMyWnd2::OnBnClickedBtnRec)
-    ON_BN_CLICKED(IDC_BTN_DIS, &CMyWnd2::OnBnClickedBtnDis)
+    //ON_BN_CLICKED(IDC_BTN_CAPTURE, &CArrayWnd::OnBnClickedBtnCapture)
+    //ON_BN_CLICKED(IDC_BTN_REC, &CArrayWnd::OnBnClickedBtnRec)
+    //ON_BN_CLICKED(IDC_BTN_DIS, &CArrayWnd::OnBnClickedBtnDis)
     ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
-CMyWnd2::CMyWnd2()
+CArrayWnd::CArrayWnd()
 	: m_scaleFactor(1.0f)
 	, m_imageOrigin(0, 0)
 	, m_dragging(false)
 	, m_status(0)
     , m_bRun(false)
-    , m_recing(false)
+    , m_workStatus(0)
+    , m_wndIndex(-1)
+    , m_share_wood_id(0)
 {
     m_scaleWood = { 0 };
     m_ellipse_add = { 0 };
 }
 
-CMyWnd2::~CMyWnd2()
+CArrayWnd::~CArrayWnd()
 {
     StopThread();
 }
 
-int CMyWnd2::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int CArrayWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if (CWnd::OnCreate(lpCreateStruct) == -1)
         return -1;
-    m_btnCapture.Create(_T("拍照"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_CAPTURE);
-    m_btnRec.Create(_T("识别"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_REC);
-    m_btnDis.Create(_T("放弃"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_DIS);
+    //m_btnCapture.Create(_T("拍照"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_CAPTURE);
+    //m_btnRec.Create(_T("识别"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_REC);
+    //m_btnDis.Create(_T("放弃"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_DIS);
 
-    CRect rect;
-    GetClientRect(&rect);
-    m_btnCapture.MoveWindow(rect.right - 120, rect.Height() * 0.5, 100, 50);
-    m_btnRec.MoveWindow(rect.right - 120, rect.Height() * 0.5 - 100, 100, 50);
-    m_btnDis.MoveWindow(rect.right - 120, rect.Height() * 0.5 + 100, 100, 50);
+    //CRect rect;
+    //GetClientRect(&rect);
+    //m_btnCapture.MoveWindow(rect.right - 120, rect.Height() * 0.5, 100, 50);
+    //m_btnRec.MoveWindow(rect.right - 120, rect.Height() * 0.5 - 100, 100, 50);
+    //m_btnDis.MoveWindow(rect.right - 120, rect.Height() * 0.5 + 100, 100, 50);
 
     StartThread();
     return 0;
 }
-BOOL CMyWnd2::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
+BOOL CArrayWnd::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
 {
     HRESULT hr = m_image.Load(lpszPath);
     if (FAILED(hr))
@@ -93,7 +96,7 @@ BOOL CMyWnd2::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
     return TRUE;
 }
 
-void CMyWnd2::DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr& woodAttr)
+void CArrayWnd::DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr& woodAttr)
 {
     // 创建并设置变换矩阵
     Gdiplus::Matrix matrix;
@@ -133,7 +136,7 @@ void CMyWnd2::DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr& woodAttr
     //graphics->SetTransform(&matrix0); // 重置变换矩阵
 }
 
-void CMyWnd2::DrawRotatedEllipse(Gdiplus::Graphics* graphics, Gdiplus::Pen& pen, int cx, int cy, int ab1, int ab2, double angle)
+void CArrayWnd::DrawRotatedEllipse(Gdiplus::Graphics* graphics, Gdiplus::Pen& pen, int cx, int cy, int ab1, int ab2, double angle)
 {
     // 创建并设置变换矩阵
     Gdiplus::Matrix matrix;
@@ -151,13 +154,13 @@ void CMyWnd2::DrawRotatedEllipse(Gdiplus::Graphics* graphics, Gdiplus::Pen& pen,
     graphics->Restore(state);
 }
 
-void CMyWnd2::DrawPolygon(Gdiplus::Graphics* graphics, PointF points[], int numPoints)
+void CArrayWnd::DrawPolygon(Gdiplus::Graphics* graphics, PointF points[], int numPoints)
 {
     Pen red_pen(Gdiplus::Color(255, 255, 0, 0), 2);
     graphics->DrawPolygon(&red_pen, points, numPoints);
 }
 
-void CMyWnd2::OnPaint()
+void CArrayWnd::OnPaint()
 {
     CPaintDC dc(this);
     CRect clientRect;
@@ -166,9 +169,9 @@ void CMyWnd2::OnPaint()
 	if (m_image.IsNull())
 	{
 		dc.FillSolidRect(clientRect, RGB(42, 42, 43));   //控件背景色
-		m_btnCapture.ShowWindow(SW_SHOW);
-		m_btnDis.ShowWindow(SW_HIDE);
-		m_btnRec.ShowWindow(SW_HIDE);
+		//m_btnCapture.ShowWindow(SW_SHOW);
+		//m_btnDis.ShowWindow(SW_HIDE);
+		//m_btnRec.ShowWindow(SW_HIDE);
         return;
 	}
 
@@ -271,7 +274,7 @@ void CMyWnd2::OnPaint()
     memDC.SelectObject(pOldBitmap);
 }
 
-BOOL CMyWnd2::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+BOOL CArrayWnd::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
     // 将鼠标位置转换为窗口坐标
     ScreenToClient(&pt);
@@ -301,8 +304,34 @@ BOOL CMyWnd2::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
     return CWnd::OnMouseWheel(nFlags, zDelta, pt);
 }
 
-void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
+void CArrayWnd::OnLButtonDown(UINT nFlags, CPoint point)
 {
+    //先判断识别成功，再弹窗
+    CString imagePath;
+    imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_scaleWood.id, m_wndIndex);
+    if (!FileExistW(imagePath))
+    {
+        AfxMessageBox(_T("请先识别木材，再进入编辑界面"));
+        return;
+    }
+
+    CWoodEditDlg woodEditDlg;
+    woodEditDlg.SetWndIndex(m_wndIndex);
+    ScaleWood* pScaleWood = new ScaleWood(m_scaleWood);
+    woodEditDlg.SetScaleWood(pScaleWood);
+    woodEditDlg.DoModal();
+    if (pScaleWood->img.length() > 0)
+    {
+        pScaleWood->img = "";
+        m_scaleWood = *pScaleWood; 
+        m_image.Destroy();
+        LoadLocalImage(imagePath, false);
+        Invalidate();
+    }
+    delete pScaleWood;
+    pScaleWood = NULL;
+    CWnd::OnLButtonDown(nFlags, point);
+    return;
     if (!m_image.IsNull())
     {
         if (m_status == 0)
@@ -374,7 +403,7 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
                         //之前的绘制的椭圆无效了，需要重新绘制
                         m_image.Destroy();
                         CString imagePath;
-                        imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+                        imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_scaleWood.id, m_wndIndex);
                         LoadLocalImage(imagePath, false);
                         SetStatus(0);
                         ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
@@ -395,7 +424,7 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
     CWnd::OnLButtonDown(nFlags, point);
 }
 
-void CMyWnd2::OnLButtonUp(UINT nFlags, CPoint point)
+void CArrayWnd::OnLButtonUp(UINT nFlags, CPoint point)
 {
     if (m_status == 0 || m_status == 2 || (m_status == 3 /*&& IsShiftKeyDown()*/))
     {
@@ -435,7 +464,7 @@ void CMyWnd2::OnLButtonUp(UINT nFlags, CPoint point)
     CWnd::OnLButtonUp(nFlags, point);
 }
 
-void CMyWnd2::OnMouseMove(UINT nFlags, CPoint point)
+void CArrayWnd::OnMouseMove(UINT nFlags, CPoint point)
 {
     if (m_status == 0 || m_status == 2 || (m_status == 3 && IsShiftKeyDown()))
     {
@@ -495,7 +524,7 @@ void CMyWnd2::OnMouseMove(UINT nFlags, CPoint point)
     CWnd::OnMouseMove(nFlags, point);
 }
 
-void CMyWnd2::AdjustImageOrigin()
+void CArrayWnd::AdjustImageOrigin()
 {
     CRect clientRect;
     GetClientRect(&clientRect);
@@ -523,7 +552,7 @@ void CMyWnd2::AdjustImageOrigin()
         m_imageOrigin.y = (clientRect.Height() - scaledHeight) / 2;
 }
 
-void CMyWnd2::LimitScalingFactor()
+void CArrayWnd::LimitScalingFactor()
 {
     CRect clientRect;
     GetClientRect(&clientRect);
@@ -537,7 +566,7 @@ void CMyWnd2::LimitScalingFactor()
     m_scaleFactor = std::min(m_scaleFactor, 10.0f); // 也可以限制最大缩放比例
 }
 
-bool CMyWnd2::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
+bool CArrayWnd::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
 {
     //先把第一个点转为屏幕点
     CPoint screenPoint = ImageToScreen(p1);
@@ -546,7 +575,7 @@ bool CMyWnd2::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
     return (dx * dx + dy * dy) <= (threshold * threshold);
 }
 
-bool CMyWnd2::isPointInEllipse(const CPoint& p)
+bool CArrayWnd::isPointInEllipse(const CPoint& p)
 {
     for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
     {
@@ -562,7 +591,7 @@ bool CMyWnd2::isPointInEllipse(const CPoint& p)
     return false;
 }
 
-bool CMyWnd2::isPointInEllipse(int px, int py)
+bool CArrayWnd::isPointInEllipse(int px, int py)
 {
     for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
     {
@@ -597,7 +626,7 @@ bool CMyWnd2::isPointInEllipse(int px, int py)
     return false;
 }
 
-bool CMyWnd2::IsPointInEllipse(int px, int py, int cx, int cy, int a, int b, double angle)
+bool CArrayWnd::IsPointInEllipse(int px, int py, int cx, int cy, int a, int b, double angle)
 {
     // 将角度转换为弧度
     double radianAngle = angle * M_PI / 180.0;
@@ -619,7 +648,7 @@ bool CMyWnd2::IsPointInEllipse(int px, int py, int cx, int cy, int a, int b, dou
     return (normalizedX * normalizedX + normalizedY * normalizedY) <= 1.0;
 }
 
-bool CMyWnd2::IsPointInPolygon(int px, int py, const std::vector<CPoint>& polygon)
+bool CArrayWnd::IsPointInPolygon(int px, int py, const std::vector<CPoint>& polygon)
 {
     int n = polygon.size();
     bool inside = false;
@@ -640,7 +669,7 @@ bool CMyWnd2::IsPointInPolygon(int px, int py, const std::vector<CPoint>& polygo
     return inside;
 }
 
-double CMyWnd2::CalculateAngle(int startX, int startY, int endX, int endY)
+double CArrayWnd::CalculateAngle(int startX, int startY, int endX, int endY)
 {
     //不需要倾角
     return 0.0;
@@ -651,8 +680,190 @@ double CMyWnd2::CalculateAngle(int startX, int startY, int endX, int endY)
 
     return angle;
 }
+//
+//void CArrayWnd::OnBnClickedBtnCapture()
+//{
+//}
+//
+//void CArrayWnd::OnBnClickedBtnRec()
+//{
+//    m_evt_beginRecEvent.SetEvent();
+//}
+//
+//void CArrayWnd::OnBnClickedBtnDis()
+//{
+//    m_image.Destroy();
+//    m_btnCapture.ShowWindow(SW_SHOW);
+//    m_btnDis.ShowWindow(SW_HIDE);
+//    m_btnRec.ShowWindow(SW_HIDE);
+//    this->Invalidate();
+//}
 
-void CMyWnd2::OnBnClickedBtnCapture()
+void CArrayWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    // TODO: 在此添加消息处理程序代码和/或调用默认值
+    //检查是否是删除键的按下
+    if (nChar == VK_DELETE && m_status == 2)
+    {
+        bool isDelete = false;
+        auto iter = m_scaleWood.wood_list.begin();
+        while (iter != m_scaleWood.wood_list.end())
+        {
+            if (iter->isDeleting)
+            {
+                iter = m_scaleWood.wood_list.erase(iter);
+                isDelete = true;
+            }
+            else
+            {
+                iter++;
+            }
+        }
+        if (isDelete)
+        {
+            m_image.Destroy();
+            CString imagePath;
+            imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_scaleWood.id, m_wndIndex);
+            LoadLocalImage(imagePath, false);
+            Invalidate();
+        }
+    }
+    CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+
+void CArrayWnd::ResetCapture()
+{
+    m_image.Destroy();
+    //m_btnCapture.ShowWindow(SW_SHOW);
+    //m_btnDis.ShowWindow(SW_HIDE);
+    //m_btnRec.ShowWindow(SW_HIDE);
+
+    m_points.clear();
+
+    m_dragging = false;
+    m_lastMousePos = CPoint();
+    m_imageOrigin = CPoint();
+    m_status = 0;
+    m_scaleFactor = 1.0;
+    m_startPoint = CPoint();
+    m_endPoint = CPoint();
+
+    m_isDrawFinished = false;
+    m_scaleWood = { 0 };
+    m_ellipse_add = { 0 };
+    m_share_wood_id = 0;
+
+    this->Invalidate();
+}
+
+
+void CArrayWnd::ShowHistoryData(ScaleWood* pScaleWood)
+{
+    ResetCapture();
+
+    m_scaleWood.id = pScaleWood->id;
+    m_scaleWood.img = pScaleWood->img;
+    m_scaleWood.wood_list = pScaleWood->wood_list;
+
+    CString imagePath;
+    imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_scaleWood.id, m_wndIndex);
+    //m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
+    LoadLocalImage(imagePath, true);
+    SetStatus(0);
+    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
+    //m_btnCapture.ShowWindow(SW_HIDE);
+    //m_btnDis.ShowWindow(SW_HIDE);
+    //m_btnRec.ShowWindow(SW_HIDE);
+    this->Invalidate();
+}
+
+CPoint CArrayWnd::ScreenToImage(CPoint screenPoint)
+{
+    // 将屏幕坐标转换为窗口的客户区坐标
+    //ScreenToClient(&screenPoint);
+
+    // 考虑缩放和图片的原点位置，将客户区坐标转换为图片坐标
+    CPoint imagePoint;
+    imagePoint.x = static_cast<int>((screenPoint.x - m_imageOrigin.x) / m_scaleFactor);
+    imagePoint.y = static_cast<int>((screenPoint.y - m_imageOrigin.y) / m_scaleFactor);
+
+    return imagePoint;
+}
+
+CPoint CArrayWnd::ImageToScreen(CPoint imagePoint)
+{
+    // 将屏幕坐标转换为窗口的客户区坐标
+    //ScreenToClient(&screenPoint);
+
+    // 考虑缩放和图片的原点位置，将客户区坐标转换为图片坐标
+    CPoint screenPoint;
+    screenPoint.x = static_cast<int>(imagePoint.x * m_scaleFactor + m_imageOrigin.x);
+    screenPoint.y = static_cast<int>(imagePoint.y * m_scaleFactor + m_imageOrigin.y);
+
+    return screenPoint;
+}
+
+bool CArrayWnd::StartThread()
+{
+    //开启收流线程
+    m_bRun = true;
+    m_recThread = AfxBeginThread(RecThread, (LPVOID)this);
+    if (m_recThread == NULL)
+    {
+        m_bRun = false;
+        return false;
+    }
+    m_hRecThreadHandle = m_recThread->m_hThread;
+    //m_evt_checkRecordEvent.SetEvent();
+    return true;
+}
+
+
+UINT CArrayWnd::RecThread(LPVOID lpParam)
+{
+    CArrayWnd* pDecode = (CArrayWnd*)lpParam;
+    if (!pDecode)
+    {
+        return 0;
+    }
+    while (WaitForSingleObject(pDecode->m_evt_beginRecEvent, INFINITE) == WAIT_OBJECT_0)
+    {
+        if (pDecode->m_bRun == false) break;
+        int workStatus = pDecode->GetWorkStatus();
+        if (workStatus == 1)
+        {
+            pDecode->PhotoMethod();
+        }
+        else if(workStatus == 2)
+        {
+            pDecode->RecMethod();
+        }
+        else
+        {
+            
+        }
+        pDecode->SetWorkStatus(0);
+        if (pDecode->m_bRun == false) break;
+    }
+
+    return 1;
+}
+
+bool CArrayWnd::StopThread()
+{
+    m_workStatus = 0;
+    m_bRun = false;
+    m_evt_beginRecEvent.SetEvent();
+    if (m_hRecThreadHandle != INVALID_HANDLE_VALUE)
+    {
+        WaitAndTermThread(m_hRecThreadHandle, 10000);
+        m_hRecThreadHandle = INVALID_HANDLE_VALUE;
+        m_recThread = NULL;
+    }
+    return true;
+}
+void CArrayWnd::PhotoMethod()
 {
 #if (QGDebug == 1)
     ShowWindow(SW_SHOW);
@@ -691,7 +902,7 @@ void CMyWnd2::OnBnClickedBtnCapture()
 
     std::vector<uchar> img_data(limg.begin(), limg.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
+    cv::imwrite(GetImagePathUTF8() + "limg_" +std::to_string(m_wndIndex) +".jpg", img);
 #endif
 
 #if (CloudAPI == 1 && QGDebug == 1)
@@ -743,191 +954,28 @@ void CMyWnd2::OnBnClickedBtnCapture()
 
     std::vector<uchar> img_data(limg.begin(), limg.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
+    CString limgName;
+    limgName.Format(_T("limg_%d.jpg"), m_wndIndex);
+    cv::imwrite(GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".jpg", img);
 #endif
-    LoadLocalImage(GetImagePath() + _T("limg.jpg"), true);
-    m_btnCapture.ShowWindow(SW_HIDE);
-    m_btnDis.ShowWindow(SW_SHOW);
-    m_btnRec.ShowWindow(SW_SHOW);
+    CString limgName;
+    limgName.Format(_T("limg_%d.jpg"), m_wndIndex);
+    LoadLocalImage(GetImagePath() + limgName, true);
+    //m_btnCapture.ShowWindow(SW_HIDE);
+    //m_btnDis.ShowWindow(SW_SHOW);
+    //m_btnRec.ShowWindow(SW_SHOW);
     this->Invalidate();
 }
 
-void CMyWnd2::OnBnClickedBtnRec()
-{
-    m_evt_beginRecEvent.SetEvent();
-}
-
-void CMyWnd2::OnBnClickedBtnDis()
-{
-    m_image.Destroy();
-    m_btnCapture.ShowWindow(SW_SHOW);
-    m_btnDis.ShowWindow(SW_HIDE);
-    m_btnRec.ShowWindow(SW_HIDE);
-    this->Invalidate();
-}
-
-void CMyWnd2::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-    // TODO: 在此添加消息处理程序代码和/或调用默认值
-    //检查是否是删除键的按下
-    if (nChar == VK_DELETE && m_status == 2)
-    {
-        bool isDelete = false;
-        auto iter = m_scaleWood.wood_list.begin();
-        while (iter != m_scaleWood.wood_list.end())
-        {
-            if (iter->isDeleting)
-            {
-                iter = m_scaleWood.wood_list.erase(iter);
-                isDelete = true;
-            }
-            else
-            {
-                iter++;
-            }
-        }
-        if (isDelete)
-        {
-            m_image.Destroy();
-            CString imagePath;
-            imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
-            LoadLocalImage(imagePath, false);
-            Invalidate();
-        }
-    }
-    CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
-}
-
-
-void CMyWnd2::ResetCapture()
-{
-    m_image.Destroy();
-    m_btnCapture.ShowWindow(SW_SHOW);
-    m_btnDis.ShowWindow(SW_HIDE);
-    m_btnRec.ShowWindow(SW_HIDE);
-
-    m_points.clear();
-
-    m_dragging = false;
-    m_lastMousePos = CPoint();
-    m_imageOrigin = CPoint();
-    m_status = 0;
-    m_scaleFactor = 1.0;
-    m_startPoint = CPoint();
-    m_endPoint = CPoint();
-
-    m_isDrawFinished = false;
-    m_scaleWood = { 0 };
-    m_ellipse_add = { 0 };
-
-    this->Invalidate();
-}
-
-
-void CMyWnd2::ShowHistoryData(ScaleWood* pScaleWood)
-{
-    ResetCapture();
-
-    m_scaleWood.id = pScaleWood->id;
-    m_scaleWood.img = pScaleWood->img;
-    m_scaleWood.wood_list = pScaleWood->wood_list;
-
-    CString imagePath;
-    imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
-    //m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
-    LoadLocalImage(imagePath, true);
-    SetStatus(0);
-    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
-    m_btnCapture.ShowWindow(SW_HIDE);
-    m_btnDis.ShowWindow(SW_HIDE);
-    m_btnRec.ShowWindow(SW_HIDE);
-    this->Invalidate();
-}
-
-CPoint CMyWnd2::ScreenToImage(CPoint screenPoint)
-{
-    // 将屏幕坐标转换为窗口的客户区坐标
-    //ScreenToClient(&screenPoint);
-
-    // 考虑缩放和图片的原点位置，将客户区坐标转换为图片坐标
-    CPoint imagePoint;
-    imagePoint.x = static_cast<int>((screenPoint.x - m_imageOrigin.x) / m_scaleFactor);
-    imagePoint.y = static_cast<int>((screenPoint.y - m_imageOrigin.y) / m_scaleFactor);
-
-    return imagePoint;
-}
-
-CPoint CMyWnd2::ImageToScreen(CPoint imagePoint)
-{
-    // 将屏幕坐标转换为窗口的客户区坐标
-    //ScreenToClient(&screenPoint);
-
-    // 考虑缩放和图片的原点位置，将客户区坐标转换为图片坐标
-    CPoint screenPoint;
-    screenPoint.x = static_cast<int>(imagePoint.x * m_scaleFactor + m_imageOrigin.x);
-    screenPoint.y = static_cast<int>(imagePoint.y * m_scaleFactor + m_imageOrigin.y);
-
-    return screenPoint;
-}
-
-bool CMyWnd2::StartThread()
-{
-    //开启收流线程
-    m_bRun = true;
-    m_recThread = AfxBeginThread(RecThread, (LPVOID)this);
-    if (m_recThread == NULL)
-    {
-        m_bRun = false;
-        return false;
-    }
-    m_hRecThreadHandle = m_recThread->m_hThread;
-    //m_evt_checkRecordEvent.SetEvent();
-    return true;
-}
-
-
-UINT CMyWnd2::RecThread(LPVOID lpParam)
-{
-    CMyWnd2* pDecode = (CMyWnd2*)lpParam;
-    if (!pDecode)
-    {
-        return 0;
-    }
-    while (WaitForSingleObject(pDecode->m_evt_beginRecEvent, INFINITE) == WAIT_OBJECT_0)
-    {
-        if (pDecode->m_bRun == false) break;
-        pDecode->SetRecing(true);
-        pDecode->RecMethod();
-        pDecode->SetRecing(false);
-        if (pDecode->m_bRun == false) break;
-    }
-
-    return 1;
-}
-
-bool CMyWnd2::StopThread()
-{
-    m_recing = false;
-    m_bRun = false;
-    m_evt_beginRecEvent.SetEvent();
-    if (m_hRecThreadHandle != INVALID_HANDLE_VALUE)
-    {
-        WaitAndTermThread(m_hRecThreadHandle, 10000);
-        m_hRecThreadHandle = INVALID_HANDLE_VALUE;
-        m_recThread = NULL;
-    }
-    return true;
-}
-
-void CMyWnd2::RecMethod()
+void CArrayWnd::RecMethod()
 {
 #if (QGDebug == 1 && CloudAPI == 0) 
-    m_btnRec.EnableWindow(TRUE);
-    m_btnRec.SetWindowTextW(_T("识别"));
-    m_btnRec.ShowWindow(SW_HIDE);
-    m_btnDis.ShowWindow(SW_HIDE);
+    //m_btnRec.EnableWindow(TRUE);
+    //m_btnRec.SetWindowTextW(_T("识别"));
+    //m_btnRec.ShowWindow(SW_HIDE);
+    //m_btnDis.ShowWindow(SW_HIDE);
     ScaleWood scalewood;
-    scalewood.id = time(0);
+    scalewood.id = m_share_wood_id;
     scalewood.img = "";
     WoodAttr woodAttr1 = { 0 };
     woodAttr1.ellipse = { 2436.7294921875000, 963.02606201171875, 54.000000000000000, 57.000000000000000, 63.426303863525391,
@@ -936,6 +984,7 @@ void CMyWnd2::RecMethod()
     woodAttr1.diameter = 13.400000000000000;
     woodAttr1.diameters = { 13.400000000000000, 14.300000000000001 };
     woodAttr1.volumn = 0.0000000000000000;
+    woodAttr1.index = m_wndIndex;
 
     WoodAttr woodAttr2 = { 0 };
     woodAttr2.ellipse = { 2258.6398925781250, 1551.4863281250000, 56.000000000000000, 57.000000000000000, 124.72299957275391,
@@ -944,6 +993,7 @@ void CMyWnd2::RecMethod()
     woodAttr2.diameter = 5.0000000000000000;
     woodAttr2.diameters = { 5.0000000000000000, 5.2000000000000002 };
     woodAttr2.volumn = 0.0000000000000000;
+    woodAttr2.index = m_wndIndex;
 
     WoodAttr woodAttr3 = { 0 };
     woodAttr3.ellipse = { 2189.5292968750000, 1670.6750488281250, 73.000000000000000, 79.000000000000000, 120.99822998046875,
@@ -952,6 +1002,7 @@ void CMyWnd2::RecMethod()
     woodAttr3.diameter = 6.5999999999999996;
     woodAttr3.diameters = { 6.5999999999999996, 7.2000000000000002 };
     woodAttr3.volumn = 0.0000000000000000;
+    woodAttr3.index = m_wndIndex;
 
     WoodAttr woodAttr4 = { 0 };
     woodAttr4.ellipse = { 2362.7504882812500, 1676.9362792968750, 65.000000000000000, 71.000000000000000, 52.447589874267578,
@@ -960,15 +1011,16 @@ void CMyWnd2::RecMethod()
     woodAttr4.diameter = 6.0000000000000000;
     woodAttr4.diameters = { 6.0000000000000000, 6.5000000000000000 };
     woodAttr4.volumn = 0.0000000000000000;
+    woodAttr4.index = m_wndIndex;
 
     scalewood.wood_list.push_back(woodAttr1);
     scalewood.wood_list.push_back(woodAttr2);
     scalewood.wood_list.push_back(woodAttr3);
     scalewood.wood_list.push_back(woodAttr4);
 
-    std::string strImagePath = GetImagePathUTF8() + "img.jpg";
+    std::string strImagePath = GetImagePathUTF8() + "img_" + std::to_string(m_wndIndex) + ".jpg";
     cv::Mat img = cv::imread(strImagePath);
-    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
+    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) +"_" + std::to_string(m_wndIndex) + ".jpg";
     cv::imwrite(strImagePath, img);
 
 #else
@@ -980,14 +1032,14 @@ void CMyWnd2::RecMethod()
     ScaleWood scalewood = { 0 };
 #if CloudAPI
     int w = 0, h = 0, c = 0;
-    int ret = PostInfer(scalewood, errorCode, m_limg, m_rimg, m_camparam, w, h, c);
+    int ret = PostInfer(scalewood, errorCode, m_limg, m_rimg, m_camparam, w, h, c, m_wndIndex);
 #else
-    int ret = PostScale(scalewood, errorCode);
+    int ret = PostScale(scalewood, errorCode, m_wndIndex);
 #endif
     //m_limg.clear();
     //m_rimg.clear();
     //m_camparam.clear();
-    scalewood.id = time(0);
+    scalewood.id = m_share_wood_id;
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("识别"));
     wait.Restore();
@@ -1041,7 +1093,7 @@ void CMyWnd2::RecMethod()
 
     m_image.Destroy();
     CString strImagePathW;
-    strImagePathW.Format(_T("%s%d.jpg"), GetImagePath(), scalewood.id);
+    strImagePathW.Format(_T("%s%d_%d.jpg"), GetImagePath(), scalewood.id, m_wndIndex);
     LoadLocalImage(strImagePathW, true);
     m_scaleWood = scalewood;
     SetStatus(0);

@@ -6,6 +6,7 @@
 //#include "RtspDevice.h"
 #include "MyWnd.h"
 #include "MyWnd2.h"
+#include "ArrayWnd.h"
 #include "CDlgReport.h"
 #include "DlgData.h"
 #include "BgColorBtn.h"
@@ -40,7 +41,8 @@ public:
 	afx_msg void OnDestroy();
 private:
 	CStatic m_staVideo;
-	CMyWnd2 m_imgWnd;
+	//CMyWnd2 m_imgWnd;
+	CArrayWnd m_arrayWnd[4];
 	CDlgReport m_dlgReport;
 	CDlgData m_dlgData;
 
@@ -56,6 +58,9 @@ private:
 	CButton m_btnData;
 	//右侧五个按钮
 	
+	CBgColorBtn m_btnPhoto;//拍照
+	CBgColorBtn m_btnInfer;//识别
+	CBgColorBtn m_btnDrop;//放弃
 	CBgColorBtn m_btnAdd;//添加
 	CBgColorBtn m_btnCrop;//裁剪
 	CBgColorBtn m_btnDel;//删除
@@ -84,4 +89,10 @@ public:
 	//修改五个按钮的颜色
 	void ResetBtnBgColor();
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	afx_msg void OnBnClickedBtnPhoto();
+	afx_msg void OnBnClickedBtnInfer();
+	afx_msg void OnBnClickedBtnDrop();
+
+	bool CollectScaleWood(ScaleWood& scaleWood, std::vector<ScaleWood>& scaleWoodVec);
+	bool ReCollectScaleWood(ScaleWood* pScaleWood, std::vector<ScaleWood>& scaleWoodVec);
 };

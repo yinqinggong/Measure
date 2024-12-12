@@ -145,7 +145,7 @@ bool CDlgData::GetScaleWoodFromJsonString(std::string& jsonstr, ScaleWood& scale
 	{
 		WoodAttr woodAttr = { 0 };
 		woodAttr.diameter = rootArray[i]["diameter"].asDouble();
-
+		woodAttr.index = rootArray[i]["index"].asInt();
 		Diameters diameters = { 0 };
 		diameters.d1 = rootArray[i]["diameters"]["d1"].asDouble();
 		diameters.d2 = rootArray[i]["diameters"]["d2"].asDouble();
@@ -201,7 +201,7 @@ void CDlgData::OnBnClickedButtonQuery()
 		WoodDBShow woodDBShow;
 		woodDBShow.amount = showDataList[i].amount;
 		woodDBShow.checked = false;
-		woodDBShow.image_path = GetImagePathUTF8() + std::to_string(showDataList[i].id) + "_s.jpg";
+		woodDBShow.image_path = GetImagePathUTF8() + std::to_string(showDataList[i].id) + "_0_s.jpg";
 		woodDBShow.timestamp = GetFormatTimeByTimestamp(showDataList[i].id);
 		woodDBShow.total_v = showDataList[i].total_volume;
 		woodDBShow.lenght = showDataList[i].lenght;

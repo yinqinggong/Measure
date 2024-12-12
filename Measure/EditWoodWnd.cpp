@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "MyWnd2.h"
+#include "EditWoodWnd.h"
 #include <iostream>
 #include "CDlgDiameter.h"
 #include "base64.h"
@@ -20,58 +20,75 @@
 #define M_PI   3.141592653589793238462643383279502884
 #endif
 
-#define IDC_BTN_CAPTURE                 8000+1
-#define IDC_BTN_REC                     8000+2
-#define IDC_BTN_DIS                     8000+3
+#define IDC_BTN_ADD                     8200+1
+#define IDC_BTN_CROP                    8200+2
+#define IDC_BTN_DEL                     8200+3
+#define IDC_BTN_SAVE                    8200+4
 
-BEGIN_MESSAGE_MAP(CMyWnd2, CWnd)
+BEGIN_MESSAGE_MAP(CEditWoodWnd, CWnd)
     ON_WM_PAINT()
     ON_WM_MOUSEWHEEL()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
     ON_WM_MOUSEMOVE()
     ON_WM_CREATE()
-    ON_BN_CLICKED(IDC_BTN_CAPTURE, &CMyWnd2::OnBnClickedBtnCapture)
-    ON_BN_CLICKED(IDC_BTN_REC, &CMyWnd2::OnBnClickedBtnRec)
-    ON_BN_CLICKED(IDC_BTN_DIS, &CMyWnd2::OnBnClickedBtnDis)
+    ON_BN_CLICKED(IDC_BTN_ADD, &CEditWoodWnd::OnBnClickedBtnAdd)
+    ON_BN_CLICKED(IDC_BTN_CROP, &CEditWoodWnd::OnBnClickedBtnCrop)
+    ON_BN_CLICKED(IDC_BTN_DEL, &CEditWoodWnd::OnBnClickedBtnDel)
+    ON_BN_CLICKED(IDC_BTN_SAVE, &CEditWoodWnd::OnBnClickedBtnSave)
     ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
-CMyWnd2::CMyWnd2()
+CEditWoodWnd::CEditWoodWnd()
 	: m_scaleFactor(1.0f)
 	, m_imageOrigin(0, 0)
 	, m_dragging(false)
 	, m_status(0)
-    , m_bRun(false)
-    , m_recing(false)
+    , m_pScaleWood(NULL)
+    //, m_bRun(false)
+    //, m_recing(false)
 {
-    m_scaleWood = { 0 };
     m_ellipse_add = { 0 };
 }
 
-CMyWnd2::~CMyWnd2()
+CEditWoodWnd::~CEditWoodWnd()
 {
-    StopThread();
+    //StopThread();
 }
 
-int CMyWnd2::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int CEditWoodWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if (CWnd::OnCreate(lpCreateStruct) == -1)
         return -1;
-    m_btnCapture.Create(_T("拍照"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_CAPTURE);
-    m_btnRec.Create(_T("识别"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_REC);
-    m_btnDis.Create(_T("放弃"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_DIS);
+    m_btnAdd.Create(_T("添加"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_ADD);
+    m_btnCrop.Create(_T("裁剪"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_CROP);
+    m_btnDel.Create(_T("删除"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_DEL);
+    m_btnSave.Create(_T("确定"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_SAVE);
 
     CRect rect;
     GetClientRect(&rect);
-    m_btnCapture.MoveWindow(rect.right - 120, rect.Height() * 0.5, 100, 50);
-    m_btnRec.MoveWindow(rect.right - 120, rect.Height() * 0.5 - 100, 100, 50);
-    m_btnDis.MoveWindow(rect.right - 120, rect.Height() * 0.5 + 100, 100, 50);
+    m_btnAdd.MoveWindow(rect.right - 120, rect.Height() * 0.5, 80, 40);
+    m_btnCrop.MoveWindow(rect.right - 120, rect.Height() * 0.5 - 80, 80, 40);
+    m_btnDel.MoveWindow(rect.right - 120, rect.Height() * 0.5 + 80, 80, 40);
+    m_btnSave.MoveWindow(rect.right - 120, rect.Height() * 0.5 + 160, 80, 40);
 
-    StartThread();
+    m_btnAdd.ModifyStyle(NULL, BS_OWNERDRAW);
+    m_btnCrop.ModifyStyle(NULL, BS_OWNERDRAW);
+    m_btnDel.ModifyStyle(NULL, BS_OWNERDRAW);
+    m_btnSave.ModifyStyle(NULL, BS_OWNERDRAW);
+
+    //StartThread();
     return 0;
 }
-BOOL CMyWnd2::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
+
+
+BOOL CEditWoodWnd::LoadLocalImage(bool firstInit)
+{
+    CString imagePath;
+    imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
+    return LoadLocalImage(imagePath, firstInit);
+}
+BOOL CEditWoodWnd::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
 {
     HRESULT hr = m_image.Load(lpszPath);
     if (FAILED(hr))
@@ -93,7 +110,7 @@ BOOL CMyWnd2::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
     return TRUE;
 }
 
-void CMyWnd2::DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr& woodAttr)
+void CEditWoodWnd::DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr& woodAttr)
 {
     // 创建并设置变换矩阵
     Gdiplus::Matrix matrix;
@@ -133,7 +150,7 @@ void CMyWnd2::DrawRotatedEllipse(Gdiplus::Graphics* graphics, WoodAttr& woodAttr
     //graphics->SetTransform(&matrix0); // 重置变换矩阵
 }
 
-void CMyWnd2::DrawRotatedEllipse(Gdiplus::Graphics* graphics, Gdiplus::Pen& pen, int cx, int cy, int ab1, int ab2, double angle)
+void CEditWoodWnd::DrawRotatedEllipse(Gdiplus::Graphics* graphics, Gdiplus::Pen& pen, int cx, int cy, int ab1, int ab2, double angle)
 {
     // 创建并设置变换矩阵
     Gdiplus::Matrix matrix;
@@ -151,13 +168,13 @@ void CMyWnd2::DrawRotatedEllipse(Gdiplus::Graphics* graphics, Gdiplus::Pen& pen,
     graphics->Restore(state);
 }
 
-void CMyWnd2::DrawPolygon(Gdiplus::Graphics* graphics, PointF points[], int numPoints)
+void CEditWoodWnd::DrawPolygon(Gdiplus::Graphics* graphics, PointF points[], int numPoints)
 {
     Pen red_pen(Gdiplus::Color(255, 255, 0, 0), 2);
     graphics->DrawPolygon(&red_pen, points, numPoints);
 }
 
-void CMyWnd2::OnPaint()
+void CEditWoodWnd::OnPaint()
 {
     CPaintDC dc(this);
     CRect clientRect;
@@ -166,9 +183,9 @@ void CMyWnd2::OnPaint()
 	if (m_image.IsNull())
 	{
 		dc.FillSolidRect(clientRect, RGB(42, 42, 43));   //控件背景色
-		m_btnCapture.ShowWindow(SW_SHOW);
-		m_btnDis.ShowWindow(SW_HIDE);
-		m_btnRec.ShowWindow(SW_HIDE);
+		//m_btnAdd.ShowWindow(SW_SHOW);
+		//m_btnDel.ShowWindow(SW_HIDE);
+		//m_btnCrop.ShowWindow(SW_HIDE);
         return;
 	}
 
@@ -208,9 +225,9 @@ void CMyWnd2::OnPaint()
             // 获取GDI+图形对象
             Gdiplus::Graphics graphics(m_image.GetDC());
 
-            for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
+            for (size_t i = 0; i < m_pScaleWood->wood_list.size(); i++)
             {
-                DrawRotatedEllipse(&graphics, m_scaleWood.wood_list[i]);
+                DrawRotatedEllipse(&graphics, m_pScaleWood->wood_list[i]);
             }
             // 释放GDI+图形对象
             m_image.ReleaseDC();
@@ -271,7 +288,7 @@ void CMyWnd2::OnPaint()
     memDC.SelectObject(pOldBitmap);
 }
 
-BOOL CMyWnd2::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+BOOL CEditWoodWnd::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
     // 将鼠标位置转换为窗口坐标
     ScreenToClient(&pt);
@@ -301,7 +318,7 @@ BOOL CMyWnd2::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
     return CWnd::OnMouseWheel(nFlags, zDelta, pt);
 }
 
-void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
+void CEditWoodWnd::OnLButtonDown(UINT nFlags, CPoint point)
 {
     if (!m_image.IsNull())
     {
@@ -362,22 +379,23 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
 
                         //处于多边形之外的数据直接剔除
                         std::vector<WoodAttr> temp_wood_list;
-                        for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
+                        for (size_t i = 0; i < m_pScaleWood->wood_list.size(); i++)
                         {
-                            if (IsPointInPolygon(m_scaleWood.wood_list[i].ellipse.cx,
-                                m_scaleWood.wood_list[i].ellipse.cy, m_points))
+                            if (IsPointInPolygon(m_pScaleWood->wood_list[i].ellipse.cx,
+                                m_pScaleWood->wood_list[i].ellipse.cy, m_points))
                             {
-                                temp_wood_list.push_back(m_scaleWood.wood_list[i]);
+                                temp_wood_list.push_back(m_pScaleWood->wood_list[i]);
                             }
                         }
-                        m_scaleWood.wood_list = temp_wood_list;
+                        m_pScaleWood->wood_list = temp_wood_list;
                         //之前的绘制的椭圆无效了，需要重新绘制
                         m_image.Destroy();
                         CString imagePath;
-                        imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+                        imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
                         LoadLocalImage(imagePath, false);
                         SetStatus(0);
-                        ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
+                        ResetBtnBgColor();
+                        //::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
                         m_points.clear();
                     }
                 }
@@ -395,7 +413,7 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
     CWnd::OnLButtonDown(nFlags, point);
 }
 
-void CMyWnd2::OnLButtonUp(UINT nFlags, CPoint point)
+void CEditWoodWnd::OnLButtonUp(UINT nFlags, CPoint point)
 {
     if (m_status == 0 || m_status == 2 || (m_status == 3 /*&& IsShiftKeyDown()*/))
     {
@@ -422,12 +440,13 @@ void CMyWnd2::OnLButtonUp(UINT nFlags, CPoint point)
                     woodAttr.ellipse = m_ellipse_add;
                     woodAttr.diameters.d1 = m_ellipse_add.ab1;
                     woodAttr.diameters.d2 = m_ellipse_add.ab2;
-                    m_scaleWood.wood_list.push_back(woodAttr);
+                    m_pScaleWood->wood_list.push_back(woodAttr);
                 }
             }
         }
         SetStatus(0);
-        ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
+        ResetBtnBgColor();
+        //::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
         m_isDrawFinished = true;
         Invalidate();
     }
@@ -435,7 +454,7 @@ void CMyWnd2::OnLButtonUp(UINT nFlags, CPoint point)
     CWnd::OnLButtonUp(nFlags, point);
 }
 
-void CMyWnd2::OnMouseMove(UINT nFlags, CPoint point)
+void CEditWoodWnd::OnMouseMove(UINT nFlags, CPoint point)
 {
     if (m_status == 0 || m_status == 2 || (m_status == 3 && IsShiftKeyDown()))
     {
@@ -495,7 +514,7 @@ void CMyWnd2::OnMouseMove(UINT nFlags, CPoint point)
     CWnd::OnMouseMove(nFlags, point);
 }
 
-void CMyWnd2::AdjustImageOrigin()
+void CEditWoodWnd::AdjustImageOrigin()
 {
     CRect clientRect;
     GetClientRect(&clientRect);
@@ -523,7 +542,7 @@ void CMyWnd2::AdjustImageOrigin()
         m_imageOrigin.y = (clientRect.Height() - scaledHeight) / 2;
 }
 
-void CMyWnd2::LimitScalingFactor()
+void CEditWoodWnd::LimitScalingFactor()
 {
     CRect clientRect;
     GetClientRect(&clientRect);
@@ -537,7 +556,7 @@ void CMyWnd2::LimitScalingFactor()
     m_scaleFactor = std::min(m_scaleFactor, 10.0f); // 也可以限制最大缩放比例
 }
 
-bool CMyWnd2::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
+bool CEditWoodWnd::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
 {
     //先把第一个点转为屏幕点
     CPoint screenPoint = ImageToScreen(p1);
@@ -546,31 +565,31 @@ bool CMyWnd2::isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold)
     return (dx * dx + dy * dy) <= (threshold * threshold);
 }
 
-bool CMyWnd2::isPointInEllipse(const CPoint& p)
+bool CEditWoodWnd::isPointInEllipse(const CPoint& p)
 {
-    for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
+    for (size_t i = 0; i < m_pScaleWood->wood_list.size(); i++)
     {
-        if (p.x >= m_scaleWood.wood_list[i].ellipse.cx - m_scaleWood.wood_list[i].ellipse.ab1 * 0.5 &&
-            p.x <= m_scaleWood.wood_list[i].ellipse.cx + m_scaleWood.wood_list[i].ellipse.ab1 * 0.5 &&
-            p.y >= m_scaleWood.wood_list[i].ellipse.cy - m_scaleWood.wood_list[i].ellipse.ab2 * 0.5 &&
-            p.y <= m_scaleWood.wood_list[i].ellipse.cy + m_scaleWood.wood_list[i].ellipse.ab2 * 0.5)
+        if (p.x >= m_pScaleWood->wood_list[i].ellipse.cx - m_pScaleWood->wood_list[i].ellipse.ab1 * 0.5 &&
+            p.x <= m_pScaleWood->wood_list[i].ellipse.cx + m_pScaleWood->wood_list[i].ellipse.ab1 * 0.5 &&
+            p.y >= m_pScaleWood->wood_list[i].ellipse.cy - m_pScaleWood->wood_list[i].ellipse.ab2 * 0.5 &&
+            p.y <= m_pScaleWood->wood_list[i].ellipse.cy + m_pScaleWood->wood_list[i].ellipse.ab2 * 0.5)
         {
-            m_scaleWood.wood_list[i].isDeleting = !m_scaleWood.wood_list[i].isDeleting;
+            m_pScaleWood->wood_list[i].isDeleting = !m_pScaleWood->wood_list[i].isDeleting;
             return true;
         }
     }
     return false;
 }
 
-bool CMyWnd2::isPointInEllipse(int px, int py)
+bool CEditWoodWnd::isPointInEllipse(int px, int py)
 {
-    for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
+    for (size_t i = 0; i < m_pScaleWood->wood_list.size(); i++)
     {
-        double angle = m_scaleWood.wood_list[i].ellipse.angel;
-        int cx = m_scaleWood.wood_list[i].ellipse.cx;
-        int cy = m_scaleWood.wood_list[i].ellipse.cy;
-        int a = m_scaleWood.wood_list[i].ellipse.ab1;
-        int b = m_scaleWood.wood_list[i].ellipse.ab2;
+        double angle = m_pScaleWood->wood_list[i].ellipse.angel;
+        int cx = m_pScaleWood->wood_list[i].ellipse.cx;
+        int cy = m_pScaleWood->wood_list[i].ellipse.cy;
+        int a = m_pScaleWood->wood_list[i].ellipse.ab1;
+        int b = m_pScaleWood->wood_list[i].ellipse.ab2;
 
         // 将角度转换为弧度
         double radianAngle = angle * M_PI / 180.0;
@@ -590,14 +609,14 @@ bool CMyWnd2::isPointInEllipse(int px, int py)
         double normalizedY = rotatedY / b;
         if ((normalizedX * normalizedX + normalizedY * normalizedY) <= 1.0)
         {
-            m_scaleWood.wood_list[i].isDeleting = !m_scaleWood.wood_list[i].isDeleting;
+            m_pScaleWood->wood_list[i].isDeleting = !m_pScaleWood->wood_list[i].isDeleting;
             return true;
         }
     }
     return false;
 }
 
-bool CMyWnd2::IsPointInEllipse(int px, int py, int cx, int cy, int a, int b, double angle)
+bool CEditWoodWnd::IsPointInEllipse(int px, int py, int cx, int cy, int a, int b, double angle)
 {
     // 将角度转换为弧度
     double radianAngle = angle * M_PI / 180.0;
@@ -619,7 +638,7 @@ bool CMyWnd2::IsPointInEllipse(int px, int py, int cx, int cy, int a, int b, dou
     return (normalizedX * normalizedX + normalizedY * normalizedY) <= 1.0;
 }
 
-bool CMyWnd2::IsPointInPolygon(int px, int py, const std::vector<CPoint>& polygon)
+bool CEditWoodWnd::IsPointInPolygon(int px, int py, const std::vector<CPoint>& polygon)
 {
     int n = polygon.size();
     bool inside = false;
@@ -640,7 +659,7 @@ bool CMyWnd2::IsPointInPolygon(int px, int py, const std::vector<CPoint>& polygo
     return inside;
 }
 
-double CMyWnd2::CalculateAngle(int startX, int startY, int endX, int endY)
+double CEditWoodWnd::CalculateAngle(int startX, int startY, int endX, int endY)
 {
     //不需要倾角
     return 0.0;
@@ -652,133 +671,92 @@ double CMyWnd2::CalculateAngle(int startX, int startY, int endX, int endY)
     return angle;
 }
 
-void CMyWnd2::OnBnClickedBtnCapture()
+void CEditWoodWnd::OnBnClickedBtnAdd()
 {
-#if (QGDebug == 1)
-    ShowWindow(SW_SHOW);
-#else
-    ShowWindow(SW_SHOW);
-    std::string limg;
-    CWaitCursor wait;
-    int errorCode = 0;
-    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_camparam);
-    wait.Restore();
-    if (ret < 0)
+    if (GetStatus() == -1 || GetScaleWoodID() <= 0)
     {
-        WriteLog(_T("PostPhoto API failed, errorCode:%d"), errorCode);
-        CString tipStr;
-        tipStr.Format(_T("拍照失败，请重试, code:%d"), errorCode);
-        AfxMessageBox(tipStr);
+        AfxMessageBox(_T("请先识别！"));
         return;
     }
-    try
+    else if (GetStatus() == 0)
     {
-        limg = m_limg;
-        limg = base64_decode(limg);
+        SetStatus(1);
+        ResetBtnBgColor();
+        m_btnAdd.SetBackgroundColor(RGB(241, 112, 122));
     }
-    catch (const std::exception&)
+    else if (GetStatus() == 1)
     {
-        WriteLog(_T("invalid base64 exception"));
-        AfxMessageBox(_T("获取图片失败，请重试"));
-        return;
+        SetStatus(0);
+        ResetBtnBgColor();
     }
-    if (limg.length() <= 0)
+    else
     {
-        WriteLog(_T("invalid base64 limg.length() <= 0"));
-        AfxMessageBox(_T("获取图片失败，请重试"));
-        return;
+        SetStatus(1);
+        ResetBtnBgColor();
+        m_btnAdd.SetBackgroundColor(RGB(241, 112, 122));
     }
-
-    std::vector<uchar> img_data(limg.begin(), limg.end());
-    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
-#endif
-
-#if (CloudAPI == 1 && QGDebug == 1)
-    /*std::ifstream file(GetImagePathUTF8() + "stereo_params.xml");
-    if (!file.is_open()) {
-        throw std::runtime_error("Unable to open file");
-    }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    m_cam_params = buffer.str();*/
-
-    m_camparam = "[[2685.4126058357715,0.0,1938.4374318654877,0.0,2685.4575283727913,1562.856538949121,0.0,0.0,1.0],[-0.09367156152199602,0.11420308542792396,-0.0003192966334184126,-0.0003126638912737841,-0.03576168360979528],[2694.5055745713976,0.0,2016.023715727735,0.0,2694.5334647064997,1624.3703386253874,0.0,0.0,1.0],[-0.0990762798801572,0.1344623330667149,0.0002629763856103351,-0.00026026834521232495,-0.06171569320487198],[0.9999947340940366,0.00021165684138245476,0.0032383615577255775,-0.00020970907983761957,0.9999997969337054,-0.0006017928628442911,-0.003238488273700012,0.0006011105800372101,0.9999945754151728],[-0.17971870265605125,2.0874208450081025e-05,0.0007972581123076216],[9.959138583675177e-08,-0.0007972454027038217,2.1353879457998024e-05,0.00021523700290517237,0.00010819955873093142,0.17972030956672616,1.6814545235148994e-05,-0.17971867057940927,0.00010808583434385429],[-3.5409179639913875e-12,2.8345155772186532e-08,-4.6331382348966894e-05,-7.652556243705983e-09,-3.8468727340391154e-09,-0.017138383094346336,1.0826862081080727e-05,0.01716616880998382,1.0],[0.9999992784749311,9.283999889650864e-05,-0.0011976770648645069,-9.320033363703872e-05,0.999999950413806,-0.00030080904803023704,0.001197649078364573,0.0003009204548910047,0.9999992375414918],[0.9999901537116226,-0.00011614819497435116,-0.004436100697916132,0.00011748285957754541,0.9999999479172159,0.00030060496215355463,0.004436065552147903,-0.0003011231681057728,0.9999901152747734],[2689.9954965396455,0.0,2003.1144714355469,0.0,0.0,2689.9954965396455,1578.137191772461,0.0,0.0,0.0,1.0,0.0],[2689.9954965396455,0.0,2003.1144714355469,-483.4472609498719,0.0,2689.9954965396455,1578.137191772461,0.0,0.0,0.0,1.0,0.0],[1.0,0.0,0.0,-2003.1144714355469,0.0,1.0,0.0,-1578.137191772461,0.0,0.0,0.0,2689.9954965396455,0.0,0.0,5.5641963742940055,0.0]]";
-
-    std::ifstream file1(GetImagePathUTF8() + "l.jpg", std::ios::binary);
-    if (!file1) {
-        std::cerr << "Unable to open file" << std::endl;
-        return;
-    }
-    std::ostringstream oss1;
-    oss1 << file1.rdbuf();
-    m_limg = base64_encode(oss1.str());
-
-    std::ifstream file2(GetImagePathUTF8() + "r.jpg", std::ios::binary);
-    if (!file2) {
-        std::cerr << "Unable to open file" << std::endl;
-        return;
-    }
-    std::ostringstream oss2;
-    oss2 << file2.rdbuf();
-    m_rimg = base64_encode(oss2.str());
-
-    std::string limg;
-    try
-    {
-        limg = base64_decode(m_limg);
-    }
-    catch (const std::exception&)
-    {
-        WriteLog(_T("invalid base64 exception"));
-        AfxMessageBox(_T("获取图片失败，请重试"));
-        return;
-    }
-    if (limg.length() <= 0)
-    {
-        WriteLog(_T("invalid base64 limg.length() <= 0"));
-        AfxMessageBox(_T("获取图片失败，请重试"));
-        return;
-    }
-
-    std::vector<uchar> img_data(limg.begin(), limg.end());
-    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
-#endif
-    LoadLocalImage(GetImagePath() + _T("limg.jpg"), true);
-    m_btnCapture.ShowWindow(SW_HIDE);
-    m_btnDis.ShowWindow(SW_SHOW);
-    m_btnRec.ShowWindow(SW_SHOW);
-    this->Invalidate();
 }
 
-void CMyWnd2::OnBnClickedBtnRec()
+void CEditWoodWnd::OnBnClickedBtnCrop()
 {
-    m_evt_beginRecEvent.SetEvent();
+    if (GetStatus() == -1 || GetScaleWoodID() <= 0)
+    {
+        AfxMessageBox(_T("请先识别！"));
+        return;
+    }
+    else if (GetStatus() == 3)
+    {
+        SetStatus(0);
+        ResetBtnBgColor();
+    }
+    else
+    {
+        SetStatus(3);
+        ResetBtnBgColor();
+        m_btnCrop.SetBackgroundColor(RGB(241, 112, 122));
+    }
 }
 
-void CMyWnd2::OnBnClickedBtnDis()
+void CEditWoodWnd::OnBnClickedBtnDel()
 {
-    m_image.Destroy();
-    m_btnCapture.ShowWindow(SW_SHOW);
-    m_btnDis.ShowWindow(SW_HIDE);
-    m_btnRec.ShowWindow(SW_HIDE);
-    this->Invalidate();
+    if (GetStatus() == -1 || GetScaleWoodID() <= 0)
+    {
+        AfxMessageBox(_T("请先识别！"));
+        return;
+    }
+    else if (GetStatus() == 2)
+    {
+        SetStatus(0);
+        ResetBtnBgColor();
+    }
+    else
+    {
+        SetStatus(2);
+        ResetBtnBgColor();
+        m_btnDel.SetBackgroundColor(RGB(241, 112, 122));
+    }
 }
 
-void CMyWnd2::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+void CEditWoodWnd::OnBnClickedBtnSave()
+{
+    m_pScaleWood->img = "save";
+    ::PostMessage(GetParent()->GetSafeHwnd(), WM_CLOSE, NULL, NULL);
+   
+}
+
+void CEditWoodWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
     // TODO: 在此添加消息处理程序代码和/或调用默认值
     //检查是否是删除键的按下
     if (nChar == VK_DELETE && m_status == 2)
     {
         bool isDelete = false;
-        auto iter = m_scaleWood.wood_list.begin();
-        while (iter != m_scaleWood.wood_list.end())
+        auto iter = m_pScaleWood->wood_list.begin();
+        while (iter != m_pScaleWood->wood_list.end())
         {
             if (iter->isDeleting)
             {
-                iter = m_scaleWood.wood_list.erase(iter);
+                iter = m_pScaleWood->wood_list.erase(iter);
                 isDelete = true;
             }
             else
@@ -790,7 +768,7 @@ void CMyWnd2::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             m_image.Destroy();
             CString imagePath;
-            imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+            imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
             LoadLocalImage(imagePath, false);
             Invalidate();
         }
@@ -799,12 +777,12 @@ void CMyWnd2::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 }
 
 
-void CMyWnd2::ResetCapture()
+void CEditWoodWnd::ResetCapture()
 {
     m_image.Destroy();
-    m_btnCapture.ShowWindow(SW_SHOW);
-    m_btnDis.ShowWindow(SW_HIDE);
-    m_btnRec.ShowWindow(SW_HIDE);
+    //m_btnAdd.ShowWindow(SW_SHOW);
+    //m_btnDel.ShowWindow(SW_HIDE);
+    //m_btnCrop.ShowWindow(SW_HIDE);
 
     m_points.clear();
 
@@ -817,34 +795,35 @@ void CMyWnd2::ResetCapture()
     m_endPoint = CPoint();
 
     m_isDrawFinished = false;
-    m_scaleWood = { 0 };
+    //m_scaleWood = { 0 };
     m_ellipse_add = { 0 };
 
     this->Invalidate();
 }
 
 
-void CMyWnd2::ShowHistoryData(ScaleWood* pScaleWood)
+void CEditWoodWnd::ShowHistoryData(ScaleWood* pScaleWood)
 {
     ResetCapture();
 
-    m_scaleWood.id = pScaleWood->id;
-    m_scaleWood.img = pScaleWood->img;
-    m_scaleWood.wood_list = pScaleWood->wood_list;
+    m_pScaleWood->id = pScaleWood->id;
+    m_pScaleWood->img = pScaleWood->img;
+    m_pScaleWood->wood_list = pScaleWood->wood_list;
 
     CString imagePath;
-    imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+    imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
     //m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
     LoadLocalImage(imagePath, true);
     SetStatus(0);
-    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
-    m_btnCapture.ShowWindow(SW_HIDE);
-    m_btnDis.ShowWindow(SW_HIDE);
-    m_btnRec.ShowWindow(SW_HIDE);
+    ResetBtnBgColor();
+    //::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
+    //m_btnAdd.ShowWindow(SW_HIDE);
+    //m_btnDel.ShowWindow(SW_HIDE);
+    //m_btnCrop.ShowWindow(SW_HIDE);
     this->Invalidate();
 }
 
-CPoint CMyWnd2::ScreenToImage(CPoint screenPoint)
+CPoint CEditWoodWnd::ScreenToImage(CPoint screenPoint)
 {
     // 将屏幕坐标转换为窗口的客户区坐标
     //ScreenToClient(&screenPoint);
@@ -857,7 +836,7 @@ CPoint CMyWnd2::ScreenToImage(CPoint screenPoint)
     return imagePoint;
 }
 
-CPoint CMyWnd2::ImageToScreen(CPoint imagePoint)
+CPoint CEditWoodWnd::ImageToScreen(CPoint imagePoint)
 {
     // 将屏幕坐标转换为窗口的客户区坐标
     //ScreenToClient(&screenPoint);
@@ -869,182 +848,182 @@ CPoint CMyWnd2::ImageToScreen(CPoint imagePoint)
 
     return screenPoint;
 }
-
-bool CMyWnd2::StartThread()
-{
-    //开启收流线程
-    m_bRun = true;
-    m_recThread = AfxBeginThread(RecThread, (LPVOID)this);
-    if (m_recThread == NULL)
-    {
-        m_bRun = false;
-        return false;
-    }
-    m_hRecThreadHandle = m_recThread->m_hThread;
-    //m_evt_checkRecordEvent.SetEvent();
-    return true;
-}
-
-
-UINT CMyWnd2::RecThread(LPVOID lpParam)
-{
-    CMyWnd2* pDecode = (CMyWnd2*)lpParam;
-    if (!pDecode)
-    {
-        return 0;
-    }
-    while (WaitForSingleObject(pDecode->m_evt_beginRecEvent, INFINITE) == WAIT_OBJECT_0)
-    {
-        if (pDecode->m_bRun == false) break;
-        pDecode->SetRecing(true);
-        pDecode->RecMethod();
-        pDecode->SetRecing(false);
-        if (pDecode->m_bRun == false) break;
-    }
-
-    return 1;
-}
-
-bool CMyWnd2::StopThread()
-{
-    m_recing = false;
-    m_bRun = false;
-    m_evt_beginRecEvent.SetEvent();
-    if (m_hRecThreadHandle != INVALID_HANDLE_VALUE)
-    {
-        WaitAndTermThread(m_hRecThreadHandle, 10000);
-        m_hRecThreadHandle = INVALID_HANDLE_VALUE;
-        m_recThread = NULL;
-    }
-    return true;
-}
-
-void CMyWnd2::RecMethod()
-{
-#if (QGDebug == 1 && CloudAPI == 0) 
-    m_btnRec.EnableWindow(TRUE);
-    m_btnRec.SetWindowTextW(_T("识别"));
-    m_btnRec.ShowWindow(SW_HIDE);
-    m_btnDis.ShowWindow(SW_HIDE);
-    ScaleWood scalewood;
-    scalewood.id = time(0);
-    scalewood.img = "";
-    WoodAttr woodAttr1 = { 0 };
-    woodAttr1.ellipse = { 2436.7294921875000, 963.02606201171875, 54.000000000000000, 57.000000000000000, 63.426303863525391,
-        2383.0000000000000, 984.00000000000000, 2489.0000000000000, 943.00000000000000,
-        2455.0000000000000, 1013.0000000000000, 2417.0000000000000, 912.00000000000000 };
-    woodAttr1.diameter = 13.400000000000000;
-    woodAttr1.diameters = { 13.400000000000000, 14.300000000000001 };
-    woodAttr1.volumn = 0.0000000000000000;
-
-    WoodAttr woodAttr2 = { 0 };
-    woodAttr2.ellipse = { 2258.6398925781250, 1551.4863281250000, 56.000000000000000, 57.000000000000000, 124.72299957275391,
-        2231.0000000000000, 1502.0000000000000, 2285.0000000000000, 1602.0000000000000,
-        2210.0000000000000, 1578.0000000000000, 2307.0000000000000, 1527.0000000000000 };
-    woodAttr2.diameter = 5.0000000000000000;
-    woodAttr2.diameters = { 5.0000000000000000, 5.2000000000000002 };
-    woodAttr2.volumn = 0.0000000000000000;
-
-    WoodAttr woodAttr3 = { 0 };
-    woodAttr3.ellipse = { 2189.5292968750000, 1670.6750488281250, 73.000000000000000, 79.000000000000000, 120.99822998046875,
-        2120.0000000000000, 1635.0000000000000, 2260.0000000000000, 1706.0000000000000,
-        2158.0000000000000, 1735.0000000000000, 2222.0000000000000, 1606.0000000000000 };
-    woodAttr3.diameter = 6.5999999999999996;
-    woodAttr3.diameters = { 6.5999999999999996, 7.2000000000000002 };
-    woodAttr3.volumn = 0.0000000000000000;
-
-    WoodAttr woodAttr4 = { 0 };
-    woodAttr4.ellipse = { 2362.7504882812500, 1676.9362792968750, 65.000000000000000, 71.000000000000000, 52.447589874267578,
-        2306.0000000000000, 1720.0000000000000, 2417.0000000000000, 1632.0000000000000,
-        2403.0000000000000, 1726.0000000000000, 2320.0000000000000, 1625.0000000000000 };
-    woodAttr4.diameter = 6.0000000000000000;
-    woodAttr4.diameters = { 6.0000000000000000, 6.5000000000000000 };
-    woodAttr4.volumn = 0.0000000000000000;
-
-    scalewood.wood_list.push_back(woodAttr1);
-    scalewood.wood_list.push_back(woodAttr2);
-    scalewood.wood_list.push_back(woodAttr3);
-    scalewood.wood_list.push_back(woodAttr4);
-
-    std::string strImagePath = GetImagePathUTF8() + "img.jpg";
-    cv::Mat img = cv::imread(strImagePath);
-    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
-    cv::imwrite(strImagePath, img);
-
-#else
-    CWaitCursor wait;
-    m_btnRec.SetWindowTextW(_T("识别中"));
-    m_btnRec.EnableWindow(FALSE);
-    m_btnDis.ShowWindow(SW_HIDE);
-    int errorCode = 0;
-    ScaleWood scalewood = { 0 };
-#if CloudAPI
-    int w = 0, h = 0, c = 0;
-    int ret = PostInfer(scalewood, errorCode, m_limg, m_rimg, m_camparam, w, h, c);
-#else
-    int ret = PostScale(scalewood, errorCode);
-#endif
-    //m_limg.clear();
-    //m_rimg.clear();
-    //m_camparam.clear();
-    scalewood.id = time(0);
-    m_btnRec.EnableWindow(TRUE);
-    m_btnRec.SetWindowTextW(_T("识别"));
-    wait.Restore();
-    if (ret < 0)
-    {
-        m_btnRec.ShowWindow(SW_SHOWNORMAL);
-        m_btnDis.ShowWindow(SW_SHOWNORMAL);
-        CString tipStr;
-        tipStr.Format(_T("识别失败，请重试, code:%d"), errorCode);
-        AfxMessageBox(tipStr);
-        return;
-    }
-    else
-    {
-        m_btnRec.ShowWindow(SW_HIDE);
-    }
-    try
-    {
-        scalewood.img = base64_decode(scalewood.img);
-    }
-    catch (const std::exception&)
-    {
-        WriteLog(_T("invalid base64"));
-        m_btnRec.ShowWindow(SW_SHOWNORMAL);
-        m_btnDis.ShowWindow(SW_SHOWNORMAL);
-        AfxMessageBox(_T("识别失败，请重试, invalid base64-1"));
-        return;
-    }
-    if (scalewood.img.length() <= 0)
-    {
-        m_btnRec.ShowWindow(SW_SHOWNORMAL);
-        m_btnDis.ShowWindow(SW_SHOWNORMAL);
-        AfxMessageBox(_T("识别失败，请重试, invalid base64-2"));
-        return;
-    }
-#endif
-
-#if CloudAPI
-    cv::Mat img(w, h, CV_8UC3, (char*)scalewood.img.c_str());
-#else
-    /*std::vector<uchar> img_data(scalewood.img.begin(), scalewood.img.end());
-    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);*/
-#endif
-    /*if (img.empty())
-    {
-        AfxMessageBox(_T("识别失败，请重试, invalid base64-3"));
-        return;
-    }
-    std::string imagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
-    cv::imwrite(imagePath, img);*/
-
-    m_image.Destroy();
-    CString strImagePathW;
-    strImagePathW.Format(_T("%s%d.jpg"), GetImagePath(), scalewood.id);
-    LoadLocalImage(strImagePathW, true);
-    m_scaleWood = scalewood;
-    SetStatus(0);
-    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
-    this->Invalidate();
-}
+//
+//bool CEditWoodWnd::StartThread()
+//{
+//    //开启收流线程
+//    m_bRun = true;
+//    m_recThread = AfxBeginThread(RecThread, (LPVOID)this);
+//    if (m_recThread == NULL)
+//    {
+//        m_bRun = false;
+//        return false;
+//    }
+//    m_hRecThreadHandle = m_recThread->m_hThread;
+//    //m_evt_checkRecordEvent.SetEvent();
+//    return true;
+//}
+//
+//
+//UINT CEditWoodWnd::RecThread(LPVOID lpParam)
+//{
+//    CEditWoodWnd* pDecode = (CEditWoodWnd*)lpParam;
+//    if (!pDecode)
+//    {
+//        return 0;
+//    }
+//    while (WaitForSingleObject(pDecode->m_evt_beginRecEvent, INFINITE) == WAIT_OBJECT_0)
+//    {
+//        if (pDecode->m_bRun == false) break;
+//        pDecode->SetRecing(true);
+//        pDecode->RecMethod();
+//        pDecode->SetRecing(false);
+//        if (pDecode->m_bRun == false) break;
+//    }
+//
+//    return 1;
+//}
+//
+//bool CEditWoodWnd::StopThread()
+//{
+//    m_recing = false;
+//    m_bRun = false;
+//    m_evt_beginRecEvent.SetEvent();
+//    if (m_hRecThreadHandle != INVALID_HANDLE_VALUE)
+//    {
+//        WaitAndTermThread(m_hRecThreadHandle, 10000);
+//        m_hRecThreadHandle = INVALID_HANDLE_VALUE;
+//        m_recThread = NULL;
+//    }
+//    return true;
+//}
+//
+//void CEditWoodWnd::RecMethod()
+//{
+//#if (QGDebug == 1 && CloudAPI == 0) 
+//    m_btnCrop.EnableWindow(TRUE);
+//    m_btnCrop.SetWindowTextW(_T("识别"));
+//    m_btnCrop.ShowWindow(SW_HIDE);
+//    m_btnDel.ShowWindow(SW_HIDE);
+//    ScaleWood scalewood;
+//    scalewood.id = time(0);
+//    scalewood.img = "";
+//    WoodAttr woodAttr1 = { 0 };
+//    woodAttr1.ellipse = { 2436.7294921875000, 963.02606201171875, 54.000000000000000, 57.000000000000000, 63.426303863525391,
+//        2383.0000000000000, 984.00000000000000, 2489.0000000000000, 943.00000000000000,
+//        2455.0000000000000, 1013.0000000000000, 2417.0000000000000, 912.00000000000000 };
+//    woodAttr1.diameter = 13.400000000000000;
+//    woodAttr1.diameters = { 13.400000000000000, 14.300000000000001 };
+//    woodAttr1.volumn = 0.0000000000000000;
+//
+//    WoodAttr woodAttr2 = { 0 };
+//    woodAttr2.ellipse = { 2258.6398925781250, 1551.4863281250000, 56.000000000000000, 57.000000000000000, 124.72299957275391,
+//        2231.0000000000000, 1502.0000000000000, 2285.0000000000000, 1602.0000000000000,
+//        2210.0000000000000, 1578.0000000000000, 2307.0000000000000, 1527.0000000000000 };
+//    woodAttr2.diameter = 5.0000000000000000;
+//    woodAttr2.diameters = { 5.0000000000000000, 5.2000000000000002 };
+//    woodAttr2.volumn = 0.0000000000000000;
+//
+//    WoodAttr woodAttr3 = { 0 };
+//    woodAttr3.ellipse = { 2189.5292968750000, 1670.6750488281250, 73.000000000000000, 79.000000000000000, 120.99822998046875,
+//        2120.0000000000000, 1635.0000000000000, 2260.0000000000000, 1706.0000000000000,
+//        2158.0000000000000, 1735.0000000000000, 2222.0000000000000, 1606.0000000000000 };
+//    woodAttr3.diameter = 6.5999999999999996;
+//    woodAttr3.diameters = { 6.5999999999999996, 7.2000000000000002 };
+//    woodAttr3.volumn = 0.0000000000000000;
+//
+//    WoodAttr woodAttr4 = { 0 };
+//    woodAttr4.ellipse = { 2362.7504882812500, 1676.9362792968750, 65.000000000000000, 71.000000000000000, 52.447589874267578,
+//        2306.0000000000000, 1720.0000000000000, 2417.0000000000000, 1632.0000000000000,
+//        2403.0000000000000, 1726.0000000000000, 2320.0000000000000, 1625.0000000000000 };
+//    woodAttr4.diameter = 6.0000000000000000;
+//    woodAttr4.diameters = { 6.0000000000000000, 6.5000000000000000 };
+//    woodAttr4.volumn = 0.0000000000000000;
+//
+//    scalewood.wood_list.push_back(woodAttr1);
+//    scalewood.wood_list.push_back(woodAttr2);
+//    scalewood.wood_list.push_back(woodAttr3);
+//    scalewood.wood_list.push_back(woodAttr4);
+//
+//    std::string strImagePath = GetImagePathUTF8() + "img.jpg";
+//    cv::Mat img = cv::imread(strImagePath);
+//    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
+//    cv::imwrite(strImagePath, img);
+//
+//#else
+//    CWaitCursor wait;
+//    m_btnCrop.SetWindowTextW(_T("识别中"));
+//    m_btnCrop.EnableWindow(FALSE);
+//    m_btnDel.ShowWindow(SW_HIDE);
+//    int errorCode = 0;
+//    ScaleWood scalewood = { 0 };
+//#if CloudAPI
+//    int w = 0, h = 0, c = 0;
+//    int ret = PostInfer(scalewood, errorCode, m_limg, m_rimg, m_camparam, w, h, c);
+//#else
+//    int ret = PostScale(scalewood, errorCode);
+//#endif
+//    //m_limg.clear();
+//    //m_rimg.clear();
+//    //m_camparam.clear();
+//    scalewood.id = time(0);
+//    m_btnCrop.EnableWindow(TRUE);
+//    m_btnCrop.SetWindowTextW(_T("识别"));
+//    wait.Restore();
+//    if (ret < 0)
+//    {
+//        m_btnCrop.ShowWindow(SW_SHOWNORMAL);
+//        m_btnDel.ShowWindow(SW_SHOWNORMAL);
+//        CString tipStr;
+//        tipStr.Format(_T("识别失败，请重试, code:%d"), errorCode);
+//        AfxMessageBox(tipStr);
+//        return;
+//    }
+//    else
+//    {
+//        m_btnCrop.ShowWindow(SW_HIDE);
+//    }
+//    try
+//    {
+//        scalewood.img = base64_decode(scalewood.img);
+//    }
+//    catch (const std::exception&)
+//    {
+//        WriteLog(_T("invalid base64"));
+//        m_btnCrop.ShowWindow(SW_SHOWNORMAL);
+//        m_btnDel.ShowWindow(SW_SHOWNORMAL);
+//        AfxMessageBox(_T("识别失败，请重试, invalid base64-1"));
+//        return;
+//    }
+//    if (scalewood.img.length() <= 0)
+//    {
+//        m_btnCrop.ShowWindow(SW_SHOWNORMAL);
+//        m_btnDel.ShowWindow(SW_SHOWNORMAL);
+//        AfxMessageBox(_T("识别失败，请重试, invalid base64-2"));
+//        return;
+//    }
+//#endif
+//
+//#if CloudAPI
+//    cv::Mat img(w, h, CV_8UC3, (char*)scalewood.img.c_str());
+//#else
+//    /*std::vector<uchar> img_data(scalewood.img.begin(), scalewood.img.end());
+//    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);*/
+//#endif
+//    /*if (img.empty())
+//    {
+//        AfxMessageBox(_T("识别失败，请重试, invalid base64-3"));
+//        return;
+//    }
+//    std::string imagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
+//    cv::imwrite(imagePath, img);*/
+//
+//    m_image.Destroy();
+//    CString strImagePathW;
+//    strImagePathW.Format(_T("%s%d.jpg"), GetImagePath(), scalewood.id);
+//    LoadLocalImage(strImagePathW, true);
+//    m_scaleWood = scalewood;
+//    SetStatus(0);
+//    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
+//    this->Invalidate();
+//}

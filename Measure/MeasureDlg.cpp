@@ -36,6 +36,10 @@
 #define IDC_LOGO_IMAGE_STA              9000+2
 #define IDC_MIN_IMAGE_STA               9000+3
 #define IDC_EXIT_IMAGE_STA              9000+4
+#define IDC_ARRAY_IMAGE_WND1            9000+5
+#define IDC_ARRAY_IMAGE_WND2            9000+6
+#define IDC_ARRAY_IMAGE_WND3            9000+7
+#define IDC_ARRAY_IMAGE_WND4            9000+8
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -90,6 +94,9 @@ void CMeasureDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_STATIC_VIDEO, m_staVideo);
+	DDX_Control(pDX, IDC_BTN_PHOTO, m_btnPhoto);
+	DDX_Control(pDX, IDC_BTN_INFER, m_btnInfer);
+	DDX_Control(pDX, IDC_BTN_DROP, m_btnDrop);
 	DDX_Control(pDX, IDC_BTN_ADD, m_btnAdd);
 	DDX_Control(pDX, IDC_BTN_CROP, m_btnCrop);
 	DDX_Control(pDX, IDC_STATIC_BG, m_bgStatic);
@@ -119,6 +126,9 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_MESSAGE(WM_USER_MESSAGE_FINISHED, &CMeasureDlg::OnUserMessageFinished)
 	ON_CONTROL_RANGE(STN_CLICKED, IDC_MIN_IMAGE_STA, IDC_EXIT_IMAGE_STA, &CMeasureDlg::OnClickStaMinExit)
 	ON_WM_CLOSE()
+	ON_BN_CLICKED(IDC_BTN_PHOTO, &CMeasureDlg::OnBnClickedBtnPhoto)
+	ON_BN_CLICKED(IDC_BTN_INFER, &CMeasureDlg::OnBnClickedBtnInfer)
+	ON_BN_CLICKED(IDC_BTN_DROP, &CMeasureDlg::OnBnClickedBtnDrop)
 END_MESSAGE_MAP()
 
 
@@ -159,6 +169,10 @@ BOOL CMeasureDlg::OnInitDialog()
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWorkArea, 0);
 	MoveWindow(&rcWorkArea);
 
+	//m_btnPhoto.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
+	//m_btnInfer.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
+	//m_btnDrop.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
+
 	m_btnAdd.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
 	m_btnCrop.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 300, 5, 100, 30);
 	m_staVideo.MoveWindow(30, 50, rcWorkArea.Width() - 60, rcWorkArea.Height() - 100);
@@ -172,13 +186,27 @@ BOOL CMeasureDlg::OnInitDialog()
 
 	//中间图片区域4056*3040
 	RECT rect;
-	rect.left = 120;
-	rect.top = 20;
-	rect.right = rcWorkArea.Width() - 120;
-	rect.bottom = rcWorkArea.Height() - 20;
-	m_imgWnd.Create(NULL, _T(""), WS_VISIBLE | WS_CHILD, rect, this, IDC_SUB_IMAGE_WND);
-	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	rect.left = 110;
+	rect.top = 10;
+	rect.right = rcWorkArea.Width() - 110;
+	rect.bottom = rcWorkArea.Height() - 10;
+	//m_imgWnd.Create(NULL, _T(""), WS_VISIBLE | WS_CHILD, rect, this, IDC_SUB_IMAGE_WND);
+	//m_imgWnd.ShowWindow(SW_HIDE);
 	//m_imgWnd.LoadImage(_T("C:\\TensorScale\\Image\\img.jpg"));
+	//四个阵列相机位置
+	RECT arrRect;
+	LONG arr_w = (rect.right - rect.left) / 2;
+	LONG arr_h = (rect.bottom - rect.top) / 2;
+	for (size_t i = 0; i < 4; i++)
+	{
+		arrRect.left = rect.left + arr_w * (i % 2) + 5 * (i % 2);
+		arrRect.top = rect.top + arr_h * (i / 2) + 5 * (i / 2);
+		arrRect.right = arrRect.left + arr_w - 5 * (i % 2);
+		arrRect.bottom = arrRect.top + arr_h - 5 * (i / 2);
+		m_arrayWnd[i].Create(NULL, _T(""), WS_VISIBLE | WS_CHILD, arrRect, this, IDC_ARRAY_IMAGE_WND1+i);
+		m_arrayWnd[i].SetWndIndex(i);
+		m_arrayWnd[i].ShowWindow(SW_SHOWNORMAL);
+	}
 	//报表
 	m_dlgReport.Create(IDD_DIALOG_REPORT, this);
 	m_dlgReport.MoveWindow(&rect);
@@ -250,6 +278,10 @@ BOOL CMeasureDlg::OnInitDialog()
 	m_btnData.MoveWindow(10, rcWorkArea.Height() * 0.5 + 40, 80, 40);
 
 	//右侧五个按钮
+	m_btnPhoto.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 400, 80, 40);
+	m_btnInfer.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 320, 80, 40);
+	m_btnDrop.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 240, 80, 40);
+
 	m_btnDel.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5, 80, 40);
 	m_btnCrop.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 80, 80, 40);
 	m_btnAdd.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 160, 80, 40);
@@ -282,7 +314,9 @@ BOOL CMeasureDlg::OnInitDialog()
 	{
 		AfxMessageBox(_T("创建数据表失败"));
 	}*/
-
+	m_btnPhoto.ModifyStyle(NULL, BS_OWNERDRAW);
+	m_btnInfer.ModifyStyle(NULL, BS_OWNERDRAW);
+	m_btnDrop.ModifyStyle(NULL, BS_OWNERDRAW);
 	m_btnAdd.ModifyStyle(NULL, BS_OWNERDRAW);
 	m_btnCrop.ModifyStyle(NULL, BS_OWNERDRAW);
 	m_btnDel.ModifyStyle(NULL, BS_OWNERDRAW);
@@ -424,7 +458,7 @@ void CMeasureDlg::OnBnClickedBtnAdd()
 
 	// TODO: 在此添加控件通知处理程序代码
 	m_dlgReport.ShowWindow(SW_HIDE);
-	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	/*m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	if (m_imgWnd.GetRecing())
 	{
 		AfxMessageBox(_T("正在识别中，请稍后！"));
@@ -451,14 +485,14 @@ void CMeasureDlg::OnBnClickedBtnAdd()
 		m_imgWnd.SetStatus(1);
 		ResetBtnBgColor();
 		m_btnAdd.SetBackgroundColor(RGB(241, 112, 122));
-	}
+	}*/
 }
 
 void CMeasureDlg::OnBnClickedBtnCrop()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	m_dlgReport.ShowWindow(SW_HIDE);
-	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	/*m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	if (m_imgWnd.GetRecing())
 	{
 		AfxMessageBox(_T("正在识别中，请稍后！"));
@@ -480,7 +514,7 @@ void CMeasureDlg::OnBnClickedBtnCrop()
 
 		ResetBtnBgColor();
 		m_btnCrop.SetBackgroundColor(RGB(241, 112, 122));
-	}
+	}*/
 }
 
 HBRUSH CMeasureDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
@@ -509,7 +543,7 @@ void CMeasureDlg::OnBnClickedBtnDel()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	m_dlgReport.ShowWindow(SW_HIDE);
-	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	/*m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	if (m_imgWnd.GetRecing())
 	{
 		AfxMessageBox(_T("正在识别中，请稍后！"));
@@ -530,30 +564,49 @@ void CMeasureDlg::OnBnClickedBtnDel()
 	    m_imgWnd.SetStatus(2);
 		ResetBtnBgColor();
 		m_btnDel.SetBackgroundColor(RGB(241, 112, 122));
-	}
+	}*/
 }
 
 
 void CMeasureDlg::OnBnClickedBtnReport()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if (m_imgWnd.GetRecing())
+	for (size_t i = 0; i < 4; i++)
 	{
-		AfxMessageBox(_T("正在识别中，请稍后！"));
-		return;
+		if (m_arrayWnd[i].GetWorkStatus() > 1)
+		{
+			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+			return;
+		}
 	}
-	ResetBtnBgColor();
+	
+	//ResetBtnBgColor();
 	if (m_dlgReport.IsWindowVisible())
 	{
-		m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+		for (size_t i = 0; i < 4; i++)
+		{
+			m_arrayWnd[i].ShowWindow(SW_SHOWNORMAL);
+		}
+		//m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 		m_dlgReport.ShowWindow(SW_HIDE);
 	}
 	else
 	{
-		m_imgWnd.ShowWindow(SW_HIDE);
+		for (size_t i = 0; i < 4; i++)
+		{
+			m_arrayWnd[i].ShowWindow(SW_HIDE);
+		}
+		//m_imgWnd.ShowWindow(SW_HIDE);
 		m_dlgReport.ShowWindow(SW_SHOWNORMAL);
+		std::vector<ScaleWood> scaleWoodVec(4);
+		for (size_t i = 0; i < 4; i++)
+		{
+			m_arrayWnd[i].GetScaleWood(scaleWoodVec[i]);
+		}
+		//ScaleWood scaleWood;
+		//m_imgWnd.GetScaleWood(scaleWood);
 		ScaleWood scaleWood;
-		m_imgWnd.GetScaleWood(scaleWood);
+		CollectScaleWood(scaleWood, scaleWoodVec);
 		m_dlgReport.SetScaleWood(scaleWood);
 	}
 }
@@ -561,18 +614,19 @@ void CMeasureDlg::OnBnClickedBtnReport()
 void CMeasureDlg::OnBnClickedBtnScale()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if (m_imgWnd.GetRecing())
+	for (size_t i = 0; i < 4; i++)
 	{
-		AfxMessageBox(_T("正在识别中，请稍后！"));
-		return;
+		if (m_arrayWnd[i].GetWorkStatus() > 0)
+		{
+			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+			return;
+		}
 	}
-	ResetBtnBgColor();
-	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	//ResetBtnBgColor();
+	//m_imgWnd.ShowWindow(SW_SHOWNORMAL);
 	m_dlgData.ShowWindow(SW_HIDE);
 	m_dlgReport.ShowWindow(SW_HIDE);
-	//std::string url;
-	//int ret = PostPreview(url);
-
+	
 	//右侧按钮切换显示
 	m_btnDel.ShowWindow(SW_SHOWNORMAL);
 	m_btnCrop.ShowWindow(SW_SHOWNORMAL);
@@ -581,19 +635,31 @@ void CMeasureDlg::OnBnClickedBtnScale()
 	m_btnSave.ShowWindow(SW_SHOWNORMAL);
 	m_btnDownLoad.ShowWindow(SW_HIDE);
 
-	m_imgWnd.ResetCapture();
+	for (size_t i = 0; i < 4; i++)
+	{
+		m_arrayWnd[i].ShowWindow(SW_SHOWNORMAL);
+		m_arrayWnd[i].ResetCapture();
+	}
+	//m_imgWnd.ResetCapture();
 }
 
 void CMeasureDlg::OnBnClickedBtnData()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if (m_imgWnd.GetRecing())
+	for (size_t i = 0; i < 4; i++)
 	{
-		AfxMessageBox(_T("正在识别中，请稍后！"));
-		return;
+		if (m_arrayWnd[i].GetWorkStatus() > 0)
+		{
+			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+			return;
+		}
 	}
-	ResetBtnBgColor();
-	m_imgWnd.ShowWindow(SW_HIDE);
+	//ResetBtnBgColor();
+	//m_imgWnd.ShowWindow(SW_HIDE);
+	for (size_t i = 0; i < 4; i++)
+	{
+		m_arrayWnd[i].ShowWindow(SW_HIDE);
+	}
 	m_dlgData.ShowWindow(SW_SHOWNORMAL);
 	m_dlgData.SetEndTimeCurTime();
 
@@ -613,7 +679,7 @@ std::string CMeasureDlg::GetStringWoodList(ScaleWood& scaleWood)
 	{
 		Json::Value woodAttr;
 		woodAttr["diameter"] = scaleWood.wood_list[i].diameter;
-
+		woodAttr["index"] = scaleWood.wood_list[i].index;
 		Json::Value diameters;
 		diameters["d1"] = scaleWood.wood_list[i].diameters.d1;
 		diameters["d2"] = scaleWood.wood_list[i].diameters.d2;
@@ -645,231 +711,141 @@ std::string CMeasureDlg::GetStringWoodList(ScaleWood& scaleWood)
 void CMeasureDlg::OnBnClickedBtnSave()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	if (m_imgWnd.GetRecing())
+	for (size_t i = 0; i < 4; i++)
+	{
+		if (m_arrayWnd[i].GetWorkStatus() > 0)
+		{
+			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+			return;
+		}
+	}
+
+	/*if (m_imgWnd.GetRecing())
 	{
 		AfxMessageBox(_T("正在识别中，请稍后！"));
 		return;
 	}
-	ResetBtnBgColor();
-	m_imgWnd.ShowWindow(SW_SHOWNORMAL);
-	m_dlgReport.ShowWindow(SW_HIDE);
-
-	double wood_len = m_dlgReport.GetWoodLen();
-
-	ScaleWood scaleWood = { 0 };
-	if (m_imgWnd.GetScaleWood(scaleWood))
+	ResetBtnBgColor();*/
+	for (size_t i = 0; i < 4; i++)
 	{
-		cv::Mat src = cv::imread(GetImagePathUTF8() + std::to_string(scaleWood.id) + ".jpg");
+		m_arrayWnd[i].ShowWindow(SW_SHOWNORMAL);
+	}
+	//m_imgWnd.ShowWindow(SW_SHOWNORMAL);
+	m_dlgReport.ShowWindow(SW_HIDE);
+	double wood_len = m_dlgReport.GetWoodLen();
+	std::vector<ScaleWood> scaleWoodVec(4);
+	for (size_t i = 0; i < 4; i++)
+	{
+		if (!m_arrayWnd[i].GetScaleWood(scaleWoodVec[i]))
+		{
+			AfxMessageBox(_T("没有数据保存，请先进行检尺"));
+			return;
+		}
+	}
+	
+	for (size_t k = 0; k < scaleWoodVec.size(); k++)
+	{
+		cv::Mat src = cv::imread(GetImagePathUTF8() + std::to_string(scaleWoodVec[k].id) + "_" + std::to_string(k) + ".jpg");
 		if (src.data)
 		{
 			//保存结果图
-			cv::Mat r_dst = src.clone(); 
+			cv::Mat r_dst = src.clone();
 			char text[8] = { 0 };
-			for (size_t i = 0; i < scaleWood.wood_list.size(); i++)
+			for (size_t i = 0; i < scaleWoodVec[k].wood_list.size(); i++)
 			{
 				cv::ellipse(r_dst,
-					cv::Point(scaleWood.wood_list[i].ellipse.cx, scaleWood.wood_list[i].ellipse.cy),
-					cv::Size(scaleWood.wood_list[i].ellipse.ab1, scaleWood.wood_list[i].ellipse.ab2),
-					scaleWood.wood_list[i].ellipse.angel, 
+					cv::Point(scaleWoodVec[k].wood_list[i].ellipse.cx, scaleWoodVec[k].wood_list[i].ellipse.cy),
+					cv::Size(scaleWoodVec[k].wood_list[i].ellipse.ab1, scaleWoodVec[k].wood_list[i].ellipse.ab2),
+					scaleWoodVec[k].wood_list[i].ellipse.angel,
 					0.0, 360.0, cv::Scalar(0, 255, 0), 2);
-				
-				sprintf_s(text, 8, "% .2f", scaleWood.wood_list[i].diameter);
+
+				sprintf_s(text, 8, "% .2f", scaleWoodVec[k].wood_list[i].diameter);
 				cv::putText(r_dst, text,
-					cv::Point(scaleWood.wood_list[i].ellipse.cx - scaleWood.wood_list[i].ellipse.ab1 * 0.7,
-						scaleWood.wood_list[i].ellipse.cy/* - scaleWood.wood_list[i].ellipse.ab1 * 0.3*/),
+					cv::Point(scaleWoodVec[k].wood_list[i].ellipse.cx - scaleWoodVec[k].wood_list[i].ellipse.ab1 * 0.7,
+						scaleWoodVec[k].wood_list[i].ellipse.cy/* - scaleWood.wood_list[i].ellipse.ab1 * 0.3*/),
 					cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 4);
 			}
-			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWood.id) + "_r.jpg", r_dst);
+			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWoodVec[k].id) + "_" + std::to_string(k) + "_r.jpg", r_dst);
 
 			//保存小图
 			cv::Mat s_dst;
-			cv::resize(src, s_dst, cv::Size(src.cols/8, src.rows/8));
-			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWood.id) + "_s.jpg", s_dst);
+			cv::resize(src, s_dst, cv::Size(src.cols / 8, src.rows / 8));
+			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWoodVec[k].id) + "_" + std::to_string(k) + "_s.jpg", s_dst);
 		}
-		
-		//计算总容积
-		double total_v = 0.0;
-		double wood_v = 0.0;
-		double l = wood_len;
-		for (size_t i = 0; i < scaleWood.wood_list.size(); i++)
+	}
+
+	ScaleWood scaleWood = { 0 };
+	CollectScaleWood(scaleWood, scaleWoodVec);
+
+	//计算总容积
+	double total_v = 0.0;
+	double wood_v = 0.0;
+	double l = wood_len;
+	for (size_t i = 0; i < scaleWood.wood_list.size(); i++)
+	{
+		int d = scaleWood.wood_list[i].diameter;
+		if (d < 14) {
+			wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+		}
+		else {
+			wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+		}
+		total_v += wood_v;
+	}
+
+	//获取woodlist串
+	std::string woollist = GetStringWoodList(scaleWood);
+	int ret = db_query_exist_by_create_time(scaleWood.id);
+	if (ret < 0)
+	{
+		if (ret == -1)
 		{
-			int d = scaleWood.wood_list[i].diameter;
-			if (d < 14) {
-				wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
-			}
-			else {
-				wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
-			}
-			total_v += wood_v;
+			AfxMessageBox(_T("打开数据库失败"));
+			return;
 		}
-		
-		//获取woodlist串
-		std::string woollist = GetStringWoodList(scaleWood);
-		int ret = db_query_exist_by_create_time(scaleWood.id);
-		if (ret < 0)
+		else
 		{
-			if (ret == -1)
-			{
-				AfxMessageBox(_T("打开数据库失败"));
-				return;
-			}
-			else
-			{
-				AfxMessageBox(_T("查询数据失败"));
-				return;
-			}
+			AfxMessageBox(_T("查询数据失败"));
+			return;
 		}
-		else if (ret > 0)
+	}
+	else if (ret > 0)
+	{
+		ret = db_update_by_create_time(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
+		if (ret == -1)
 		{
-			ret = db_update_by_create_time(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
-			if (ret == -1)
-			{
-				AfxMessageBox(_T("打开数据库失败"));
-			}
-			else if (ret == -2)
-			{
-				AfxMessageBox(_T("修改数据失败"));
-			}
-			else
-			{
-				AfxMessageBox(_T("修改数据成功"));
-			}
+			AfxMessageBox(_T("打开数据库失败"));
 		}
-		else 
+		else if (ret == -2)
 		{
-			ret = db_insert_record(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
-			if (ret == -1)
-			{
-				AfxMessageBox(_T("打开数据库失败"));
-			}
-			else if (ret == -2)
-			{
-				AfxMessageBox(_T("插入数据失败"));
-			}
-			else
-			{
-				AfxMessageBox(_T("保存数据成功"));
-			}
+			AfxMessageBox(_T("修改数据失败"));
 		}
-		m_imgWnd.ResetCapture();
-		//m_imgWnd.ClearScaleWood();
+		else
+		{
+			AfxMessageBox(_T("修改数据成功"));
+		}
 	}
 	else
 	{
-		AfxMessageBox(_T("没有数据保存，请先进行检尺"));
+		ret = db_insert_record(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
+		if (ret == -1)
+		{
+			AfxMessageBox(_T("打开数据库失败"));
+		}
+		else if (ret == -2)
+		{
+			AfxMessageBox(_T("插入数据失败"));
+		}
+		else
+		{
+			AfxMessageBox(_T("保存数据成功"));
+		}
 	}
-
-	//db_query_all();
-
-	//return;
-	////printf("_Version = %s \n", _Version);
-	//std::vector<DB_Data_Row> testVec;
-	//char* pcErrMsg = NULL;
-	//sqlite3_stmt* pStmt = NULL;
-	//sqlite3* pDB = NULL;
-	//int nRes = 0;
-	//// 格式化SQL语句
-	//char cSql[512] = { 0 };
-	//// 测试 时间数据
-	//char cDBTime[32] = { 0 };
-	//unsigned char bBCDTime[7] = { 0 };
-	//memcpy(bBCDTime, "\x20\x19\x04\x09\x15\x36\x43", sizeof(bBCDTime));
-	//do
-	//{
-	//	//打开数据库
-	//	nRes = sqlite3_open(DB_PATHNAME, &pDB);
-	//	if (nRes != SQLITE_OK)
-	//	{
-	//		//打开数据库失败
-	//		// writeLog
-	//		printf("sqlite3_open, 打开数据库失败: %s --------------------\n", sqlite3_errmsg(pDB));
-	//		break;
-	//	}
-	//	// 清除 数据库表 test_table
-	//	sqlite3_snprintf(512, cSql, "drop table if exists test_table");
-	//	sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
-	//	if (nRes != SQLITE_OK)
-	//	{
-	//		printf("清除数据库表test_table 失败: %s --------------------\n", pcErrMsg);
-	//		break;
-	//	}
-	//	printf("Clear test_table successful. \n");
-	//	// 创建一个表,如果该表存在，则不创建，并给出提示信息，存储在 zErrMsg 中
-	//	sqlite3_snprintf(512, cSql, "CREATE TABLE test_table(\
-	//			nID INTEGER PRIMARY KEY,\
-	//			cName VARCHAR(50),\
-	//			cCreateTime TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),\
-	//			ucSeq INTEGER, \
-	//			dMoney DOUBLE DEFAULT 15.5 \
-	//		);");
-	//	nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
-	//	if (nRes != SQLITE_OK)
-	//	{
-	//		printf("创建数据库表test_table 失败: %s --------------------\n", pcErrMsg);
-	//		break;
-	//	}
-	//	printf("create test_table successful. \n");
-	//	// 插入数据
-	//	memset(cDBTime, 0x00, sizeof(cDBTime));
-	//	_BCDTimeToDBTime(bBCDTime, sizeof(bBCDTime), cDBTime, sizeof(cDBTime));
-	//	sqlite3_snprintf(512, cSql, "INSERT INTO test_table(cName, ucSeq) VALUES('当前时间', 8); \
-	//			INSERT INTO test_table(cName, cCreateTime, ucSeq, dMoney) VALUES('%s', '%s', %d, %f)", "InputTime", cDBTime, 10, 16.5);
-	//	nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
-	//	if (nRes != SQLITE_OK)
-	//	{
-	//		printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
-	//		break;
-	//	}
-	//	printf("insert test_table successful. \n");
-	//	// 执行操作  "order by cCreateTime ASC"
-	//	sqlite3_snprintf(512, cSql, "select * from test_table order by ucSeq DESC");
-	//	if (sqlite3_prepare_v2(pDB, cSql, -1, &pStmt, NULL) == SQLITE_OK)
-	//	{
-	//		// 单步处理返回的每个行结果
-	//		while (sqlite3_step(pStmt) == SQLITE_ROW)
-	//		{
-	//			// 整型数据 处理
-	//			DB_Data_Row rowData;
-	//			printf("------------------------------\n");
-	//			rowData.nID = sqlite3_column_int(pStmt, 0);
-	//			printf("rowData.nID = %d\n", rowData.nID);
-	//			// 字符串数据 处理
-	//			memcpy(rowData.cName, "123456789012345", 16);
-	//			strcpy_s(rowData.cName, (const char*)sqlite3_column_text(pStmt, 1));
-	//			printf("rowData.cName = %s\n", rowData.cName);
-	//			// 验证 strcpy 复制会把'\0' 结束字符也复制过去
-	//			for (int idx = 0; idx < 16; idx++)
-	//				printf("%c", rowData.cName[idx]);
-	//			printf("\n");
-	//			// 时间数据 处理
-	//			_DBTimeTocTime((char*)sqlite3_column_text(pStmt, 2), (short)sqlite3_column_bytes(pStmt, 2), rowData.cCreateTime);
-	//			printf("cCreateTime_len = %d, rowData.cCreateTime = %s\n", strlen(rowData.cCreateTime), rowData.cCreateTime);
-	//			memset(cDBTime, 0x00, sizeof(cDBTime));
-	//			_cTimeToDBTime(rowData.cCreateTime, strlen(rowData.cCreateTime), cDBTime, sizeof(cDBTime));
-	//			printf("cDBTime_len = %d, cDBTime = %s\n", strlen(cDBTime), cDBTime);
-	//			// 单字节数据  处理
-	//			rowData.ucSeq = sqlite3_column_int(pStmt, 3);
-	//			printf("rowData.ucSeq = %d\n", rowData.ucSeq);
-	//			// 浮点数据 处理,格式化显示2位小数
-	//			rowData.dMoney = sqlite3_column_double(pStmt, 4);
-	//			printf("rowData.dMoney = %.2f\n", rowData.dMoney);
-	//			testVec.push_back(rowData);
-	//		}
-	//	}
-	//	else
-	//	{
-	//		printf("sqlite3_prepare_v2, 准备语句失败 : %s --------------------\n", sqlite3_errmsg(pDB));
-	//	}
-	//	sqlite3_finalize(pStmt);
-	//} while (0);
-	////关闭数据库
-	//sqlite3_close(pDB);
-	//pDB = NULL;
-	//if (pcErrMsg != NULL)
-	//{
-	//	sqlite3_free(pcErrMsg); //释放内存
-	//	pcErrMsg = NULL;
-	//}
+	for (size_t i = 0; i < 4; i++)
+	{
+		m_arrayWnd[i].ResetCapture();
+	}
+	//m_imgWnd.ResetCapture();
 }
 
 void CMeasureDlg::GetDownLoadData(std::vector<std::vector<CString>>& wood_data)
@@ -1208,7 +1184,15 @@ LRESULT CMeasureDlg::OnUserMessage(WPARAM wParam, LPARAM lParam)
 	ScaleWood * pScaleWood = (ScaleWood*)wParam;
 	double* pLenght = (double*)lParam;
 	OnBnClickedBtnScale();
-	m_imgWnd.ShowHistoryData(pScaleWood);
+	//m_imgWnd.ShowHistoryData(pScaleWood);
+	std::vector<ScaleWood> scaleWoodVec(4);
+	if (ReCollectScaleWood(pScaleWood, scaleWoodVec))
+	{
+		for (size_t i = 0; i < 4; i++)
+		{
+			m_arrayWnd[i].ShowHistoryData(&scaleWoodVec[i]);
+		}
+	}
 	m_dlgReport.SetWoodLen(*pLenght);
 	delete pScaleWood;
 	delete pLenght;
@@ -1271,4 +1255,76 @@ BOOL CMeasureDlg::PreTranslateMessage(MSG* pMsg)
 	}
 	
 	return CDialogEx::PreTranslateMessage(pMsg);
+}
+
+
+void CMeasureDlg::OnBnClickedBtnPhoto()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	for (size_t i = 0; i < 4; i++)
+	{
+		m_arrayWnd[i].SetWorkStatus(1);
+		m_arrayWnd[i].SetWorkEvent();
+	}
+}
+
+
+void CMeasureDlg::OnBnClickedBtnInfer()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	//四个识别需要公用一个ID
+	unsigned int share_wood_id = time(0);
+	for (size_t i = 0; i < 4; i++)
+	{
+		m_arrayWnd[i].SetWorkStatus(2);
+		m_arrayWnd[i].SetShareWoodId(share_wood_id);
+		m_arrayWnd[i].SetWorkEvent();
+	}
+}
+
+void CMeasureDlg::OnBnClickedBtnDrop()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	for (size_t i = 0; i < 4; i++)
+	{
+		m_arrayWnd[i].SetWorkStatus(0);
+		m_arrayWnd[i].ResetCapture();
+	}
+}
+
+bool CMeasureDlg::CollectScaleWood(ScaleWood& scaleWood, std::vector<ScaleWood>& scaleWoodVec)
+{
+	if (scaleWoodVec.size() != 4)
+	{
+		return false;
+	}
+	scaleWood.id = scaleWoodVec[0].id;
+	for (size_t i = 0; i < scaleWoodVec.size(); i++)
+	{
+		for (size_t j = 0; j < scaleWoodVec[i].wood_list.size(); j++)
+		{
+			scaleWood.wood_list.push_back(scaleWoodVec[i].wood_list[j]);
+		}
+	}
+	return true;
+}
+
+
+bool CMeasureDlg::ReCollectScaleWood(ScaleWood* pScaleWood, std::vector<ScaleWood>& scaleWoodVec)
+{
+	if (!pScaleWood || scaleWoodVec.size() != 4)
+	{
+		return false;
+	}
+	scaleWoodVec[0].id = pScaleWood->id;
+	scaleWoodVec[1].id = pScaleWood->id;
+	scaleWoodVec[2].id = pScaleWood->id;
+	scaleWoodVec[3].id = pScaleWood->id;
+
+	for (size_t i = 0; i < pScaleWood->wood_list.size(); i++)
+	{
+		scaleWoodVec[pScaleWood->wood_list[i].index].wood_list.push_back(pScaleWood->wood_list[i]);
+	}
+
+	return true;
 }

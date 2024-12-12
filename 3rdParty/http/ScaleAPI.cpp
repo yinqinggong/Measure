@@ -116,7 +116,7 @@ int PostPhoto(std::string &limg, int& errorCode, std::string& rimg, std::string&
 	return -1;
 }
 
-int PostScale(ScaleWood& scalewood, int& errorCode)
+int PostScale(ScaleWood& scalewood, int& errorCode, int wndIndex)
 {
 	httplib::Client cli(g_scale_domain, g_scale_port);
 	cli.set_read_timeout(90, 0);
@@ -150,6 +150,7 @@ int PostScale(ScaleWood& scalewood, int& errorCode)
 		for (unsigned int i = 0; i < arrayData.size(); i++)
 		{
 			WoodAttr woodAttr = { 0 };
+			woodAttr.index = wndIndex;
 			woodAttr.diameter = arrayData[i]["diameter"].asDouble();
 			woodAttr.volumn = arrayData[i]["volumn"].asDouble();
 			Json::Value diametersData = arrayData[i]["diameters"];
@@ -188,7 +189,7 @@ int PostScale(ScaleWood& scalewood, int& errorCode)
 	return -1;
 }
 
-int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& m_camparam, int& w, int& h, int& c)
+int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& m_camparam, int& w, int& h, int& c, int wndIndex)
 {
 	httplib::Client cli(g_cloud_scale_domain, g_cloud_port);
 	cli.set_read_timeout(90, 0);
@@ -233,7 +234,7 @@ int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::stri
 		for (size_t i = 0; i < arrayWinfo.size(); i++)
 		{
 			WoodAttr woodAttr = { 0 };
-
+			woodAttr.index = wndIndex;
 			std::string ellipseStr = arrayWinfo[i].asString();
 			Json::Value valueEllipse;
 			Json::Reader readerEllipse;

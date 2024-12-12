@@ -37,6 +37,7 @@ typedef struct defWoodAttr
 	double diameter;//长直径与短直径的较小值，以厘米为单位
 	double volumn; //木材的体积，暂时先设置为0，用户设置木材长度之后，前端网页计算出每根木材的体积，填入该字段
 	bool isDeleting;//额外添加的信息，标注是否正在被删除
+	int index;//额外添加的信息，该木材属于哪个相机
 }WoodAttr;
 
 typedef struct defScaleWood
@@ -48,7 +49,7 @@ typedef struct defScaleWood
 
 int PostPreview(std::string& url);
 int PostPhoto(std::string& limg, int& errorCode, std::string& rimg, std::string& m_camparam);
-int PostScale(ScaleWood& scalewood, int& errorCode);
-int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& m_camparam, int& w, int& h, int& c);
+int PostScale(ScaleWood& scalewood, int& errorCode, int wndIndex);
+int PostInfer(ScaleWood& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& m_camparam, int& w, int& h, int& c, int wndIndex);
 
 #endif
