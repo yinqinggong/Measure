@@ -173,11 +173,13 @@ BOOL CMeasureDlg::OnInitDialog()
 	//m_btnInfer.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
 	//m_btnDrop.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
 
-	m_btnAdd.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
-	m_btnCrop.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 300, 5, 100, 30);
+	//m_btnAdd.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 150, 5, 100, 30);
+	//m_btnCrop.MoveWindow(rcWorkArea.Width() * 0.5 - 50 + 300, 5, 100, 30);
 	m_staVideo.MoveWindow(30, 50, rcWorkArea.Width() - 60, rcWorkArea.Height() - 100);
 	m_staVideo.ShowWindow(SW_HIDE);
-
+	m_btnDel.ShowWindow(SW_HIDE);
+	m_btnCrop.ShowWindow(SW_HIDE);
+	m_btnAdd.ShowWindow(SW_HIDE);
 	
 	//中间黑色背景
 	m_brushBG.CreateSolidBrush(RGB(0, 0, 0));//画刷为绿色
@@ -278,13 +280,13 @@ BOOL CMeasureDlg::OnInitDialog()
 	m_btnData.MoveWindow(10, rcWorkArea.Height() * 0.5 + 40, 80, 40);
 
 	//右侧五个按钮
-	m_btnPhoto.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 400, 80, 40);
-	m_btnInfer.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 320, 80, 40);
-	m_btnDrop.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 240, 80, 40);
+	m_btnPhoto.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 160, 80, 40);
+	m_btnInfer.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 80, 80, 40);
+	m_btnDrop.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5, 80, 40);
 
-	m_btnDel.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5, 80, 40);
-	m_btnCrop.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 80, 80, 40);
-	m_btnAdd.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 160, 80, 40);
+	//m_btnDel.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5, 80, 40);
+	//m_btnCrop.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 80, 80, 40);
+	//m_btnAdd.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 160, 80, 40);
 	m_btnReport.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 + 80, 80, 40);
 	m_btnSave.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 + 160, 80, 40);
 	//下载按钮，居中
@@ -317,9 +319,9 @@ BOOL CMeasureDlg::OnInitDialog()
 	m_btnPhoto.ModifyStyle(NULL, BS_OWNERDRAW);
 	m_btnInfer.ModifyStyle(NULL, BS_OWNERDRAW);
 	m_btnDrop.ModifyStyle(NULL, BS_OWNERDRAW);
-	m_btnAdd.ModifyStyle(NULL, BS_OWNERDRAW);
-	m_btnCrop.ModifyStyle(NULL, BS_OWNERDRAW);
-	m_btnDel.ModifyStyle(NULL, BS_OWNERDRAW);
+	//m_btnAdd.ModifyStyle(NULL, BS_OWNERDRAW);
+	//m_btnCrop.ModifyStyle(NULL, BS_OWNERDRAW);
+	//m_btnDel.ModifyStyle(NULL, BS_OWNERDRAW);
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -573,7 +575,7 @@ void CMeasureDlg::OnBnClickedBtnReport()
 	// TODO: 在此添加控件通知处理程序代码
 	for (size_t i = 0; i < 4; i++)
 	{
-		if (m_arrayWnd[i].GetWorkStatus() > 1)
+		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
 			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
 			return;
@@ -616,7 +618,7 @@ void CMeasureDlg::OnBnClickedBtnScale()
 	// TODO: 在此添加控件通知处理程序代码
 	for (size_t i = 0; i < 4; i++)
 	{
-		if (m_arrayWnd[i].GetWorkStatus() > 0)
+		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
 			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
 			return;
@@ -628,9 +630,9 @@ void CMeasureDlg::OnBnClickedBtnScale()
 	m_dlgReport.ShowWindow(SW_HIDE);
 	
 	//右侧按钮切换显示
-	m_btnDel.ShowWindow(SW_SHOWNORMAL);
-	m_btnCrop.ShowWindow(SW_SHOWNORMAL);
-	m_btnAdd.ShowWindow(SW_SHOWNORMAL);
+	m_btnPhoto.ShowWindow(SW_SHOWNORMAL);
+	m_btnInfer.ShowWindow(SW_SHOWNORMAL);
+	m_btnDrop.ShowWindow(SW_SHOWNORMAL);
 	m_btnReport.ShowWindow(SW_SHOWNORMAL);
 	m_btnSave.ShowWindow(SW_SHOWNORMAL);
 	m_btnDownLoad.ShowWindow(SW_HIDE);
@@ -648,7 +650,7 @@ void CMeasureDlg::OnBnClickedBtnData()
 	// TODO: 在此添加控件通知处理程序代码
 	for (size_t i = 0; i < 4; i++)
 	{
-		if (m_arrayWnd[i].GetWorkStatus() > 0)
+		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
 			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
 			return;
@@ -664,9 +666,9 @@ void CMeasureDlg::OnBnClickedBtnData()
 	m_dlgData.SetEndTimeCurTime();
 
 	//右侧按钮切换显示
-	m_btnDel.ShowWindow(SW_HIDE);
-	m_btnCrop.ShowWindow(SW_HIDE);
-	m_btnAdd.ShowWindow(SW_HIDE);
+	m_btnPhoto.ShowWindow(SW_HIDE);
+	m_btnInfer.ShowWindow(SW_HIDE);
+	m_btnDrop.ShowWindow(SW_HIDE);
 	m_btnReport.ShowWindow(SW_HIDE);
 	m_btnSave.ShowWindow(SW_HIDE);
 	m_btnDownLoad.ShowWindow(SW_SHOWNORMAL);
@@ -713,7 +715,7 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	// TODO: 在此添加控件通知处理程序代码
 	for (size_t i = 0; i < 4; i++)
 	{
-		if (m_arrayWnd[i].GetWorkStatus() > 0)
+		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
 			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
 			return;
@@ -1234,9 +1236,9 @@ void CMeasureDlg::OnClose()
 
 void CMeasureDlg::ResetBtnBgColor()
 {
-	m_btnAdd.SetBackgroundColor(RGB(255, 255, 255));
-	m_btnCrop.SetBackgroundColor(RGB(255, 255, 255));
-	m_btnDel.SetBackgroundColor(RGB(255, 255, 255));
+	//m_btnAdd.SetBackgroundColor(RGB(255, 255, 255));
+	//m_btnCrop.SetBackgroundColor(RGB(255, 255, 255));
+	//m_btnDel.SetBackgroundColor(RGB(255, 255, 255));
 }
 
 BOOL CMeasureDlg::PreTranslateMessage(MSG* pMsg)
@@ -1263,20 +1265,48 @@ void CMeasureDlg::OnBnClickedBtnPhoto()
 	// TODO: 在此添加控件通知处理程序代码
 	for (size_t i = 0; i < 4; i++)
 	{
+		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
+		{
+			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+			return;
+		}
+	}
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		m_arrayWnd[i].ResetCapture();
 		m_arrayWnd[i].SetWorkStatus(1);
 		m_arrayWnd[i].SetWorkEvent();
 	}
 }
 
-
 void CMeasureDlg::OnBnClickedBtnInfer()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	for (size_t i = 0; i < 4; i++)
+	{
+		if (m_arrayWnd[i].GetWorkStatus() == 0)
+		{
+			AfxMessageBox(_T("请先拍照！"));
+			return;
+		}
+		if (m_arrayWnd[i].GetWorkStatus() == 1)
+		{
+			AfxMessageBox(_T("有相机正在拍照中，请稍后！"));
+			return;
+		}
+		if (m_arrayWnd[i].GetWorkStatus() == 3)
+		{
+			AfxMessageBox(_T("有相机正在识别中，请稍后！"));
+			return;
+		}
+	}
+
 	//四个识别需要公用一个ID
 	unsigned int share_wood_id = time(0);
 	for (size_t i = 0; i < 4; i++)
 	{
-		m_arrayWnd[i].SetWorkStatus(2);
+		m_arrayWnd[i].SetWorkStatus(3);
 		m_arrayWnd[i].SetShareWoodId(share_wood_id);
 		m_arrayWnd[i].SetWorkEvent();
 	}
@@ -1285,6 +1315,15 @@ void CMeasureDlg::OnBnClickedBtnInfer()
 void CMeasureDlg::OnBnClickedBtnDrop()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	for (size_t i = 0; i < 4; i++)
+	{
+		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
+		{
+			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+			return;
+		}
+	}
+
 	for (size_t i = 0; i < 4; i++)
 	{
 		m_arrayWnd[i].SetWorkStatus(0);

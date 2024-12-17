@@ -79,9 +79,9 @@ void CDlgData::OnSize(UINT nType, int cx, int cy)
 	m_date_start.SetFormat(_T("yyyy-MM-dd HH:mm:ss")); // 设置显示格式
 	m_date_end.SetFormat(_T("yyyy-MM-dd HH:mm:ss")); // 设置显示格式
 	m_sta_start.MoveWindow(edge, edge * 1.5, w * 0.7, h);
-	m_date_start.MoveWindow(edge + w, edge, w * 1.5, h);
-	m_sta_end.MoveWindow(edge * 6 + w * 2, edge * 1.5, w * 0.7, h);
-	m_date_end.MoveWindow(edge * 6 + w * 3, edge, w * 1.5, h);
+	m_date_start.MoveWindow(edge + w, edge, w * 2, h);
+	m_sta_end.MoveWindow(edge * 6 + w * 2.5, edge * 1.5, w * 0.7, h);
+	m_date_end.MoveWindow(edge * 6 + w * 3.5, edge, w * 2, h);
 	m_btn_query.MoveWindow(rect.right - w * 2, edge, w, h);
 	rect.top = 80;
 	m_pScrollView = new CMyScrollView();

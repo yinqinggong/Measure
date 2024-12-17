@@ -108,7 +108,7 @@ private:
     static UINT RecThread(LPVOID lpParam);
     CEvent m_evt_beginRecEvent;
     bool m_bRun;//线程退出标识
-    int m_workStatus;//0:无工作 1:拍照中 2:识别中
+    int m_workStatus;//0:初始状态 1:拍照中 2：拍照结束 3:识别中 4：识别结束
     int m_wndIndex;//窗口索引0-3
     unsigned int m_share_wood_id;//四个识别共用一个ID
 public:

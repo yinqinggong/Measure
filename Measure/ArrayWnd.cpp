@@ -753,6 +753,7 @@ void CArrayWnd::ResetCapture()
     m_scaleWood = { 0 };
     m_ellipse_add = { 0 };
     m_share_wood_id = 0;
+    m_workStatus = 0;
 
     this->Invalidate();
 }
@@ -834,16 +835,17 @@ UINT CArrayWnd::RecThread(LPVOID lpParam)
         if (workStatus == 1)
         {
             pDecode->PhotoMethod();
+            pDecode->SetWorkStatus(2);
         }
-        else if(workStatus == 2)
+        else if(workStatus == 3)
         {
             pDecode->RecMethod();
+            pDecode->SetWorkStatus(4);
         }
         else
         {
             
         }
-        pDecode->SetWorkStatus(0);
         if (pDecode->m_bRun == false) break;
     }
 
