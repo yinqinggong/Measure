@@ -436,6 +436,7 @@ void CEditWoodWnd::OnLButtonUp(UINT nFlags, CPoint point)
                 if (d > 0.001)
                 {
                     WoodAttr woodAttr = { 0 };
+                    woodAttr.index = m_wndIndex;
                     woodAttr.diameter = d;
                     woodAttr.ellipse = m_ellipse_add;
                     woodAttr.diameters.d1 = m_ellipse_add.ab1;

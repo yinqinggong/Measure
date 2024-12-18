@@ -311,7 +311,7 @@ void CArrayWnd::OnLButtonDown(UINT nFlags, CPoint point)
     imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_scaleWood.id, m_wndIndex);
     if (!FileExistW(imagePath))
     {
-        AfxMessageBox(_T("请先识别木材，再进入编辑界面"));
+        AfxMessageBox(_T("请先识别木材！"));
         return;
     }
 
