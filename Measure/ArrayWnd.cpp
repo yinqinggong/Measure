@@ -878,9 +878,9 @@ void CArrayWnd::PhotoMethod()
     wait.Restore();
     if (ret < 0)
     {
-        WriteLog(_T("PostPhoto API failed, errorCode:%d"), errorCode);
+        WriteLog(_T("PostPhoto%d API failed, errorCode:%d"), m_wndIndex + 1, errorCode);
         CString tipStr;
-        tipStr.Format(_T("拍照失败，请重试, code:%d"), errorCode);
+        tipStr.Format(_T("相机%d拍照失败，请重试, code:%d"), m_wndIndex + 1, errorCode);
         AfxMessageBox(tipStr);
         return;
     }
@@ -956,8 +956,6 @@ void CArrayWnd::PhotoMethod()
 
     std::vector<uchar> img_data(limg.begin(), limg.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    CString limgName;
-    limgName.Format(_T("limg_%d.jpg"), m_wndIndex);
     cv::imwrite(GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".jpg", img);
 #endif
     CString limgName;
@@ -1027,9 +1025,9 @@ void CArrayWnd::RecMethod()
 
 #else
     CWaitCursor wait;
-    m_btnRec.SetWindowTextW(_T("识别中"));
-    m_btnRec.EnableWindow(FALSE);
-    m_btnDis.ShowWindow(SW_HIDE);
+    //m_btnRec.SetWindowTextW(_T("识别中"));
+    //m_btnRec.EnableWindow(FALSE);
+    //m_btnDis.ShowWindow(SW_HIDE);
     int errorCode = 0;
     ScaleWood scalewood = { 0 };
 #if CloudAPI
@@ -1042,21 +1040,21 @@ void CArrayWnd::RecMethod()
     //m_rimg.clear();
     //m_camparam.clear();
     scalewood.id = m_share_wood_id;
-    m_btnRec.EnableWindow(TRUE);
-    m_btnRec.SetWindowTextW(_T("识别"));
+    //m_btnRec.EnableWindow(TRUE);
+    //m_btnRec.SetWindowTextW(_T("识别"));
     wait.Restore();
     if (ret < 0)
     {
-        m_btnRec.ShowWindow(SW_SHOWNORMAL);
-        m_btnDis.ShowWindow(SW_SHOWNORMAL);
+        //m_btnRec.ShowWindow(SW_SHOWNORMAL);
+        //m_btnDis.ShowWindow(SW_SHOWNORMAL);
         CString tipStr;
-        tipStr.Format(_T("识别失败，请重试, code:%d"), errorCode);
+        tipStr.Format(_T("相机%d识别失败，请重试, code:%d"), m_wndIndex + 1, errorCode);
         AfxMessageBox(tipStr);
         return;
     }
     else
     {
-        m_btnRec.ShowWindow(SW_HIDE);
+        //m_btnRec.ShowWindow(SW_HIDE);
     }
     try
     {
@@ -1065,15 +1063,15 @@ void CArrayWnd::RecMethod()
     catch (const std::exception&)
     {
         WriteLog(_T("invalid base64"));
-        m_btnRec.ShowWindow(SW_SHOWNORMAL);
-        m_btnDis.ShowWindow(SW_SHOWNORMAL);
+        //m_btnRec.ShowWindow(SW_SHOWNORMAL);
+        //m_btnDis.ShowWindow(SW_SHOWNORMAL);
         AfxMessageBox(_T("识别失败，请重试, invalid base64-1"));
         return;
     }
     if (scalewood.img.length() <= 0)
     {
-        m_btnRec.ShowWindow(SW_SHOWNORMAL);
-        m_btnDis.ShowWindow(SW_SHOWNORMAL);
+        //m_btnRec.ShowWindow(SW_SHOWNORMAL);
+        //m_btnDis.ShowWindow(SW_SHOWNORMAL);
         AfxMessageBox(_T("识别失败，请重试, invalid base64-2"));
         return;
     }

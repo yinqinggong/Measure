@@ -980,9 +980,9 @@ void CMyWnd2::RecMethod()
     ScaleWood scalewood = { 0 };
 #if CloudAPI
     int w = 0, h = 0, c = 0;
-    int ret = PostInfer(scalewood, errorCode, m_limg, m_rimg, m_camparam, w, h, c);
+    int ret = PostInfer(scalewood, errorCode, m_limg, m_rimg, m_camparam, w, h, c, 0);
 #else
-    int ret = PostScale(scalewood, errorCode);
+    int ret = PostScale(scalewood, errorCode, 0);
 #endif
     //m_limg.clear();
     //m_rimg.clear();

@@ -1263,6 +1263,15 @@ BOOL CMeasureDlg::PreTranslateMessage(MSG* pMsg)
 void CMeasureDlg::OnBnClickedBtnPhoto()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_dlgReport.IsWindowVisible())
+	{
+		for (size_t i = 0; i < 4; i++)
+		{
+			m_arrayWnd[i].ShowWindow(SW_SHOWNORMAL);
+		}
+		m_dlgReport.ShowWindow(SW_HIDE);
+	}
+
 	for (size_t i = 0; i < 4; i++)
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
@@ -1283,6 +1292,15 @@ void CMeasureDlg::OnBnClickedBtnPhoto()
 void CMeasureDlg::OnBnClickedBtnInfer()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_dlgReport.IsWindowVisible())
+	{
+		for (size_t i = 0; i < 4; i++)
+		{
+			m_arrayWnd[i].ShowWindow(SW_SHOWNORMAL);
+		}
+		m_dlgReport.ShowWindow(SW_HIDE);
+	}
+
 	for (size_t i = 0; i < 4; i++)
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 0)
@@ -1315,6 +1333,15 @@ void CMeasureDlg::OnBnClickedBtnInfer()
 void CMeasureDlg::OnBnClickedBtnDrop()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_dlgReport.IsWindowVisible())
+	{
+		for (size_t i = 0; i < 4; i++)
+		{
+			m_arrayWnd[i].ShowWindow(SW_SHOWNORMAL);
+		}
+		m_dlgReport.ShowWindow(SW_HIDE);
+	}
+
 	for (size_t i = 0; i < 4; i++)
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
