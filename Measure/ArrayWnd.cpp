@@ -841,6 +841,11 @@ UINT CArrayWnd::RecThread(LPVOID lpParam)
         {
             pDecode->RecMethod();
             pDecode->SetWorkStatus(4);
+            if (pDecode->GetWndIndex() >= 0 && pDecode->GetWndIndex() < 3)
+            {
+                int* pWndIndex = new int(pDecode->GetWndIndex());
+                ::PostMessage(pDecode->GetParent()->m_hWnd, WM_USER_MESSAGE_REC_MSG, (WPARAM)pWndIndex, NULL);
+            }
         }
         else
         {
@@ -970,6 +975,7 @@ void CArrayWnd::PhotoMethod()
 void CArrayWnd::RecMethod()
 {
 #if (QGDebug == 1 && CloudAPI == 0) 
+    Sleep(1000 * (m_wndIndex+1));
     //m_btnRec.EnableWindow(TRUE);
     //m_btnRec.SetWindowTextW(_T("Ê¶±ð"));
     //m_btnRec.ShowWindow(SW_HIDE);

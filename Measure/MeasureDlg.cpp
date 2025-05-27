@@ -124,6 +124,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_DOWNLOAD, &CMeasureDlg::OnBnClickedBtnDownload)
 	ON_MESSAGE(WM_USER_MESSAGE, &CMeasureDlg::OnUserMessage)
 	ON_MESSAGE(WM_USER_MESSAGE_FINISHED, &CMeasureDlg::OnUserMessageFinished)
+	ON_MESSAGE(WM_USER_MESSAGE_REC_MSG, &CMeasureDlg::OnUserMessageRecMsg)
 	ON_CONTROL_RANGE(STN_CLICKED, IDC_MIN_IMAGE_STA, IDC_EXIT_IMAGE_STA, &CMeasureDlg::OnClickStaMinExit)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BTN_PHOTO, &CMeasureDlg::OnBnClickedBtnPhoto)
@@ -1207,6 +1208,19 @@ LRESULT CMeasureDlg::OnUserMessageFinished(WPARAM wParam, LPARAM lParam)
 	
 	return 0;
 }
+
+LRESULT CMeasureDlg::OnUserMessageRecMsg(WPARAM wParam, LPARAM lParam)
+{
+	int* pWndIndex = (int*)wParam;
+	if (*pWndIndex >= 0 && *pWndIndex < 3)
+	{
+		m_arrayWnd[*pWndIndex + 1].SetWorkStatus(3);
+		m_arrayWnd[*pWndIndex + 1].SetShareWoodId(m_share_wood_id);
+		m_arrayWnd[*pWndIndex + 1].SetWorkEvent();
+	}
+	delete pWndIndex;
+	return 0;
+}
 void CMeasureDlg::OnClickStaMinExit(UINT nID)
 {
 	// 处理点击事件
@@ -1321,13 +1335,18 @@ void CMeasureDlg::OnBnClickedBtnInfer()
 	}
 
 	//四个识别需要公用一个ID
-	unsigned int share_wood_id = time(0);
+	m_share_wood_id = time(0);
+	m_arrayWnd[0].SetWorkStatus(3);
+	m_arrayWnd[0].SetShareWoodId(m_share_wood_id);
+	m_arrayWnd[0].SetWorkEvent();
+
+	/*unsigned int share_wood_id = time(0);
 	for (size_t i = 0; i < 4; i++)
 	{
 		m_arrayWnd[i].SetWorkStatus(3);
 		m_arrayWnd[i].SetShareWoodId(share_wood_id);
 		m_arrayWnd[i].SetWorkEvent();
-	}
+	}*/
 }
 
 void CMeasureDlg::OnBnClickedBtnDrop()

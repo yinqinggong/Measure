@@ -40,6 +40,7 @@ protected:
 public:
 	afx_msg void OnDestroy();
 private:
+	unsigned int m_share_wood_id;//四个识别共用一个ID
 	CStatic m_staVideo;
 	//CMyWnd2 m_imgWnd;
 	CArrayWnd m_arrayWnd[4];
@@ -84,6 +85,7 @@ public:
 	std::string GetWorkSheetNameByScaleStandard(int scaleStandard);
 	afx_msg LRESULT OnUserMessage(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnUserMessageFinished(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnUserMessageRecMsg(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnClickStaMinExit(UINT nID);
 	afx_msg void OnClose();
 	//修改五个按钮的颜色

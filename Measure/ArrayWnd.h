@@ -8,6 +8,7 @@
 using namespace Gdiplus;
 
 #define WM_USER_MESSAGE_FINISHED (WM_USER + 102)
+#define WM_USER_MESSAGE_REC_MSG  (WM_USER + 103)
 
 class CArrayWnd : public CWnd
 {
