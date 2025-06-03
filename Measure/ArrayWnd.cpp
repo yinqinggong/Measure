@@ -44,7 +44,10 @@ CArrayWnd::CArrayWnd()
 	, m_dragging(false)
 	, m_status(0)
     , m_bRun(false)
+    , m_bRightCamRun(false)
     , m_workStatus(0)
+    , m_leftCam(false)
+    , m_rightCam(false)
     , m_wndIndex(-1)
     , m_share_wood_id(0)
 {
@@ -55,6 +58,7 @@ CArrayWnd::CArrayWnd()
 CArrayWnd::~CArrayWnd()
 {
     StopThread();
+    StopRightCamThread();
 }
 
 int CArrayWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -72,6 +76,7 @@ int CArrayWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
     //m_btnDis.MoveWindow(rect.right - 120, rect.Height() * 0.5 + 100, 100, 50);
 
     StartThread();
+    StartRightCamThread();
     return 0;
 }
 BOOL CArrayWnd::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
@@ -745,6 +750,8 @@ void CArrayWnd::ResetCapture()
     m_lastMousePos = CPoint();
     m_imageOrigin = CPoint();
     m_status = 0;
+    m_leftCam = false;
+    m_rightCam = false;
     m_scaleFactor = 1.0;
     m_startPoint = CPoint();
     m_endPoint = CPoint();
@@ -820,6 +827,19 @@ bool CArrayWnd::StartThread()
     return true;
 }
 
+bool CArrayWnd::StartRightCamThread()
+{
+    //开启收流线程
+    m_bRightCamRun = true;
+    m_rightCamThread = AfxBeginThread(RightCamThread, (LPVOID)this);
+    if (m_rightCamThread == NULL)
+    {
+        m_bRightCamRun = false;
+        return false;
+    }
+    m_hRightCamThreadHandle = m_rightCamThread->m_hThread;
+    return true;
+}
 
 UINT CArrayWnd::RecThread(LPVOID lpParam)
 {
@@ -835,7 +855,13 @@ UINT CArrayWnd::RecThread(LPVOID lpParam)
         if (workStatus == 1)
         {
             pDecode->PhotoMethod();
-            pDecode->SetWorkStatus(2);
+            pDecode->SetLeftCam(true);
+            if (pDecode->GetLeftCam() && pDecode->GetRightCam())
+            {
+                pDecode->SetWorkStatus(2);
+                //当工作状态等于2后，相机状态归位
+                pDecode->SetLeftCam(false);
+            }
         }
         else if(workStatus == 3)
         {
@@ -857,6 +883,38 @@ UINT CArrayWnd::RecThread(LPVOID lpParam)
     return 1;
 }
 
+UINT CArrayWnd::RightCamThread(LPVOID lpParam)
+{
+    CArrayWnd* pDecode = (CArrayWnd*)lpParam;
+    if (!pDecode)
+    {
+        return 0;
+    }
+    while (WaitForSingleObject(pDecode->m_evt_beginRightCamEvent, INFINITE) == WAIT_OBJECT_0)
+    {
+        if (pDecode->m_bRightCamRun == false) break;
+        int workStatus = pDecode->GetWorkStatus();
+        if (workStatus == 1)
+        {
+            pDecode->PhotoRightCamMethod();
+            pDecode->SetRightCam(true);
+            if (pDecode->GetLeftCam() && pDecode->GetRightCam())
+            {
+                pDecode->SetWorkStatus(2);
+                //当工作状态等于2后，相机状态归位
+                pDecode->SetRightCam(false);
+            }
+        }
+        else
+        {
+
+        }
+        if (pDecode->m_bRightCamRun == false) break;
+    }
+
+    return 1;
+}
+
 bool CArrayWnd::StopThread()
 {
     m_workStatus = 0;
@@ -870,6 +928,20 @@ bool CArrayWnd::StopThread()
     }
     return true;
 }
+
+bool CArrayWnd::StopRightCamThread()
+{
+    m_bRightCamRun = false;
+    m_evt_beginRightCamEvent.SetEvent();
+    if (m_hRightCamThreadHandle != INVALID_HANDLE_VALUE)
+    {
+        WaitAndTermThread(m_hRightCamThreadHandle, 10000);
+        m_hRightCamThreadHandle = INVALID_HANDLE_VALUE;
+        m_rightCamThread = NULL;
+    }
+    return true;
+}
+
 void CArrayWnd::PhotoMethod()
 {
 #if (QGDebug == 1)
@@ -970,6 +1042,97 @@ void CArrayWnd::PhotoMethod()
     //m_btnDis.ShowWindow(SW_SHOW);
     //m_btnRec.ShowWindow(SW_SHOW);
     this->Invalidate();
+}
+
+void CArrayWnd::PhotoRightCamMethod()
+{
+#if (QGDebug == 1)
+#else
+    std::string limg;
+    int errorCode = 0;
+    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_camparam);
+    if (ret < 0)
+    {
+        WriteLog(_T("PostPhoto%d API failed, errorCode:%d"), m_wndIndex + 1, errorCode);
+        CString tipStr;
+        tipStr.Format(_T("相机%d拍照失败，请重试, code:%d"), m_wndIndex + 1, errorCode);
+        AfxMessageBox(tipStr);
+        return;
+    }
+    try
+    {
+        limg = m_limg;
+        limg = base64_decode(limg);
+    }
+    catch (const std::exception&)
+    {
+        WriteLog(_T("invalid base64 exception"));
+        AfxMessageBox(_T("获取图片失败，请重试"));
+        return;
+    }
+    if (limg.length() <= 0)
+    {
+        WriteLog(_T("invalid base64 limg.length() <= 0"));
+        AfxMessageBox(_T("获取图片失败，请重试"));
+        return;
+    }
+
+    std::vector<uchar> img_data(limg.begin(), limg.end());
+    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
+    cv::imwrite(GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".jpg", img);
+#endif
+
+#if (CloudAPI == 1 && QGDebug == 1)
+    /*std::ifstream file(GetImagePathUTF8() + "stereo_params.xml");
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open file");
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    m_cam_params = buffer.str();*/
+
+    m_camparam = "[[2685.4126058357715,0.0,1938.4374318654877,0.0,2685.4575283727913,1562.856538949121,0.0,0.0,1.0],[-0.09367156152199602,0.11420308542792396,-0.0003192966334184126,-0.0003126638912737841,-0.03576168360979528],[2694.5055745713976,0.0,2016.023715727735,0.0,2694.5334647064997,1624.3703386253874,0.0,0.0,1.0],[-0.0990762798801572,0.1344623330667149,0.0002629763856103351,-0.00026026834521232495,-0.06171569320487198],[0.9999947340940366,0.00021165684138245476,0.0032383615577255775,-0.00020970907983761957,0.9999997969337054,-0.0006017928628442911,-0.003238488273700012,0.0006011105800372101,0.9999945754151728],[-0.17971870265605125,2.0874208450081025e-05,0.0007972581123076216],[9.959138583675177e-08,-0.0007972454027038217,2.1353879457998024e-05,0.00021523700290517237,0.00010819955873093142,0.17972030956672616,1.6814545235148994e-05,-0.17971867057940927,0.00010808583434385429],[-3.5409179639913875e-12,2.8345155772186532e-08,-4.6331382348966894e-05,-7.652556243705983e-09,-3.8468727340391154e-09,-0.017138383094346336,1.0826862081080727e-05,0.01716616880998382,1.0],[0.9999992784749311,9.283999889650864e-05,-0.0011976770648645069,-9.320033363703872e-05,0.999999950413806,-0.00030080904803023704,0.001197649078364573,0.0003009204548910047,0.9999992375414918],[0.9999901537116226,-0.00011614819497435116,-0.004436100697916132,0.00011748285957754541,0.9999999479172159,0.00030060496215355463,0.004436065552147903,-0.0003011231681057728,0.9999901152747734],[2689.9954965396455,0.0,2003.1144714355469,0.0,0.0,2689.9954965396455,1578.137191772461,0.0,0.0,0.0,1.0,0.0],[2689.9954965396455,0.0,2003.1144714355469,-483.4472609498719,0.0,2689.9954965396455,1578.137191772461,0.0,0.0,0.0,1.0,0.0],[1.0,0.0,0.0,-2003.1144714355469,0.0,1.0,0.0,-1578.137191772461,0.0,0.0,0.0,2689.9954965396455,0.0,0.0,5.5641963742940055,0.0]]";
+
+    std::ifstream file1(GetImagePathUTF8() + "l.jpg", std::ios::binary);
+    if (!file1) {
+        std::cerr << "Unable to open file" << std::endl;
+        return;
+    }
+    std::ostringstream oss1;
+    oss1 << file1.rdbuf();
+    m_limg = base64_encode(oss1.str());
+
+    std::ifstream file2(GetImagePathUTF8() + "r.jpg", std::ios::binary);
+    if (!file2) {
+        std::cerr << "Unable to open file" << std::endl;
+        return;
+    }
+    std::ostringstream oss2;
+    oss2 << file2.rdbuf();
+    m_rimg = base64_encode(oss2.str());
+
+    std::string limg;
+    try
+    {
+        limg = base64_decode(m_limg);
+    }
+    catch (const std::exception&)
+    {
+        WriteLog(_T("invalid base64 exception"));
+        AfxMessageBox(_T("获取图片失败，请重试"));
+        return;
+    }
+    if (limg.length() <= 0)
+    {
+        WriteLog(_T("invalid base64 limg.length() <= 0"));
+        AfxMessageBox(_T("获取图片失败，请重试"));
+        return;
+    }
+
+    std::vector<uchar> img_data(limg.begin(), limg.end());
+    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
+    cv::imwrite(GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".jpg", img);
+#endif
 }
 
 void CArrayWnd::RecMethod()

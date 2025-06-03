@@ -105,17 +105,27 @@ private:
 
 private:
     CWinThread* m_recThread;
+    CWinThread* m_rightCamThread;
     HANDLE m_hRecThreadHandle;
+    HANDLE m_hRightCamThreadHandle;
     static UINT RecThread(LPVOID lpParam);
+    static UINT RightCamThread(LPVOID lpParam);
     CEvent m_evt_beginRecEvent;
+    CEvent m_evt_beginRightCamEvent;
     bool m_bRun;//线程退出标识
+    bool m_bRightCamRun;//线程退出标识
     int m_workStatus;//0:初始状态 1:拍照中 2：拍照结束 3:识别中 4：识别结束
+    bool m_leftCam;//左相机拍照结束
+    bool m_rightCam;//右相机拍照结束，当左右相机都拍照结束，m_workStatus=2
     int m_wndIndex;//窗口索引0-3
     unsigned int m_share_wood_id;//四个识别共用一个ID
 public:
     bool StartThread();
+    bool StartRightCamThread();
     bool StopThread();
+    bool StopRightCamThread();
     void PhotoMethod();
+    void PhotoRightCamMethod();
     void RecMethod();
     int GetWorkStatus()
     {
@@ -125,9 +135,29 @@ public:
     {
         m_workStatus = workStatus;
     }
+    bool GetLeftCam()
+    {
+        return m_leftCam;
+    }
+    void SetLeftCam(bool leftCam)
+    {
+        m_leftCam = leftCam;
+    }
+    bool GetRightCam()
+    {
+        return m_rightCam;
+    }
+    void SetRightCam(bool rightCam)
+    {
+        m_rightCam = rightCam;
+    }
     void SetWorkEvent()
     {
         m_evt_beginRecEvent.SetEvent();
+    }
+    void SetRightCamWorkEvent()
+    {
+        m_evt_beginRightCamEvent.SetEvent();
     }
     void SetWndIndex(int wndIndex)
     {

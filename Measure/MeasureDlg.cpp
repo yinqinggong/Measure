@@ -1300,6 +1300,7 @@ void CMeasureDlg::OnBnClickedBtnPhoto()
 		m_arrayWnd[i].ResetCapture();
 		m_arrayWnd[i].SetWorkStatus(1);
 		m_arrayWnd[i].SetWorkEvent();
+		m_arrayWnd[i].SetRightCamWorkEvent();
 	}
 }
 
