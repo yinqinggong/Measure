@@ -333,7 +333,7 @@ void CMyWnd::OnLButtonDown(UINT nFlags, CPoint point)
 					//之前的绘制的椭圆无效了，需要重新绘制
 					m_image.Destroy();
 					CString imagePath;
-					imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+					imagePath.Format(_T("%s%d.png"), GetImagePath(), m_scaleWood.id);
 					m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
 
 					SetStatus(0);

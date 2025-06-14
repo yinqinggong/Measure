@@ -1,7 +1,8 @@
 #pragma once
 #include <afxwin.h>
 #include <vector>
-#include "ScaleAPI.h"
+//#include "ScaleAPI.h"
+#include "AsioAPI.h"
 #include "MyImageStatic.h"
 
 #define WM_USER_MESSAGE (WM_USER + 100)

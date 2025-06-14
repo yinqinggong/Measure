@@ -9,6 +9,7 @@
 #include <opencv2/imgproc.hpp>
 #include "common.h"
 #include "WoodEditDlg.h"
+#include "AsioAPI.h"
 
 #if (CloudAPI == 1 && QGDebug == 1)
 #include <fstream>
@@ -313,7 +314,7 @@ void CArrayWnd::OnLButtonDown(UINT nFlags, CPoint point)
 {
     //先判断识别成功，再弹窗
     CString imagePath;
-    imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_scaleWood.id, m_wndIndex);
+    imagePath.Format(_T("%s%d_%d.png"), GetImagePath(), m_scaleWood.id, m_wndIndex);
     if (!FileExistW(imagePath))
     {
         AfxMessageBox(_T("请先识别木材！"));
@@ -408,7 +409,7 @@ void CArrayWnd::OnLButtonDown(UINT nFlags, CPoint point)
                         //之前的绘制的椭圆无效了，需要重新绘制
                         m_image.Destroy();
                         CString imagePath;
-                        imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_scaleWood.id, m_wndIndex);
+                        imagePath.Format(_T("%s%d_%d.png"), GetImagePath(), m_scaleWood.id, m_wndIndex);
                         LoadLocalImage(imagePath, false);
                         SetStatus(0);
                         ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
@@ -728,7 +729,7 @@ void CArrayWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             m_image.Destroy();
             CString imagePath;
-            imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_scaleWood.id, m_wndIndex);
+            imagePath.Format(_T("%s%d_%d.png"), GetImagePath(), m_scaleWood.id, m_wndIndex);
             LoadLocalImage(imagePath, false);
             Invalidate();
         }
@@ -775,7 +776,7 @@ void CArrayWnd::ShowHistoryData(ScaleWood* pScaleWood)
     m_scaleWood.wood_list = pScaleWood->wood_list;
 
     CString imagePath;
-    imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_scaleWood.id, m_wndIndex);
+    imagePath.Format(_T("%s%d_%d.png"), GetImagePath(), m_scaleWood.id, m_wndIndex);
     //m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
     LoadLocalImage(imagePath, true);
     SetStatus(0);
@@ -854,7 +855,8 @@ UINT CArrayWnd::RecThread(LPVOID lpParam)
         int workStatus = pDecode->GetWorkStatus();
         if (workStatus == 1)
         {
-            pDecode->PhotoMethod();
+            //pDecode->PhotoMethod();
+            pDecode->Capture_2D();
             pDecode->SetLeftCam(true);
             if (pDecode->GetLeftCam() && pDecode->GetRightCam())
             {
@@ -865,7 +867,8 @@ UINT CArrayWnd::RecThread(LPVOID lpParam)
         }
         else if(workStatus == 3)
         {
-            pDecode->RecMethod();
+            //pDecode->RecMethod();
+            pDecode->LogScale();
             pDecode->SetWorkStatus(4);
             if (pDecode->GetWndIndex() >= 0 && pDecode->GetWndIndex() < 3)
             {
@@ -896,7 +899,7 @@ UINT CArrayWnd::RightCamThread(LPVOID lpParam)
         int workStatus = pDecode->GetWorkStatus();
         if (workStatus == 1)
         {
-            pDecode->PhotoRightCamMethod();
+            pDecode->Capture_2D_Right();
             pDecode->SetRightCam(true);
             if (pDecode->GetLeftCam() && pDecode->GetRightCam())
             {
@@ -951,9 +954,9 @@ void CArrayWnd::PhotoMethod()
     std::string limg;
     CWaitCursor wait;
     int errorCode = 0;
-    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_camparam);
+    //int ret = PostPhoto(m_limg, errorCode, m_rimg, m_camparam);
     wait.Restore();
-    if (ret < 0)
+    //if (ret < 0)
     {
         WriteLog(_T("PostPhoto%d API failed, errorCode:%d"), m_wndIndex + 1, errorCode);
         CString tipStr;
@@ -981,7 +984,7 @@ void CArrayWnd::PhotoMethod()
 
     std::vector<uchar> img_data(limg.begin(), limg.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg_" +std::to_string(m_wndIndex) +".jpg", img);
+    cv::imwrite(GetImagePathUTF8() + "limg_" +std::to_string(m_wndIndex) +".png", img);
 #endif
 
 #if (CloudAPI == 1 && QGDebug == 1)
@@ -1036,7 +1039,7 @@ void CArrayWnd::PhotoMethod()
     cv::imwrite(GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".jpg", img);
 #endif
     CString limgName;
-    limgName.Format(_T("limg_%d.jpg"), m_wndIndex);
+    limgName.Format(_T("limg_%d.png"), m_wndIndex);
     LoadLocalImage(GetImagePath() + limgName, true);
     //m_btnCapture.ShowWindow(SW_HIDE);
     //m_btnDis.ShowWindow(SW_SHOW);
@@ -1044,95 +1047,45 @@ void CArrayWnd::PhotoMethod()
     this->Invalidate();
 }
 
-void CArrayWnd::PhotoRightCamMethod()
+void CArrayWnd::Capture_2D()
 {
 #if (QGDebug == 1)
+    ShowWindow(SW_SHOW);
 #else
-    std::string limg;
-    int errorCode = 0;
-    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_camparam);
-    if (ret < 0)
+    ShowWindow(SW_SHOW);
+    CWaitCursor wait;
+    std::string fileName = GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".png";
+    bool ret = capture_2d(m_ip_l, m_port_l, fileName);
+    wait.Restore();
+    if (!ret)
     {
-        WriteLog(_T("PostPhoto%d API failed, errorCode:%d"), m_wndIndex + 1, errorCode);
+        WriteLog(_T("capture_2d%d API failed"), m_wndIndex + 1);
         CString tipStr;
-        tipStr.Format(_T("相机%d拍照失败，请重试, code:%d"), m_wndIndex + 1, errorCode);
+        tipStr.Format(_T("相机%d拍照失败，请重试"), m_wndIndex + 1);
         AfxMessageBox(tipStr);
         return;
     }
-    try
-    {
-        limg = m_limg;
-        limg = base64_decode(limg);
-    }
-    catch (const std::exception&)
-    {
-        WriteLog(_T("invalid base64 exception"));
-        AfxMessageBox(_T("获取图片失败，请重试"));
-        return;
-    }
-    if (limg.length() <= 0)
-    {
-        WriteLog(_T("invalid base64 limg.length() <= 0"));
-        AfxMessageBox(_T("获取图片失败，请重试"));
-        return;
-    }
-
-    std::vector<uchar> img_data(limg.begin(), limg.end());
-    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".jpg", img);
 #endif
 
-#if (CloudAPI == 1 && QGDebug == 1)
-    /*std::ifstream file(GetImagePathUTF8() + "stereo_params.xml");
-    if (!file.is_open()) {
-        throw std::runtime_error("Unable to open file");
-    }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    m_cam_params = buffer.str();*/
+    CString limgName;
+    limgName.Format(_T("limg_%d.png"), m_wndIndex);
+    LoadLocalImage(GetImagePath() + limgName, true);
+   
+    this->Invalidate();
+}
 
-    m_camparam = "[[2685.4126058357715,0.0,1938.4374318654877,0.0,2685.4575283727913,1562.856538949121,0.0,0.0,1.0],[-0.09367156152199602,0.11420308542792396,-0.0003192966334184126,-0.0003126638912737841,-0.03576168360979528],[2694.5055745713976,0.0,2016.023715727735,0.0,2694.5334647064997,1624.3703386253874,0.0,0.0,1.0],[-0.0990762798801572,0.1344623330667149,0.0002629763856103351,-0.00026026834521232495,-0.06171569320487198],[0.9999947340940366,0.00021165684138245476,0.0032383615577255775,-0.00020970907983761957,0.9999997969337054,-0.0006017928628442911,-0.003238488273700012,0.0006011105800372101,0.9999945754151728],[-0.17971870265605125,2.0874208450081025e-05,0.0007972581123076216],[9.959138583675177e-08,-0.0007972454027038217,2.1353879457998024e-05,0.00021523700290517237,0.00010819955873093142,0.17972030956672616,1.6814545235148994e-05,-0.17971867057940927,0.00010808583434385429],[-3.5409179639913875e-12,2.8345155772186532e-08,-4.6331382348966894e-05,-7.652556243705983e-09,-3.8468727340391154e-09,-0.017138383094346336,1.0826862081080727e-05,0.01716616880998382,1.0],[0.9999992784749311,9.283999889650864e-05,-0.0011976770648645069,-9.320033363703872e-05,0.999999950413806,-0.00030080904803023704,0.001197649078364573,0.0003009204548910047,0.9999992375414918],[0.9999901537116226,-0.00011614819497435116,-0.004436100697916132,0.00011748285957754541,0.9999999479172159,0.00030060496215355463,0.004436065552147903,-0.0003011231681057728,0.9999901152747734],[2689.9954965396455,0.0,2003.1144714355469,0.0,0.0,2689.9954965396455,1578.137191772461,0.0,0.0,0.0,1.0,0.0],[2689.9954965396455,0.0,2003.1144714355469,-483.4472609498719,0.0,2689.9954965396455,1578.137191772461,0.0,0.0,0.0,1.0,0.0],[1.0,0.0,0.0,-2003.1144714355469,0.0,1.0,0.0,-1578.137191772461,0.0,0.0,0.0,2689.9954965396455,0.0,0.0,5.5641963742940055,0.0]]";
-
-    std::ifstream file1(GetImagePathUTF8() + "l.jpg", std::ios::binary);
-    if (!file1) {
-        std::cerr << "Unable to open file" << std::endl;
-        return;
-    }
-    std::ostringstream oss1;
-    oss1 << file1.rdbuf();
-    m_limg = base64_encode(oss1.str());
-
-    std::ifstream file2(GetImagePathUTF8() + "r.jpg", std::ios::binary);
-    if (!file2) {
-        std::cerr << "Unable to open file" << std::endl;
-        return;
-    }
-    std::ostringstream oss2;
-    oss2 << file2.rdbuf();
-    m_rimg = base64_encode(oss2.str());
-
-    std::string limg;
-    try
+void CArrayWnd::Capture_2D_Right()
+{
+    std::string fileName = GetImagePathUTF8() + "rimg_" + std::to_string(m_wndIndex) + ".png";
+    bool ret = capture_2d(m_ip_r, m_port_r, fileName);
+    if (!ret)
     {
-        limg = base64_decode(m_limg);
-    }
-    catch (const std::exception&)
-    {
-        WriteLog(_T("invalid base64 exception"));
-        AfxMessageBox(_T("获取图片失败，请重试"));
+        WriteLog(_T("capture_2d%d API failed"), m_wndIndex + 1);
+        CString tipStr;
+        tipStr.Format(_T("相机%d拍照失败，请重试"), m_wndIndex + 1);
+        AfxMessageBox(tipStr);
         return;
     }
-    if (limg.length() <= 0)
-    {
-        WriteLog(_T("invalid base64 limg.length() <= 0"));
-        AfxMessageBox(_T("获取图片失败，请重试"));
-        return;
-    }
-
-    std::vector<uchar> img_data(limg.begin(), limg.end());
-    cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".jpg", img);
-#endif
 }
 
 void CArrayWnd::RecMethod()
@@ -1203,7 +1156,7 @@ void CArrayWnd::RecMethod()
     int w = 0, h = 0, c = 0;
     int ret = PostInfer(scalewood, errorCode, m_limg, m_rimg, m_camparam, w, h, c, m_wndIndex);
 #else
-    int ret = PostScale(scalewood, errorCode, m_wndIndex);
+    //int ret = PostScale(scalewood, errorCode, m_wndIndex);
 #endif
     //m_limg.clear();
     //m_rimg.clear();
@@ -1212,7 +1165,7 @@ void CArrayWnd::RecMethod()
     //m_btnRec.EnableWindow(TRUE);
     //m_btnRec.SetWindowTextW(_T("识别"));
     wait.Restore();
-    if (ret < 0)
+    //if (ret < 0)
     {
         //m_btnRec.ShowWindow(SW_SHOWNORMAL);
         //m_btnDis.ShowWindow(SW_SHOWNORMAL);
@@ -1221,10 +1174,10 @@ void CArrayWnd::RecMethod()
         AfxMessageBox(tipStr);
         return;
     }
-    else
-    {
-        //m_btnRec.ShowWindow(SW_HIDE);
-    }
+    //else
+    //{
+    //    //m_btnRec.ShowWindow(SW_HIDE);
+    //}
     try
     {
         scalewood.img = base64_decode(scalewood.img);
@@ -1262,7 +1215,93 @@ void CArrayWnd::RecMethod()
 
     m_image.Destroy();
     CString strImagePathW;
-    strImagePathW.Format(_T("%s%d_%d.jpg"), GetImagePath(), scalewood.id, m_wndIndex);
+    strImagePathW.Format(_T("%s%d_%d.png"), GetImagePath(), scalewood.id, m_wndIndex);
+    LoadLocalImage(strImagePathW, true);
+    m_scaleWood = scalewood;
+    SetStatus(0);
+    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
+    this->Invalidate();
+}
+
+
+void CArrayWnd::LogScale()
+{
+#if (QGDebug == 1) 
+    Sleep(1000 * (m_wndIndex + 1));
+    //m_btnRec.EnableWindow(TRUE);
+    //m_btnRec.SetWindowTextW(_T("识别"));
+    //m_btnRec.ShowWindow(SW_HIDE);
+    //m_btnDis.ShowWindow(SW_HIDE);
+    ScaleWood scalewood;
+    scalewood.id = m_share_wood_id;
+    scalewood.img = "";
+    WoodAttr woodAttr1 = { 0 };
+    woodAttr1.ellipse = { 2436.7294921875000, 963.02606201171875, 54.000000000000000, 57.000000000000000, 63.426303863525391,
+        2383.0000000000000, 984.00000000000000, 2489.0000000000000, 943.00000000000000,
+        2455.0000000000000, 1013.0000000000000, 2417.0000000000000, 912.00000000000000 };
+    woodAttr1.diameter = 13.400000000000000;
+    woodAttr1.diameters = { 13.400000000000000, 14.300000000000001 };
+    woodAttr1.volumn = 0.0000000000000000;
+    woodAttr1.index = m_wndIndex;
+
+    WoodAttr woodAttr2 = { 0 };
+    woodAttr2.ellipse = { 2258.6398925781250, 1551.4863281250000, 56.000000000000000, 57.000000000000000, 124.72299957275391,
+        2231.0000000000000, 1502.0000000000000, 2285.0000000000000, 1602.0000000000000,
+        2210.0000000000000, 1578.0000000000000, 2307.0000000000000, 1527.0000000000000 };
+    woodAttr2.diameter = 5.0000000000000000;
+    woodAttr2.diameters = { 5.0000000000000000, 5.2000000000000002 };
+    woodAttr2.volumn = 0.0000000000000000;
+    woodAttr2.index = m_wndIndex;
+
+    WoodAttr woodAttr3 = { 0 };
+    woodAttr3.ellipse = { 2189.5292968750000, 1670.6750488281250, 73.000000000000000, 79.000000000000000, 120.99822998046875,
+        2120.0000000000000, 1635.0000000000000, 2260.0000000000000, 1706.0000000000000,
+        2158.0000000000000, 1735.0000000000000, 2222.0000000000000, 1606.0000000000000 };
+    woodAttr3.diameter = 6.5999999999999996;
+    woodAttr3.diameters = { 6.5999999999999996, 7.2000000000000002 };
+    woodAttr3.volumn = 0.0000000000000000;
+    woodAttr3.index = m_wndIndex;
+
+    WoodAttr woodAttr4 = { 0 };
+    woodAttr4.ellipse = { 2362.7504882812500, 1676.9362792968750, 65.000000000000000, 71.000000000000000, 52.447589874267578,
+        2306.0000000000000, 1720.0000000000000, 2417.0000000000000, 1632.0000000000000,
+        2403.0000000000000, 1726.0000000000000, 2320.0000000000000, 1625.0000000000000 };
+    woodAttr4.diameter = 6.0000000000000000;
+    woodAttr4.diameters = { 6.0000000000000000, 6.5000000000000000 };
+    woodAttr4.volumn = 0.0000000000000000;
+    woodAttr4.index = m_wndIndex;
+
+    scalewood.wood_list.push_back(woodAttr1);
+    scalewood.wood_list.push_back(woodAttr2);
+    scalewood.wood_list.push_back(woodAttr3);
+    scalewood.wood_list.push_back(woodAttr4);
+
+    std::string strImagePath = GetImagePathUTF8() + "img_" + std::to_string(m_wndIndex) + ".jpg";
+    cv::Mat img = cv::imread(strImagePath);
+    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + "_" + std::to_string(m_wndIndex) + ".jpg";
+    cv::imwrite(strImagePath, img);
+
+#else
+    CWaitCursor wait;
+    ScaleWood scalewood = { 0 };
+    std::string lfileName = GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".png";
+    std::string rfileName = GetImagePathUTF8() + "rimg_" + std::to_string(m_wndIndex) + ".png";
+    std::string imagePath = GetImagePathUTF8() + std::to_string(m_share_wood_id) + "_" + std::to_string(m_wndIndex) + ".png";
+    bool ret = log_scale(m_ip_gpu, m_port_gpu, lfileName, rfileName, imagePath, scalewood, m_wndIndex);
+    scalewood.id = m_share_wood_id;
+    wait.Restore();
+    if (!ret)
+    {
+        CString tipStr;
+        tipStr.Format(_T("相机%d识别失败，请重试"), m_wndIndex + 1);
+        AfxMessageBox(tipStr);
+        return;
+    }
+   
+#endif
+    m_image.Destroy();
+    CString strImagePathW;
+    strImagePathW.Format(_T("%s%d_%d.png"), GetImagePath(), scalewood.id, m_wndIndex);
     LoadLocalImage(strImagePathW, true);
     m_scaleWood = scalewood;
     SetStatus(0);

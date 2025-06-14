@@ -85,7 +85,7 @@ int CEditWoodWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 BOOL CEditWoodWnd::LoadLocalImage(bool firstInit)
 {
     CString imagePath;
-    imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
+    imagePath.Format(_T("%s%d_%d.png"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
     return LoadLocalImage(imagePath, firstInit);
 }
 BOOL CEditWoodWnd::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
@@ -391,7 +391,7 @@ void CEditWoodWnd::OnLButtonDown(UINT nFlags, CPoint point)
                         //之前的绘制的椭圆无效了，需要重新绘制
                         m_image.Destroy();
                         CString imagePath;
-                        imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
+                        imagePath.Format(_T("%s%d_%d.png"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
                         LoadLocalImage(imagePath, false);
                         SetStatus(0);
                         ResetBtnBgColor();
@@ -769,7 +769,7 @@ void CEditWoodWnd::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             m_image.Destroy();
             CString imagePath;
-            imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
+            imagePath.Format(_T("%s%d_%d.png"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
             LoadLocalImage(imagePath, false);
             Invalidate();
         }
@@ -812,7 +812,7 @@ void CEditWoodWnd::ShowHistoryData(ScaleWood* pScaleWood)
     m_pScaleWood->wood_list = pScaleWood->wood_list;
 
     CString imagePath;
-    imagePath.Format(_T("%s%d_%d.jpg"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
+    imagePath.Format(_T("%s%d_%d.png"), GetImagePath(), m_pScaleWood->id, m_wndIndex);
     //m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
     LoadLocalImage(imagePath, true);
     SetStatus(0);

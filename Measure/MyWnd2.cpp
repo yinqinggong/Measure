@@ -661,9 +661,9 @@ void CMyWnd2::OnBnClickedBtnCapture()
     std::string limg;
     CWaitCursor wait;
     int errorCode = 0;
-    int ret = PostPhoto(m_limg, errorCode, m_rimg, m_camparam);
+    //int ret = PostPhoto(m_limg, errorCode, m_rimg, m_camparam);
     wait.Restore();
-    if (ret < 0)
+    //if (ret < 0)
     {
         WriteLog(_T("PostPhoto API failed, errorCode:%d"), errorCode);
         CString tipStr;
@@ -982,7 +982,7 @@ void CMyWnd2::RecMethod()
     int w = 0, h = 0, c = 0;
     int ret = PostInfer(scalewood, errorCode, m_limg, m_rimg, m_camparam, w, h, c, 0);
 #else
-    int ret = PostScale(scalewood, errorCode, 0);
+    //int ret = PostScale(scalewood, errorCode, 0);
 #endif
     //m_limg.clear();
     //m_rimg.clear();
@@ -991,7 +991,7 @@ void CMyWnd2::RecMethod()
     m_btnRec.EnableWindow(TRUE);
     m_btnRec.SetWindowTextW(_T("Ê¶±ð"));
     wait.Restore();
-    if (ret < 0)
+    //if (ret < 0)
     {
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
         m_btnDis.ShowWindow(SW_SHOWNORMAL);
@@ -1000,10 +1000,10 @@ void CMyWnd2::RecMethod()
         AfxMessageBox(tipStr);
         return;
     }
-    else
+    /*else
     {
         m_btnRec.ShowWindow(SW_HIDE);
-    }
+    }*/
     try
     {
         scalewood.img = base64_decode(scalewood.img);

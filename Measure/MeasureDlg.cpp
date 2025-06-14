@@ -7,7 +7,8 @@
 #include "Measure.h"
 #include "MeasureDlg.h"
 #include "afxdialogex.h"
-#include "ScaleAPI.h"
+//#include "ScaleAPI.h"
+#include "AsioAPI.h"
 #include "sqlite3.h"
 #include "ScaleDB.h"
 #include <json/json.h>
@@ -324,6 +325,43 @@ BOOL CMeasureDlg::OnInitDialog()
 	//m_btnCrop.ModifyStyle(NULL, BS_OWNERDRAW);
 	//m_btnDel.ModifyStyle(NULL, BS_OWNERDRAW);
 
+	//为4个相机读取IP
+	char iniPath[MAX_PATH] = { 0 };
+	snprintf(iniPath, sizeof(iniPath), "%sconfig.ini", GetAppdataPathUTF8().c_str());
+	
+	//GPUIP和端口gpu_ip
+	char gpu_ip[MAX_PATH] = { 0 };
+	char gpu_port[MAX_PATH] = { 0 };
+	GetPrivateProfileStringA("CameraInfo", "gpu_ip", "", gpu_ip, MAX_PATH, iniPath);
+	GetPrivateProfileStringA("CameraInfo", "gpu_port", "", gpu_port, MAX_PATH, iniPath);
+
+	char tempDomainStr[MAX_PATH] = { 0 };
+	std::string tempKeyName;
+	for (size_t i = 0; i < 4; i++)
+	{
+		//左相机IP和端口
+		tempKeyName = "ch" + std::to_string(i + 1) + "_l_ip";
+		GetPrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "", tempDomainStr, MAX_PATH, iniPath);
+		m_arrayWnd[i].SetIPL(tempDomainStr);
+		memset(tempDomainStr, 0, MAX_PATH);
+		tempKeyName = "ch" + std::to_string(i + 1) + "_l_port";
+		GetPrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "", tempDomainStr, MAX_PATH, iniPath);
+		m_arrayWnd[i].SetPortL(tempDomainStr);
+		memset(tempDomainStr, 0, MAX_PATH);
+		//右相机IP和端口
+		tempKeyName = "ch" + std::to_string(i + 1) + "_r_ip";
+		GetPrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "", tempDomainStr, MAX_PATH, iniPath);
+		m_arrayWnd[i].SetIPR(tempDomainStr);
+		memset(tempDomainStr, 0, MAX_PATH);
+		tempKeyName = "ch" + std::to_string(i + 1) + "_r_port";
+		GetPrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "", tempDomainStr, MAX_PATH, iniPath);
+		m_arrayWnd[i].SetPortR(tempDomainStr);
+		memset(tempDomainStr, 0, MAX_PATH);
+		//GPUIP和端口gpu_ip
+		m_arrayWnd[i].SetIPGPU(gpu_ip);
+		m_arrayWnd[i].SetPortGPU(gpu_port);
+	}
+	
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -748,7 +786,7 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	
 	for (size_t k = 0; k < scaleWoodVec.size(); k++)
 	{
-		cv::Mat src = cv::imread(GetImagePathUTF8() + std::to_string(scaleWoodVec[k].id) + "_" + std::to_string(k) + ".jpg");
+		cv::Mat src = cv::imread(GetImagePathUTF8() + std::to_string(scaleWoodVec[k].id) + "_" + std::to_string(k) + ".png");
 		if (src.data)
 		{
 			//保存结果图
@@ -768,12 +806,12 @@ void CMeasureDlg::OnBnClickedBtnSave()
 						scaleWoodVec[k].wood_list[i].ellipse.cy/* - scaleWood.wood_list[i].ellipse.ab1 * 0.3*/),
 					cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255), 4);
 			}
-			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWoodVec[k].id) + "_" + std::to_string(k) + "_r.jpg", r_dst);
+			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWoodVec[k].id) + "_" + std::to_string(k) + "_r.png", r_dst);
 
 			//保存小图
 			cv::Mat s_dst;
 			cv::resize(src, s_dst, cv::Size(src.cols / 8, src.rows / 8));
-			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWoodVec[k].id) + "_" + std::to_string(k) + "_s.jpg", s_dst);
+			cv::imwrite(GetImagePathUTF8() + std::to_string(scaleWoodVec[k].id) + "_" + std::to_string(k) + "_s.png", s_dst);
 		}
 	}
 

@@ -37,6 +37,9 @@
     <Filter Include="sqlite">
       <UniqueIdentifier>{80c08df7-88bc-41bc-a1e1-2bdf8279e749}</UniqueIdentifier>
     </Filter>
+    <Filter Include="AsioAPI">
+      <UniqueIdentifier>{ffd7359a-f4dc-4d9d-aa1d-3315a62e05b5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Measure.h">
@@ -153,6 +156,9 @@
     <ClInclude Include="WoodEditDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="AsioAPI.h">
+      <Filter>AsioAPI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -235,6 +241,9 @@
     </ClCompile>
     <ClCompile Include="WoodEditDlg.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AsioAPI.cpp">
+      <Filter>AsioAPI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,8 @@
 #include <afxwin.h>
 #include <atlimage.h>
 #include <vector>
-#include "ScaleAPI.h"
+//#include "ScaleAPI.h"
+#include "AsioAPI.h"
 #include "BgColorBtn.h"
 #include <gdiplus.h>
 using namespace Gdiplus;

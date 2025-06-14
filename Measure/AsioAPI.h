@@ -1,11 +1,9 @@
-#ifndef __UNSUAL_API_H__
-#define __UNSUAL_API_H__
+#pragma once
 
-#include <iostream>
 #include <string>
 #include <vector>
 
-typedef struct defWoodEllipse1
+typedef struct defWoodEllipse
 {
 	double cx;
 	double cy; //cx, cy：横截面椭圆的中心点XY坐标，为像素坐标系
@@ -21,35 +19,31 @@ typedef struct defWoodEllipse1
 	double sy1;
 	double sx2;
 	double sy2;//sx1,sy1,sx2,sy2：椭圆短直径的两个端点的XY坐标，为相机坐标系，以米为单位
-}WoodEllipse1;
+}WoodEllipse;
 
 
-typedef struct defDiameters1
+typedef struct defDiameters
 {
 	double d1;
 	double d2; //[d1, d2] ：短直径与长直径长度
-}Diameters1;
+}Diameters;
 
-typedef struct defWoodAttr1
+typedef struct defWoodAttr
 {
-	WoodEllipse1 ellipse;// 木材横截面椭圆，为如下形式：
-	Diameters1 diameters;//木材短直径与长直径的长度，以厘米为单位，为如下形式：
+	WoodEllipse ellipse;// 木材横截面椭圆，为如下形式：
+	Diameters diameters;//木材短直径与长直径的长度，以厘米为单位，为如下形式：
 	double diameter;//长直径与短直径的较小值，以厘米为单位
 	double volumn; //木材的体积，暂时先设置为0，用户设置木材长度之后，前端网页计算出每根木材的体积，填入该字段
 	bool isDeleting;//额外添加的信息，标注是否正在被删除
 	int index;//额外添加的信息，该木材属于哪个相机
-}WoodAttr1;
+}WoodAttr;
 
-typedef struct defScaleWood1
+typedef struct defScaleWood
 {
 	unsigned int id; //数值, 本次检尺任务的ID，使用的是时间戳
-	std::vector<WoodAttr1> wood_list;//列表, 木材信息列表，包括了识别出的每根木材的信息
+	std::vector<WoodAttr> wood_list;//列表, 木材信息列表，包括了识别出的每根木材的信息
 	std::string img;//字符串,Base64编码的jpg文件，是校正处理之后的图像
-}ScaleWood1;
+}ScaleWood;
 
-int PostPreview(std::string& url);
-int PostPhoto(std::string& limg, int& errorCode, std::string& rimg, std::string& m_camparam);
-int PostScale(ScaleWood1& scalewood, int& errorCode, int wndIndex);
-int PostInfer(ScaleWood1& scalewood, int& errorCode, std::string& limg, std::string& rimg, std::string& m_camparam, int& w, int& h, int& c, int wndIndex);
-
-#endif
+bool log_scale(const std::string& ip_addr, const std::string& port, const std::string& lfileName, const std::string& rfileName, const std::string& imagePath, ScaleWood& scaleWood, int wndIndex);
+bool capture_2d(const std::string& ip, const std::string& port, std::string& file_name);

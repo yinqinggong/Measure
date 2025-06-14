@@ -3,7 +3,8 @@
 #include <afxwin.h>
 #include <atlimage.h>
 #include <vector>
-#include "ScaleAPI.h"
+//#include "ScaleAPI.h"
+#include "AsioAPI.h"
 #include <gdiplus.h>
 using namespace Gdiplus;
 
@@ -42,6 +43,12 @@ protected:
     std::string m_limg;
     std::string m_rimg;
     std::string m_camparam;
+    std::string m_ip_l;
+    std::string m_ip_r;
+    std::string m_port_l;
+    std::string m_port_r;
+    std::string m_ip_gpu;
+    std::string m_port_gpu;
 
     bool isCloseEnough(const CPoint& p1, const CPoint& p2, int threshold);
     bool isPointInEllipse(const CPoint& p);
@@ -125,8 +132,10 @@ public:
     bool StopThread();
     bool StopRightCamThread();
     void PhotoMethod();
-    void PhotoRightCamMethod();
+    void Capture_2D();
+    void Capture_2D_Right();
     void RecMethod();
+    void LogScale();
     int GetWorkStatus()
     {
         return m_workStatus;
@@ -174,6 +183,30 @@ public:
     unsigned int GetShareWoodId()
     {
         return m_share_wood_id;
+    }
+    void SetIPL(std::string ip_l)
+    {
+        m_ip_l = ip_l;
+    }
+    void SetIPR(std::string ip_r)
+    {
+        m_ip_r = ip_r;
+    }
+    void SetPortL(std::string port_l)
+    {
+        m_port_l = port_l;
+    }
+    void SetPortR(std::string port_r)
+    {
+        m_port_r = port_r;
+    }
+    void SetIPGPU(std::string ip_gpu)
+    {
+        m_ip_gpu = ip_gpu;
+    }
+    void SetPortGPU(std::string port_gpu)
+    {
+        m_port_gpu = port_gpu;
     }
 };
 

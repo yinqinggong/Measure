@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include "ScaleAPI.h"
+//#include "ScaleAPI.h"
+#include "AsioAPI.h"
 #include <map>
 
 typedef struct typeReportData

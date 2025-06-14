@@ -201,7 +201,7 @@ void CDlgData::OnBnClickedButtonQuery()
 		WoodDBShow woodDBShow;
 		woodDBShow.amount = showDataList[i].amount;
 		woodDBShow.checked = false;
-		woodDBShow.image_path = GetImagePathUTF8() + std::to_string(showDataList[i].id) + "_0_s.jpg";
+		woodDBShow.image_path = GetImagePathUTF8() + std::to_string(showDataList[i].id) + "_0_s.png";
 		woodDBShow.timestamp = GetFormatTimeByTimestamp(showDataList[i].id);
 		woodDBShow.total_v = showDataList[i].total_volume;
 		woodDBShow.lenght = showDataList[i].lenght;
