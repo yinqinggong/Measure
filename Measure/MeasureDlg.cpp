@@ -333,7 +333,17 @@ BOOL CMeasureDlg::OnInitDialog()
 	char gpu_ip[MAX_PATH] = { 0 };
 	char gpu_port[MAX_PATH] = { 0 };
 	GetPrivateProfileStringA("CameraInfo", "gpu_ip", "", gpu_ip, MAX_PATH, iniPath);
+	if (strlen(gpu_ip) <= 0)
+	{
+		strcpy_s(gpu_ip, "192.168.1.110");
+		WritePrivateProfileStringA("CameraInfo", "gpu_ip", "192.168.1.110", iniPath);
+	}
 	GetPrivateProfileStringA("CameraInfo", "gpu_port", "", gpu_port, MAX_PATH, iniPath);
+	if (strlen(gpu_port) <= 0)
+	{
+		strcpy_s(gpu_port, "12346");
+		WritePrivateProfileStringA("CameraInfo", "gpu_port", "12346", iniPath);
+	}
 
 	char tempDomainStr[MAX_PATH] = { 0 };
 	std::string tempKeyName;
@@ -342,19 +352,39 @@ BOOL CMeasureDlg::OnInitDialog()
 		//左相机IP和端口
 		tempKeyName = "ch" + std::to_string(i + 1) + "_l_ip";
 		GetPrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "", tempDomainStr, MAX_PATH, iniPath);
+		if (strlen(tempDomainStr) <= 0)
+		{
+			strcpy_s(tempDomainStr, "192.168.1.111");
+			WritePrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "192.168.1.111", iniPath);
+		}
 		m_arrayWnd[i].SetIPL(tempDomainStr);
 		memset(tempDomainStr, 0, MAX_PATH);
 		tempKeyName = "ch" + std::to_string(i + 1) + "_l_port";
 		GetPrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "", tempDomainStr, MAX_PATH, iniPath);
+		if (strlen(tempDomainStr) <= 0)
+		{
+			strcpy_s(tempDomainStr, "12345");
+			WritePrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "12345", iniPath);
+		}
 		m_arrayWnd[i].SetPortL(tempDomainStr);
 		memset(tempDomainStr, 0, MAX_PATH);
 		//右相机IP和端口
 		tempKeyName = "ch" + std::to_string(i + 1) + "_r_ip";
 		GetPrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "", tempDomainStr, MAX_PATH, iniPath);
+		if (strlen(tempDomainStr) <= 0)
+		{
+			strcpy_s(tempDomainStr, "192.168.1.112");
+			WritePrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "192.168.1.112", iniPath);
+		}
 		m_arrayWnd[i].SetIPR(tempDomainStr);
 		memset(tempDomainStr, 0, MAX_PATH);
 		tempKeyName = "ch" + std::to_string(i + 1) + "_r_port";
 		GetPrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "", tempDomainStr, MAX_PATH, iniPath);
+		if (strlen(tempDomainStr) <= 0)
+		{
+			strcpy_s(tempDomainStr, "12345");
+			WritePrivateProfileStringA("CameraInfo", tempKeyName.c_str(), "12345", iniPath);
+		}
 		m_arrayWnd[i].SetPortR(tempDomainStr);
 		memset(tempDomainStr, 0, MAX_PATH);
 		//GPUIP和端口gpu_ip
@@ -775,7 +805,7 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	m_dlgReport.ShowWindow(SW_HIDE);
 	double wood_len = m_dlgReport.GetWoodLen();
 	std::vector<ScaleWood> scaleWoodVec(4);
-	for (size_t i = 0; i < 4; i++)
+	for (size_t i = 0; i < g_wnd_num; i++)
 	{
 		if (!m_arrayWnd[i].GetScaleWood(scaleWoodVec[i]))
 		{
@@ -1229,7 +1259,7 @@ LRESULT CMeasureDlg::OnUserMessage(WPARAM wParam, LPARAM lParam)
 	std::vector<ScaleWood> scaleWoodVec(4);
 	if (ReCollectScaleWood(pScaleWood, scaleWoodVec))
 	{
-		for (size_t i = 0; i < 4; i++)
+		for (size_t i = 0; i < g_wnd_num; i++)
 		{
 			m_arrayWnd[i].ShowHistoryData(&scaleWoodVec[i]);
 		}
@@ -1317,14 +1347,14 @@ void CMeasureDlg::OnBnClickedBtnPhoto()
 	// TODO: 在此添加控件通知处理程序代码
 	if (m_dlgReport.IsWindowVisible())
 	{
-		for (size_t i = 0; i < 4; i++)
+		for (size_t i = 0; i < g_wnd_num; i++)
 		{
 			m_arrayWnd[i].ShowWindow(SW_SHOWNORMAL);
 		}
 		m_dlgReport.ShowWindow(SW_HIDE);
 	}
 
-	for (size_t i = 0; i < 4; i++)
+	for (size_t i = 0; i < g_wnd_num; i++)
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
@@ -1333,7 +1363,7 @@ void CMeasureDlg::OnBnClickedBtnPhoto()
 		}
 	}
 
-	for (size_t i = 0; i < 4; i++)
+	for (size_t i = 0; i < g_wnd_num; i++)
 	{
 		m_arrayWnd[i].ResetCapture();
 		m_arrayWnd[i].SetWorkStatus(1);
@@ -1347,14 +1377,14 @@ void CMeasureDlg::OnBnClickedBtnInfer()
 	// TODO: 在此添加控件通知处理程序代码
 	if (m_dlgReport.IsWindowVisible())
 	{
-		for (size_t i = 0; i < 4; i++)
+		for (size_t i = 0; i < g_wnd_num; i++)
 		{
 			m_arrayWnd[i].ShowWindow(SW_SHOWNORMAL);
 		}
 		m_dlgReport.ShowWindow(SW_HIDE);
 	}
 
-	for (size_t i = 0; i < 4; i++)
+	for (size_t i = 0; i < g_wnd_num; i++)
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 0)
 		{

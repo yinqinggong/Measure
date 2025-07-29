@@ -374,7 +374,7 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
                         //之前的绘制的椭圆无效了，需要重新绘制
                         m_image.Destroy();
                         CString imagePath;
-                        imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+                        imagePath.Format(_T("%s%d.png"), GetImagePath(), m_scaleWood.id);
                         LoadLocalImage(imagePath, false);
                         SetStatus(0);
                         ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
@@ -691,7 +691,7 @@ void CMyWnd2::OnBnClickedBtnCapture()
 
     std::vector<uchar> img_data(limg.begin(), limg.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
+    cv::imwrite(GetImagePathUTF8() + "limg.png", img);
 #endif
 
 #if (CloudAPI == 1 && QGDebug == 1)
@@ -743,9 +743,9 @@ void CMyWnd2::OnBnClickedBtnCapture()
 
     std::vector<uchar> img_data(limg.begin(), limg.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg.jpg", img);
+    cv::imwrite(GetImagePathUTF8() + "limg.png", img);
 #endif
-    LoadLocalImage(GetImagePath() + _T("limg.jpg"), true);
+    LoadLocalImage(GetImagePath() + _T("limg.png"), true);
     m_btnCapture.ShowWindow(SW_HIDE);
     m_btnDis.ShowWindow(SW_SHOW);
     m_btnRec.ShowWindow(SW_SHOW);
@@ -790,7 +790,7 @@ void CMyWnd2::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         {
             m_image.Destroy();
             CString imagePath;
-            imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+            imagePath.Format(_T("%s%d.png"), GetImagePath(), m_scaleWood.id);
             LoadLocalImage(imagePath, false);
             Invalidate();
         }
@@ -833,7 +833,7 @@ void CMyWnd2::ShowHistoryData(ScaleWood* pScaleWood)
     m_scaleWood.wood_list = pScaleWood->wood_list;
 
     CString imagePath;
-    imagePath.Format(_T("%s%d.jpg"), GetImagePath(), m_scaleWood.id);
+    imagePath.Format(_T("%s%d.png"), GetImagePath(), m_scaleWood.id);
     //m_image.Load(imagePath); // 将"path_to_your_image"替换为你的图片路径
     LoadLocalImage(imagePath, true);
     SetStatus(0);
@@ -966,9 +966,9 @@ void CMyWnd2::RecMethod()
     scalewood.wood_list.push_back(woodAttr3);
     scalewood.wood_list.push_back(woodAttr4);
 
-    std::string strImagePath = GetImagePathUTF8() + "img.jpg";
+    std::string strImagePath = GetImagePathUTF8() + "img.png";
     cv::Mat img = cv::imread(strImagePath);
-    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".jpg";
+    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + ".png";
     cv::imwrite(strImagePath, img);
 
 #else
@@ -1041,7 +1041,7 @@ void CMyWnd2::RecMethod()
 
     m_image.Destroy();
     CString strImagePathW;
-    strImagePathW.Format(_T("%s%d.jpg"), GetImagePath(), scalewood.id);
+    strImagePathW.Format(_T("%s%d.png"), GetImagePath(), scalewood.id);
     LoadLocalImage(strImagePathW, true);
     m_scaleWood = scalewood;
     SetStatus(0);

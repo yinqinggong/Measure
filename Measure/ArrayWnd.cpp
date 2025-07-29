@@ -870,10 +870,13 @@ UINT CArrayWnd::RecThread(LPVOID lpParam)
             //pDecode->RecMethod();
             pDecode->LogScale();
             pDecode->SetWorkStatus(4);
-            if (pDecode->GetWndIndex() >= 0 && pDecode->GetWndIndex() < 3)
+            if (g_wnd_num == 4)
             {
-                int* pWndIndex = new int(pDecode->GetWndIndex());
-                ::PostMessage(pDecode->GetParent()->m_hWnd, WM_USER_MESSAGE_REC_MSG, (WPARAM)pWndIndex, NULL);
+                if (pDecode->GetWndIndex() >= 0 && pDecode->GetWndIndex() < 3)
+                {
+                    int* pWndIndex = new int(pDecode->GetWndIndex());
+                    ::PostMessage(pDecode->GetParent()->m_hWnd, WM_USER_MESSAGE_REC_MSG, (WPARAM)pWndIndex, NULL);
+                }
             }
         }
         else
@@ -1036,7 +1039,7 @@ void CArrayWnd::PhotoMethod()
 
     std::vector<uchar> img_data(limg.begin(), limg.end());
     cv::Mat img = cv::imdecode(cv::Mat(img_data), cv::IMREAD_COLOR);
-    cv::imwrite(GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".jpg", img);
+    cv::imwrite(GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".png", img);
 #endif
     CString limgName;
     limgName.Format(_T("limg_%d.png"), m_wndIndex);
@@ -1076,6 +1079,9 @@ void CArrayWnd::Capture_2D()
 
 void CArrayWnd::Capture_2D_Right()
 {
+#if (QGDebug == 1) 
+    return;
+#endif
     std::string fileName = GetImagePathUTF8() + "rimg_" + std::to_string(m_wndIndex) + ".png";
     bool ret = capture_2d(m_ip_r, m_port_r, fileName);
     if (!ret)
@@ -1140,7 +1146,7 @@ void CArrayWnd::RecMethod()
     scalewood.wood_list.push_back(woodAttr3);
     scalewood.wood_list.push_back(woodAttr4);
 
-    std::string strImagePath = GetImagePathUTF8() + "img_" + std::to_string(m_wndIndex) + ".jpg";
+    std::string strImagePath = GetImagePathUTF8() + "img_" + std::to_string(m_wndIndex) + ".png";
     cv::Mat img = cv::imread(strImagePath);
     strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) +"_" + std::to_string(m_wndIndex) + ".jpg";
     cv::imwrite(strImagePath, img);
@@ -1276,9 +1282,9 @@ void CArrayWnd::LogScale()
     scalewood.wood_list.push_back(woodAttr3);
     scalewood.wood_list.push_back(woodAttr4);
 
-    std::string strImagePath = GetImagePathUTF8() + "img_" + std::to_string(m_wndIndex) + ".jpg";
+    std::string strImagePath = GetImagePathUTF8() + "img_" + std::to_string(m_wndIndex) + ".png";
     cv::Mat img = cv::imread(strImagePath);
-    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + "_" + std::to_string(m_wndIndex) + ".jpg";
+    strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + "_" + std::to_string(m_wndIndex) + ".png";
     cv::imwrite(strImagePath, img);
 
 #else

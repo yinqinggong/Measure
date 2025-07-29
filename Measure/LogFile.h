@@ -3,6 +3,7 @@
 
 #define QGDebug 0
 #define CloudAPI 0
+const int  g_wnd_num = 4;   //´°¿ÚÊıÁ¿
 
 #ifndef _WIN32
 #include <pthread.h>
