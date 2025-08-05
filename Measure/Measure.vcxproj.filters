@@ -159,6 +159,12 @@
     <ClInclude Include="AsioAPI.h">
       <Filter>AsioAPI</Filter>
     </ClInclude>
+    <ClInclude Include="scale_merge.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="intrinsic.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -244,6 +250,12 @@
     </ClCompile>
     <ClCompile Include="AsioAPI.cpp">
       <Filter>AsioAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="scale_merge.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="intrinsic.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

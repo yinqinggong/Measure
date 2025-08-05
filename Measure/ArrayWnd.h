@@ -8,8 +8,11 @@
 #include <gdiplus.h>
 using namespace Gdiplus;
 
-#define WM_USER_MESSAGE_FINISHED (WM_USER + 102)
-#define WM_USER_MESSAGE_REC_MSG  (WM_USER + 103)
+#define WM_USER_MESSAGE_FINISHED  (WM_USER + 102)
+#define WM_USER_MESSAGE_REC_MSG   (WM_USER + 103)
+#define WM_USER_MESSAGE_REC_MERGE (WM_USER + 104)
+
+extern std::vector<ScaleWood> g_scaleWoodList;
 
 class CArrayWnd : public CWnd
 {
@@ -79,6 +82,10 @@ public:
         }
         scaleWood = m_scaleWood;
         return true;
+    }
+    void SetScaleWood(ScaleWood scaleWood)
+    {
+        m_scaleWood = scaleWood;
     }
     int GetScaleWoodID()
     {

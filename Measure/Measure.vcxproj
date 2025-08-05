@@ -216,6 +216,7 @@
     <ClInclude Include="EditWoodWnd.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="hwnd.h" />
+    <ClInclude Include="intrinsic.h" />
     <ClInclude Include="LogFile.h" />
     <ClInclude Include="ArrayWnd.h" />
     <ClInclude Include="Measure.h" />
@@ -229,6 +230,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ScaleDB.h" />
+    <ClInclude Include="scale_merge.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="videoplayerd3d.h" />
     <ClInclude Include="WoodEditDlg.h" />
@@ -268,6 +270,9 @@
     <ClCompile Include="DlgData.cpp" />
     <ClCompile Include="EditWoodWnd.cpp" />
     <ClCompile Include="hwnd.cpp" />
+    <ClCompile Include="intrinsic.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="ArrayWnd.cpp" />
     <ClCompile Include="Measure.cpp" />
@@ -286,6 +291,9 @@
     </ClCompile>
     <ClCompile Include="ScaleDB.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="scale_merge.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="videoplayerd3d.cpp" />

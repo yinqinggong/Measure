@@ -86,6 +86,7 @@ public:
 	afx_msg LRESULT OnUserMessage(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnUserMessageFinished(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnUserMessageRecMsg(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnUserMessageRecMerge(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnClickStaMinExit(UINT nID);
 	afx_msg void OnClose();
 	//修改五个按钮的颜色

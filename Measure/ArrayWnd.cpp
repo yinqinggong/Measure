@@ -17,6 +17,7 @@
 #include <sstream>
 #endif
 
+std::vector<ScaleWood> g_scaleWoodList(4);
 
 #ifndef M_PI
 #define M_PI   3.141592653589793238462643383279502884
@@ -870,7 +871,14 @@ UINT CArrayWnd::RecThread(LPVOID lpParam)
             //pDecode->RecMethod();
             pDecode->LogScale();
             pDecode->SetWorkStatus(4);
-            if (g_wnd_num == 4)
+            if (g_wnd_num == 2 && pDecode->GetWndIndex() == 0)
+            {
+                {
+                    int* pWndIndex = new int(pDecode->GetWndIndex());
+                    ::PostMessage(pDecode->GetParent()->m_hWnd, WM_USER_MESSAGE_REC_MSG, (WPARAM)pWndIndex, NULL);
+                }
+            }
+            else if (g_wnd_num == 4)
             {
                 if (pDecode->GetWndIndex() >= 0 && pDecode->GetWndIndex() < 3)
                 {
@@ -1233,7 +1241,7 @@ void CArrayWnd::RecMethod()
 void CArrayWnd::LogScale()
 {
 #if (QGDebug == 1) 
-    Sleep(1000 * (m_wndIndex + 1));
+    //Sleep(1000 * (m_wndIndex + 1));
     //m_btnRec.EnableWindow(TRUE);
     //m_btnRec.SetWindowTextW(_T("识别"));
     //m_btnRec.ShowWindow(SW_HIDE);
@@ -1249,6 +1257,10 @@ void CArrayWnd::LogScale()
     woodAttr1.diameters = { 13.400000000000000, 14.300000000000001 };
     woodAttr1.volumn = 0.0000000000000000;
     woodAttr1.index = m_wndIndex;
+    //mm转cm
+    woodAttr1.diameter *= 0.1;
+    woodAttr1.diameters.d1 *= 0.1;
+    woodAttr1.diameters.d2 *= 0.1;
 
     WoodAttr woodAttr2 = { 0 };
     woodAttr2.ellipse = { 2258.6398925781250, 1551.4863281250000, 56.000000000000000, 57.000000000000000, 124.72299957275391,
@@ -1258,6 +1270,10 @@ void CArrayWnd::LogScale()
     woodAttr2.diameters = { 5.0000000000000000, 5.2000000000000002 };
     woodAttr2.volumn = 0.0000000000000000;
     woodAttr2.index = m_wndIndex;
+    //mm转cm
+    woodAttr2.diameter *= 0.1;
+    woodAttr2.diameters.d1 *= 0.1;
+    woodAttr2.diameters.d2 *= 0.1;
 
     WoodAttr woodAttr3 = { 0 };
     woodAttr3.ellipse = { 2189.5292968750000, 1670.6750488281250, 73.000000000000000, 79.000000000000000, 120.99822998046875,
@@ -1267,6 +1283,10 @@ void CArrayWnd::LogScale()
     woodAttr3.diameters = { 6.5999999999999996, 7.2000000000000002 };
     woodAttr3.volumn = 0.0000000000000000;
     woodAttr3.index = m_wndIndex;
+    //mm转cm
+    woodAttr3.diameter *= 0.1;
+    woodAttr3.diameters.d1 *= 0.1;
+    woodAttr3.diameters.d2 *= 0.1;
 
     WoodAttr woodAttr4 = { 0 };
     woodAttr4.ellipse = { 2362.7504882812500, 1676.9362792968750, 65.000000000000000, 71.000000000000000, 52.447589874267578,
@@ -1276,6 +1296,10 @@ void CArrayWnd::LogScale()
     woodAttr4.diameters = { 6.0000000000000000, 6.5000000000000000 };
     woodAttr4.volumn = 0.0000000000000000;
     woodAttr4.index = m_wndIndex;
+    //mm转cm
+    woodAttr4.diameter *= 0.1;
+    woodAttr4.diameters.d1 *= 0.1;
+    woodAttr4.diameters.d2 *= 0.1;
 
     scalewood.wood_list.push_back(woodAttr1);
     scalewood.wood_list.push_back(woodAttr2);
@@ -1286,7 +1310,6 @@ void CArrayWnd::LogScale()
     cv::Mat img = cv::imread(strImagePath);
     strImagePath = GetImagePathUTF8() + std::to_string(scalewood.id) + "_" + std::to_string(m_wndIndex) + ".png";
     cv::imwrite(strImagePath, img);
-
 #else
     CWaitCursor wait;
     ScaleWood scalewood = { 0 };
@@ -1303,14 +1326,25 @@ void CArrayWnd::LogScale()
         AfxMessageBox(tipStr);
         return;
     }
-   
 #endif
+
     m_image.Destroy();
     CString strImagePathW;
     strImagePathW.Format(_T("%s%d_%d.png"), GetImagePath(), scalewood.id, m_wndIndex);
     LoadLocalImage(strImagePathW, true);
-    m_scaleWood = scalewood;
-    SetStatus(0);
-    ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
-    this->Invalidate();
+
+    //一下代码移植到WM_USER_MESSAGE_REC_MERGE中
+    
+    //m_scaleWood = scalewood;
+    //SetStatus(0);
+    //::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_FINISHED, NULL, NULL);
+    //this->Invalidate();
+
+    g_scaleWoodList[m_wndIndex] = scalewood;
+    if (m_wndIndex == 1 || m_wndIndex == 3)
+    {
+        WriteLog(_T("Begin merge camera %d and %d"), m_wndIndex - 1, m_wndIndex);
+        int* pWndIndex = new int(m_wndIndex);
+        ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_REC_MERGE, (WPARAM)pWndIndex, NULL);
+    }
 }

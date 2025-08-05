@@ -18,6 +18,8 @@
 #include <opencv2/imgproc.hpp>
 #include "LogFile.h"
 #include "xlsxwriter.h"
+#include "intrinsic.h"
+#include "scale_merge.h"
 
 //excel begin
 //#include <afxdisp.h>      // MFC 自动化类库
@@ -42,6 +44,47 @@
 #define IDC_ARRAY_IMAGE_WND3            9000+7
 #define IDC_ARRAY_IMAGE_WND4            9000+8
 
+
+bool get_scale_data_result(int index, std::vector<ScaleData>& results1, std::vector<ScaleData>& results2)
+{
+	if (index != 1 && index != 3)
+	{
+		return false;
+	}
+
+	for (size_t i = 0; i < g_scaleWoodList[index-1].wood_list.size(); i++)
+	{
+		ScaleData scaleData;
+		scaleData.center_2d.x = g_scaleWoodList[index - 1].wood_list[i].ellipse.cx;
+		scaleData.center_2d.y = g_scaleWoodList[index - 1].wood_list[i].ellipse.cy;
+		scaleData.angle = g_scaleWoodList[index - 1].wood_list[i].ellipse.angel;
+		scaleData.center_3d.x = g_scaleWoodList[index - 1].wood_list[i].ellipse.cx_3d;
+		scaleData.center_3d.y = g_scaleWoodList[index - 1].wood_list[i].ellipse.cy_3d;
+		scaleData.center_3d.z = g_scaleWoodList[index - 1].wood_list[i].ellipse.cz_3d;
+		scaleData.rx_2d = g_scaleWoodList[index - 1].wood_list[i].ellipse.ab1;
+		scaleData.ry_2d = g_scaleWoodList[index - 1].wood_list[i].ellipse.ab2;
+		scaleData.r_long = g_scaleWoodList[index - 1].wood_list[i].diameters.d1;
+		scaleData.r_short = g_scaleWoodList[index - 1].wood_list[i].diameters.d2;
+		results1.push_back(scaleData);
+	}
+	for (size_t i = 0; i < g_scaleWoodList[index].wood_list.size(); i++)
+	{
+		ScaleData scaleData;
+		scaleData.center_2d.x = g_scaleWoodList[index].wood_list[i].ellipse.cx;
+		scaleData.center_2d.y = g_scaleWoodList[index].wood_list[i].ellipse.cy;
+		scaleData.angle = g_scaleWoodList[index].wood_list[i].ellipse.angel;
+		scaleData.center_3d.x = g_scaleWoodList[index].wood_list[i].ellipse.cx_3d;
+		scaleData.center_3d.y = g_scaleWoodList[index].wood_list[i].ellipse.cy_3d;
+		scaleData.center_3d.z = g_scaleWoodList[index].wood_list[i].ellipse.cz_3d;
+		scaleData.rx_2d = g_scaleWoodList[index].wood_list[i].ellipse.ab1;
+		scaleData.ry_2d = g_scaleWoodList[index].wood_list[i].ellipse.ab2;
+		scaleData.r_long = g_scaleWoodList[index].wood_list[i].diameters.d1;
+		scaleData.r_short = g_scaleWoodList[index].wood_list[i].diameters.d2;
+		results2.push_back(scaleData);
+	}
+
+	return true;
+}
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
 class CAboutDlg : public CDialogEx
@@ -126,6 +169,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_MESSAGE(WM_USER_MESSAGE, &CMeasureDlg::OnUserMessage)
 	ON_MESSAGE(WM_USER_MESSAGE_FINISHED, &CMeasureDlg::OnUserMessageFinished)
 	ON_MESSAGE(WM_USER_MESSAGE_REC_MSG, &CMeasureDlg::OnUserMessageRecMsg)
+	ON_MESSAGE(WM_USER_MESSAGE_REC_MERGE, &CMeasureDlg::OnUserMessageRecMerge)
 	ON_CONTROL_RANGE(STN_CLICKED, IDC_MIN_IMAGE_STA, IDC_EXIT_IMAGE_STA, &CMeasureDlg::OnClickStaMinExit)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BTN_PHOTO, &CMeasureDlg::OnBnClickedBtnPhoto)
@@ -1289,6 +1333,73 @@ LRESULT CMeasureDlg::OnUserMessageRecMsg(WPARAM wParam, LPARAM lParam)
 	delete pWndIndex;
 	return 0;
 }
+
+LRESULT CMeasureDlg::OnUserMessageRecMerge(WPARAM wParam, LPARAM lParam)
+{
+	int* pWndIndex = (int*)wParam;
+	if (*pWndIndex == 1 || *pWndIndex == 3)
+	{
+		cv::Mat r_mat, t_mat, r_mat32, t_mat32;
+		load_intrinsic("stereo_params.xml", r_mat, t_mat);
+		r_mat.convertTo(r_mat32, CV_32F);
+		t_mat.convertTo(t_mat32, CV_32F);
+		//t_mat从m转mm
+		t_mat32 *= 1000.0f;
+
+		std::vector<ScaleData> results1;
+		std::vector<ScaleData> results2;
+		//检尺结果转ScaleData
+		get_scale_data_result(*pWndIndex, results1, results2);
+		std::vector<int> flags1;
+		std::vector<int> flags2;
+		//合并两个相机的检尺结果
+		log_scale_merge(results1, results2, r_mat32, t_mat32, flags1, flags2);
+
+		ScaleWood scaleWood1 = { 0 };
+		scaleWood1.id = g_scaleWoodList[*pWndIndex - 1].id;
+		scaleWood1.img = g_scaleWoodList[*pWndIndex - 1].img;
+		for (size_t i = 0; i < g_scaleWoodList[*pWndIndex - 1].wood_list.size(); i++)
+		{
+#if (QGDebug == 1)
+#else
+			if(flags1[i] == 1)
+#endif
+			{
+				scaleWood1.wood_list.push_back(g_scaleWoodList[*pWndIndex - 1].wood_list[i]);
+			}
+		}
+		g_scaleWoodList[*pWndIndex - 1] = {};
+
+		m_arrayWnd[*pWndIndex - 1].SetScaleWood(scaleWood1);
+		m_arrayWnd[*pWndIndex - 1].SetStatus(0);
+		//ResetBtnBgColor();
+		m_arrayWnd[*pWndIndex - 1].Invalidate();
+
+
+		ScaleWood scaleWood2 = { 0 };
+		scaleWood2.id = g_scaleWoodList[*pWndIndex].id;
+		scaleWood2.img = g_scaleWoodList[*pWndIndex].img;
+		for (size_t i = 0; i < g_scaleWoodList[*pWndIndex].wood_list.size(); i++)
+		{
+#if (QGDebug == 1)
+#else
+			if (flags2[i] == 1)
+#endif
+			{
+				scaleWood2.wood_list.push_back(g_scaleWoodList[*pWndIndex].wood_list[i]);
+			}
+		}
+		g_scaleWoodList[*pWndIndex] = {};
+
+		m_arrayWnd[*pWndIndex].SetScaleWood(scaleWood2);
+		m_arrayWnd[*pWndIndex].SetStatus(0);
+		//ResetBtnBgColor();
+		m_arrayWnd[*pWndIndex].Invalidate();
+	}
+	delete pWndIndex;
+	return 0;
+}
+
 void CMeasureDlg::OnClickStaMinExit(UINT nID)
 {
 	// 处理点击事件

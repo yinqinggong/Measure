@@ -189,7 +189,8 @@ bool log_scale(const std::string& ip_addr, const std::string& port, const std::s
         cv::Mat right_img = cv::imread(rfileName);
 
         asio::write(socket, asio::buffer("log-scale "));
-
+        //log-scale接口添加 相机ID 范围：1-4
+        asio::write(socket, asio::buffer(std::to_string(wndIndex + 1) + " "));
         std::vector<uchar> img_data;
         uint32_t size;
 
@@ -254,9 +255,15 @@ bool log_scale(const std::string& ip_addr, const std::string& port, const std::s
                 woodAttr.ellipse.ab1 = arrayData[i]["rx_2d"].asDouble();
                 woodAttr.ellipse.ab2 = arrayData[i]["ry_2d"].asDouble();
                 woodAttr.ellipse.angel = arrayData[i]["angel"].asDouble();
-                woodAttr.diameters.d1 = arrayData[i]["r_long"].asDouble();
-                woodAttr.diameters.d2 = arrayData[i]["r_short"].asDouble();
+                //短直径与长直接从mm转为cm
+                woodAttr.diameters.d1 = arrayData[i]["r_long"].asDouble() * 0.1;
+                woodAttr.diameters.d2 = arrayData[i]["r_short"].asDouble() * 0.1;
                 woodAttr.diameter = woodAttr.diameters.d1 < woodAttr.diameters.d2 ? woodAttr.diameters.d1 : woodAttr.diameters.d2;
+                //木材横截面椭圆在3D相机坐标系下的坐标，单位mm
+                woodAttr.ellipse.cx_3d = arrayData[i]["cx_3d"].asDouble();
+                woodAttr.ellipse.cy_3d = arrayData[i]["cy_3d"].asDouble();
+                woodAttr.ellipse.cz_3d = arrayData[i]["cz_3d"].asDouble();
+
                 scaleWood.wood_list.push_back(woodAttr);
             }
             //WriteLog(_T("PostScale - code: %d"), code);

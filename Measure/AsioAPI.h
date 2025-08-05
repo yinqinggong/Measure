@@ -19,6 +19,9 @@ typedef struct defWoodEllipse
 	double sy1;
 	double sx2;
 	double sy2;//sx1,sy1,sx2,sy2：椭圆短直径的两个端点的XY坐标，为相机坐标系，以米为单位
+	double cx_3d;//木材横截面椭圆在3D相机坐标系下的x坐标，单位mm
+	double cy_3d;//木材横截面椭圆在3D相机坐标系下的y坐标，单位mm
+	double cz_3d;//木材横截面椭圆在3D相机坐标系下的z坐标，单位mm
 }WoodEllipse;
 
 
