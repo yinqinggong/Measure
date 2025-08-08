@@ -40,6 +40,9 @@
     <Filter Include="AsioAPI">
       <UniqueIdentifier>{ffd7359a-f4dc-4d9d-aa1d-3315a62e05b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Merge">
+      <UniqueIdentifier>{ce7d9dde-4c61-46e1-84e5-19b15aa02e97}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Measure.h">
@@ -159,11 +162,11 @@
     <ClInclude Include="AsioAPI.h">
       <Filter>AsioAPI</Filter>
     </ClInclude>
-    <ClInclude Include="scale_merge.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="intrinsic.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="merge.h">
+      <Filter>Merge</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -251,11 +254,11 @@
     <ClCompile Include="AsioAPI.cpp">
       <Filter>AsioAPI</Filter>
     </ClCompile>
-    <ClCompile Include="scale_merge.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="intrinsic.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="merge.cpp">
+      <Filter>Merge</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

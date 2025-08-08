@@ -19,7 +19,7 @@
 #include "LogFile.h"
 #include "xlsxwriter.h"
 #include "intrinsic.h"
-#include "scale_merge.h"
+#include "merge.h"
 
 //excel begin
 //#include <afxdisp.h>      // MFC 自动化类库
@@ -1354,7 +1354,16 @@ LRESULT CMeasureDlg::OnUserMessageRecMerge(WPARAM wParam, LPARAM lParam)
 		std::vector<int> flags2;
 		//合并两个相机的检尺结果
 		log_scale_merge(results1, results2, r_mat32, t_mat32, flags1, flags2);
-
+		
+		//保存3D图片
+		std::string img_path_0 = GetCurrentPathUTF8() + "img_0.png";
+		std::string file_name_0 = GetImagePathUTF8() + std::to_string(m_share_wood_id) + "_" + std::to_string(0) + ".png";
+		cv::Mat img_mat_0 = cv::imread(file_name_0);
+		std::string img_path_1 = GetCurrentPathUTF8() + "img_1.png";
+		std::string file_name_1 = GetImagePathUTF8() + std::to_string(m_share_wood_id) + "_" + std::to_string(1) + ".png";
+		cv::Mat img_mat_1 = cv::imread(file_name_1);
+		save_pos_image(img_path_0, img_path_1, img_mat_0, img_mat_1,
+			results1, results2, r_mat32, t_mat32);
 		ScaleWood scaleWood1 = { 0 };
 		scaleWood1.id = g_scaleWoodList[*pWndIndex - 1].id;
 		scaleWood1.img = g_scaleWoodList[*pWndIndex - 1].img;
