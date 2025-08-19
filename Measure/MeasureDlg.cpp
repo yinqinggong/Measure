@@ -1339,8 +1339,13 @@ LRESULT CMeasureDlg::OnUserMessageRecMerge(WPARAM wParam, LPARAM lParam)
 	int* pWndIndex = (int*)wParam;
 	if (*pWndIndex == 1 || *pWndIndex == 3)
 	{
+		std::string intrinsic_path = "stereo_params-12.xml";
+		if (*pWndIndex == 3)
+		{
+			intrinsic_path = "stereo_params-34.xml";
+		}
 		cv::Mat r_mat, t_mat, r_mat32, t_mat32;
-		load_intrinsic("stereo_params.xml", r_mat, t_mat);
+		load_intrinsic(intrinsic_path, r_mat, t_mat);
 		r_mat.convertTo(r_mat32, CV_32F);
 		t_mat.convertTo(t_mat32, CV_32F);
 		//t_mat从m转mm
@@ -1352,8 +1357,22 @@ LRESULT CMeasureDlg::OnUserMessageRecMerge(WPARAM wParam, LPARAM lParam)
 		get_scale_data_result(*pWndIndex, results1, results2);
 		std::vector<int> flags1;
 		std::vector<int> flags2;
+		// 1、2相机
+		float kX_OFFSET = 110.0f;
+		float kY_OFFSET = 40.0f;
+		float kZ_OFFSET = 40.0f;
+		float kPOS_EPS = 2700.0f; // 3*30*30mm
+		if (*pWndIndex == 3)
+		{
+			//3、4相机
+			kX_OFFSET = -65.0f;
+			kY_OFFSET = 0.0f;
+			kZ_OFFSET = -78.0f;
+			kPOS_EPS = 4800.0f; // 3*40*40mm
+		}
+
 		//合并两个相机的检尺结果
-		log_scale_merge(results1, results2, r_mat32, t_mat32, flags1, flags2);
+		log_scale_merge(results1, results2, r_mat32, t_mat32, kX_OFFSET, kY_OFFSET, kZ_OFFSET, kPOS_EPS, flags1, flags2);
 		
 		//保存3D图片
 		std::string img_path_0 = GetCurrentPathUTF8() + "img_0.png";
