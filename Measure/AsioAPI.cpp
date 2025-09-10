@@ -9,6 +9,7 @@
 #include <math.h>
 #include "AsioAPI.h"
 #include "json.h"
+#include "LogFile.h"
 
 std::string img_file_name;
 
@@ -189,8 +190,11 @@ bool log_scale(const std::string& ip_addr, const std::string& port, const std::s
         cv::Mat right_img = cv::imread(rfileName);
 
         asio::write(socket, asio::buffer("log-scale "));
-        //log-scale接口添加 相机ID 范围：1-4
-        asio::write(socket, asio::buffer(std::to_string(wndIndex + 1) + " "));
+        if (g_wnd_num > 1)
+        {
+            //log-scale接口添加 相机ID 范围：1-4
+            asio::write(socket, asio::buffer(std::to_string(wndIndex + 1) + " "));
+        }
         std::vector<uchar> img_data;
         uint32_t size;
 

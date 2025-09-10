@@ -1341,10 +1341,33 @@ void CArrayWnd::LogScale()
     //this->Invalidate();
 
     g_scaleWoodList[m_wndIndex] = scalewood;
-    if (m_wndIndex == 1 || m_wndIndex == 3)
-    {
-        WriteLog(_T("Begin merge camera %d and %d"), m_wndIndex - 1, m_wndIndex);
-        int* pWndIndex = new int(m_wndIndex);
-        ::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_REC_MERGE, (WPARAM)pWndIndex, NULL);
-    }
+	if (g_wnd_num == 1)
+	{
+		//±£´æ3DÍ¼Æ¬
+		std::string img_path_0 = GetCurrentPathUTF8() + "img_0.png";
+		std::string file_name_0 = GetImagePathUTF8() + std::to_string(m_share_wood_id) + "_" + std::to_string(0) + ".png";
+		cv::Mat img_mat_0 = cv::imread(file_name_0);
+
+		ScaleWood scaleWood1 = { 0 };
+		scaleWood1.id = g_scaleWoodList[0].id;
+		scaleWood1.img = g_scaleWoodList[0].img;
+		for (size_t i = 0; i < g_scaleWoodList[0].wood_list.size(); i++)
+		{
+			scaleWood1.wood_list.push_back(g_scaleWoodList[0].wood_list[i]);
+		}
+		g_scaleWoodList[0] = {};
+
+		SetScaleWood(scaleWood1);
+		SetStatus(0);
+		Invalidate();
+	}
+	else
+	{
+		if (m_wndIndex == 1 || m_wndIndex == 3)
+		{
+			WriteLog(_T("Begin merge camera %d and %d"), m_wndIndex - 1, m_wndIndex);
+			int* pWndIndex = new int(m_wndIndex);
+			::PostMessage(GetParent()->m_hWnd, WM_USER_MESSAGE_REC_MERGE, (WPARAM)pWndIndex, NULL);
+		}
+	}
 }
