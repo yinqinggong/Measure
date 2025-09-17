@@ -3,6 +3,7 @@
 
 #define QGDebug 0
 #define CloudAPI 0
+#define LangEN 1
 const int  g_wnd_num = 1;   //´°¿ÚÊıÁ¿
 
 #ifndef _WIN32
