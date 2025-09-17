@@ -3,6 +3,7 @@
 #include "MyStatic.h"
 #include "MyButton.h"
 #include "common.h"
+#include "LogFile.h"
 
 IMPLEMENT_DYNCREATE(CMyScrollView, CScrollView)
 
@@ -130,7 +131,11 @@ void CMyScrollView::CreateChildWindows(int nCount)
         if (pNumSta->Create(_T(""), WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), pChild, 40000 + i))
         {
             CString strText;
+#if (LangEN == 1)
+            strText.Format(_T("Number of logs: %d"), m_woodDBShowList[i].amount);
+#else
             strText.Format(_T("根数：%d"), m_woodDBShowList[i].amount);
+#endif 
             pNumSta->SetWindowTextW(strText);
         }
         else
@@ -143,7 +148,11 @@ void CMyScrollView::CreateChildWindows(int nCount)
         if (pTotalSta->Create(_T(""), WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), pChild, 50000 + i))
         {
             CString strText;
+#if (LangEN == 1)
+            strText.Format(_T("Volume: %.3f cubic meters"), m_woodDBShowList[i].total_v);
+#else
             strText.Format(_T("总方数：%.3f"), m_woodDBShowList[i].total_v);
+#endif 
             pTotalSta->SetWindowTextW(strText);
         }
         else

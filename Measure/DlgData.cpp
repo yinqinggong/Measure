@@ -8,7 +8,7 @@
 #include "ScaleDB.h"
 #include "common.h"
 #include <json/json.h>
-
+#include "LogFile.h"
 
 #define IDC_SUB_SCROLL_VIEW             9000+2
 // CDlgData 对话框
@@ -57,6 +57,16 @@ BOOL CDlgData::OnInitDialog()
 	 // 创建滚动视图
 	m_brushBG.CreateSolidBrush(RGB(0, 0, 0));//画刷为绿色
 	m_inited = TRUE;
+#if (LangEN == 1)
+	m_sta_start.SetWindowTextW(L"Start Date");
+	m_sta_end.SetWindowTextW(L"End Date");
+	m_btn_query.SetWindowTextW(L"View");
+#else
+	m_sta_start.SetWindowTextW(L"开始日期");
+	m_sta_end.SetWindowTextW(L"结束日期");
+	m_btn_query.SetWindowTextW(L"查询");
+#endif
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
 }
@@ -186,12 +196,20 @@ void CDlgData::OnBnClickedButtonQuery()
 	int ret = db_query_by_time_range2(start_timestamp, end_timestamp, showDataList);
 	if (ret == -1)
 	{
+#if (LangEN == 1)
+		MessageBox(_T("Failed to open the database"), _T("FirLogic"));
+#else
 		AfxMessageBox(_T("打开数据库失败"));
+#endif
 		return;
 	}
 	else if (ret == -2)
 	{
+#if (LangEN == 1)
+		MessageBox(_T("Querying data failed"), _T("FirLogic"));
+#else
 		AfxMessageBox(_T("查询数据失败"));
+#endif
 		return;
 	}
 

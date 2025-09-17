@@ -5,6 +5,7 @@
 #include "WoodEditDlg.h"
 #include "afxdialogex.h"
 #include "resource.h"
+#include "LogFile.h"
 
 #define IDC_WOOD_EDIT_WND               8100+4
 // CWoodEditDlg 对话框
@@ -46,7 +47,7 @@ BOOL CWoodEditDlg::OnInitDialog()
 
 	RECT rect;
 	GetClientRect(&rect);
-	
+	this->SetWindowTextW(_T("Edit Data"));
 	m_editWoodWnd.Create(NULL, _T(""), WS_VISIBLE | WS_CHILD, rect, this, IDC_WOOD_EDIT_WND);
 	m_editWoodWnd.LoadLocalImage(true);
 	return TRUE;  // return TRUE unless you set the focus to a control

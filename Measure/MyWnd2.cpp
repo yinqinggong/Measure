@@ -76,7 +76,11 @@ BOOL CMyWnd2::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
     HRESULT hr = m_image.Load(lpszPath);
     if (FAILED(hr))
     {
-        AfxMessageBox(_T("Failed to load image"));
+#if (LangEN == 1)
+        MessageBox(_T("Failed to load image!"), _T("FirLogic"));
+#else
+        AfxMessageBox(_T("加载图片失败！"));
+#endif
         return FALSE;
     }
     if (firstInit)
@@ -346,7 +350,11 @@ void CMyWnd2::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     // 如果最后一个点与第一个点距离小于5，则完成多边形
                     m_points[m_points.size() - 1].SetPoint(m_points.front().x, m_points.front().y);
+#if (LangEN == 1)
+                    int ret = MessageBox(_T("Keep logs in the selected area?"), _T("FirLogic"), MB_OKCANCEL);
+#else
                     int ret = AfxMessageBox(_T("确认保留多边形区域的木材？"), MB_OKCANCEL);
+#endif
                     if (ret != IDOK)
                     {
                         m_points.clear();
@@ -667,8 +675,13 @@ void CMyWnd2::OnBnClickedBtnCapture()
     {
         WriteLog(_T("PostPhoto API failed, errorCode:%d"), errorCode);
         CString tipStr;
+#if (LangEN == 1)
+        tipStr.Format(_T("Failed to take a photo. Please try again, code:%d"), errorCode);
+        MessageBox(tipStr, _T("FirLogic"));
+#else
         tipStr.Format(_T("拍照失败，请重试, code:%d"), errorCode);
         AfxMessageBox(tipStr);
+#endif
         return;
     }
     try
@@ -679,13 +692,21 @@ void CMyWnd2::OnBnClickedBtnCapture()
     catch (const std::exception&)
     {
         WriteLog(_T("invalid base64 exception"));
+#if (LangEN == 1)
+        MessageBox(_T("Failed to obtain the image. Please try again"), _T("FirLogic"));
+#else
         AfxMessageBox(_T("获取图片失败，请重试"));
+#endif
         return;
     }
     if (limg.length() <= 0)
     {
         WriteLog(_T("invalid base64 limg.length() <= 0"));
+#if (LangEN == 1)
+        MessageBox(_T("Failed to obtain the image. Please try again"), _T("FirLogic"));
+#else
         AfxMessageBox(_T("获取图片失败，请重试"));
+#endif
         return;
     }
 
@@ -731,13 +752,21 @@ void CMyWnd2::OnBnClickedBtnCapture()
     catch (const std::exception&)
     {
         WriteLog(_T("invalid base64 exception"));
+#if (LangEN == 1)
+        MessageBox(_T("Failed to obtain the image. Please try again"), _T("FirLogic"));
+#else
         AfxMessageBox(_T("获取图片失败，请重试"));
+#endif
         return;
     }
     if (limg.length() <= 0)
     {
         WriteLog(_T("invalid base64 limg.length() <= 0"));
+#if (LangEN == 1)
+        MessageBox(_T("Failed to obtain the image. Please try again"), _T("FirLogic"));
+#else
         AfxMessageBox(_T("获取图片失败，请重试"));
+#endif
         return;
     }
 
@@ -996,8 +1025,13 @@ void CMyWnd2::RecMethod()
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
         m_btnDis.ShowWindow(SW_SHOWNORMAL);
         CString tipStr;
+#if (LangEN == 1)
+        tipStr.Format(_T("Recognition failed. Please try again, code:%d"), errorCode);
+        MessageBox(tipStr, _T("FirLogic"));
+#else
         tipStr.Format(_T("识别失败，请重试, code:%d"), errorCode);
         AfxMessageBox(tipStr);
+#endif
         return;
     }
     /*else
@@ -1013,14 +1047,22 @@ void CMyWnd2::RecMethod()
         WriteLog(_T("invalid base64"));
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
         m_btnDis.ShowWindow(SW_SHOWNORMAL);
+#if (LangEN == 1)
+        MessageBox(_T("Recognition failed, please try again! invalid base64-1"), _T("FirLogic"));
+#else
         AfxMessageBox(_T("识别失败，请重试, invalid base64-1"));
+#endif
         return;
     }
     if (scalewood.img.length() <= 0)
     {
         m_btnRec.ShowWindow(SW_SHOWNORMAL);
         m_btnDis.ShowWindow(SW_SHOWNORMAL);
+#if (LangEN == 1)
+        MessageBox(_T("Recognition failed, please try again! invalid base64-2"), _T("FirLogic"));
+#else
         AfxMessageBox(_T("识别失败，请重试, invalid base64-2"));
+#endif       
         return;
     }
 #endif

@@ -77,6 +77,17 @@ int CEditWoodWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_btnDel.ModifyStyle(NULL, BS_OWNERDRAW);
     m_btnSave.ModifyStyle(NULL, BS_OWNERDRAW);
 
+#if (LangEN == 1)
+    m_btnAdd.SetWindowTextW(L"Add");//添加
+    m_btnCrop.SetWindowTextW(L"Select");//裁剪
+    m_btnDel.SetWindowTextW(L"Remove");//删除
+    m_btnSave.SetWindowTextW(L"Confirm");//确定
+#else
+    m_btnAdd.SetWindowTextW(L"添加");//添加
+    m_btnCrop.SetWindowTextW(L"裁剪");//裁剪
+    m_btnDel.SetWindowTextW(L"删除");//删除
+    m_btnSave.SetWindowTextW(L"确定");//确定
+#endif 
     //StartThread();
     return 0;
 }
@@ -93,7 +104,11 @@ BOOL CEditWoodWnd::LoadLocalImage(LPCTSTR lpszPath, bool firstInit)
     HRESULT hr = m_image.Load(lpszPath);
     if (FAILED(hr))
     {
-        AfxMessageBox(_T("Failed to load image"));
+#if (LangEN == 1)
+        MessageBox(_T("Failed to load image!"), _T("FirLogic"));
+#else
+        AfxMessageBox(_T("加载图片失败！"));
+#endif
         return FALSE;
     }
     if (firstInit)
@@ -363,7 +378,11 @@ void CEditWoodWnd::OnLButtonDown(UINT nFlags, CPoint point)
                 {
                     // 如果最后一个点与第一个点距离小于5，则完成多边形
                     m_points[m_points.size() - 1].SetPoint(m_points.front().x, m_points.front().y);
+#if (LangEN == 1)
+                    int ret = MessageBox(_T("Keep logs in the selected area?"), _T("FirLogic"), MB_OKCANCEL);
+#else
                     int ret = AfxMessageBox(_T("确认保留多边形区域的木材？"), MB_OKCANCEL);
+#endif
                     if (ret != IDOK)
                     {
                         m_points.clear();
@@ -676,7 +695,11 @@ void CEditWoodWnd::OnBnClickedBtnAdd()
 {
     if (GetStatus() == -1 || GetScaleWoodID() <= 0)
     {
-        AfxMessageBox(_T("请先识别！"));
+#if (LangEN == 1)
+        MessageBox(_T("Please process image first!"), _T("FirLogic"));
+#else
+        AfxMessageBox(_T("请先识别木材！"));
+#endif
         return;
     }
     else if (GetStatus() == 0)
@@ -702,7 +725,11 @@ void CEditWoodWnd::OnBnClickedBtnCrop()
 {
     if (GetStatus() == -1 || GetScaleWoodID() <= 0)
     {
-        AfxMessageBox(_T("请先识别！"));
+#if (LangEN == 1)
+        MessageBox(_T("Please process image first!"), _T("FirLogic"));
+#else
+        AfxMessageBox(_T("请先识别木材！"));
+#endif
         return;
     }
     else if (GetStatus() == 3)
@@ -722,7 +749,11 @@ void CEditWoodWnd::OnBnClickedBtnDel()
 {
     if (GetStatus() == -1 || GetScaleWoodID() <= 0)
     {
-        AfxMessageBox(_T("请先识别！"));
+#if (LangEN == 1)
+        MessageBox(_T("Please process image first!"), _T("FirLogic"));
+#else
+        AfxMessageBox(_T("请先识别木材！"));
+#endif
         return;
     }
     else if (GetStatus() == 2)

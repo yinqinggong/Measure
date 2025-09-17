@@ -356,7 +356,11 @@ BOOL CMeasureDlg::OnInitDialog()
 	int ret = create_db();
 	if (ret == -1)
 	{
+#if (LangEN == 1)
+		MessageBox(_T("Failed to open the database"), _T("FirLogic"));
+#else
 		AfxMessageBox(_T("打开数据库失败"));
+#endif
 	}
 	/*else if (ret == -2)
 	{
@@ -435,7 +439,26 @@ BOOL CMeasureDlg::OnInitDialog()
 		m_arrayWnd[i].SetIPGPU(gpu_ip);
 		m_arrayWnd[i].SetPortGPU(gpu_port);
 	}
-	
+
+#if (LangEN == 1)
+	m_btnScale.SetWindowTextW(L"Scanner");//检尺
+	m_btnData.SetWindowTextW(L"Data Base");//数据
+	m_btnPhoto.SetWindowTextW(L"Capture");//拍照
+	m_btnInfer.SetWindowTextW(L"Process");//识别
+	m_btnDrop.SetWindowTextW(L"Discard");//放弃
+	m_btnReport.SetWindowTextW(L"Data Sheet");//报表
+	m_btnSave.SetWindowTextW(L"Save");//保存
+	m_btnDownLoad.SetWindowTextW(L"Export");//下载
+#else
+	m_btnScale.SetWindowTextW(L"检尺");//检尺
+	m_btnData.SetWindowTextW(L"数据");//数据
+	m_btnPhoto.SetWindowTextW(L"拍照");//拍照
+	m_btnInfer.SetWindowTextW(L"识别");//识别
+	m_btnDrop.SetWindowTextW(L"放弃");//放弃
+	m_btnReport.SetWindowTextW(L"报表");//报表
+	m_btnSave.SetWindowTextW(L"保存");//保存
+	m_btnDownLoad.SetWindowTextW(L"下载");//下载
+#endif 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -690,7 +713,11 @@ void CMeasureDlg::OnBnClickedBtnReport()
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
-			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+#if (LangEN == 1)
+			MessageBox(_T("Camera is capturing/processing, please stand by!"), _T("FirLogic"));
+#else
+			AfxMessageBox(_T("有相机正在拍照或识别中，请稍后！"));
+#endif
 			return;
 		}
 	}
@@ -733,7 +760,11 @@ void CMeasureDlg::OnBnClickedBtnScale()
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
-			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+#if (LangEN == 1)
+			MessageBox(_T("Camera is capturing/processing, please stand by!"), _T("FirLogic"));
+#else
+			AfxMessageBox(_T("有相机正在拍照或识别中，请稍后！"));
+#endif
 			return;
 		}
 	}
@@ -765,7 +796,11 @@ void CMeasureDlg::OnBnClickedBtnData()
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
-			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+#if (LangEN == 1)
+			MessageBox(_T("Camera is capturing/processing, please stand by!"), _T("FirLogic"));
+#else
+			AfxMessageBox(_T("有相机正在拍照或识别中，请稍后！"));
+#endif
 			return;
 		}
 	}
@@ -830,7 +865,11 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
-			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+#if (LangEN == 1)
+			MessageBox(_T("Camera is capturing/processing, please stand by!"), _T("FirLogic"));
+#else
+			AfxMessageBox(_T("有相机正在拍照或识别中，请稍后！"));
+#endif
 			return;
 		}
 	}
@@ -853,7 +892,11 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	{
 		if (!m_arrayWnd[i].GetScaleWood(scaleWoodVec[i]))
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Data undetected, please process image first."), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("没有数据保存，请先进行检尺"));
+#endif
 			return;
 		}
 	}
@@ -915,12 +958,20 @@ void CMeasureDlg::OnBnClickedBtnSave()
 	{
 		if (ret == -1)
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Failed to open the database"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("打开数据库失败"));
+#endif
 			return;
 		}
 		else
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Querying data failed"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("查询数据失败"));
+#endif
 			return;
 		}
 	}
@@ -929,15 +980,27 @@ void CMeasureDlg::OnBnClickedBtnSave()
 		ret = db_update_by_create_time(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
 		if (ret == -1)
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Failed to open the database"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("打开数据库失败"));
+#endif
 		}
 		else if (ret == -2)
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Failed to modify data"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("修改数据失败"));
+#endif
 		}
 		else
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Data modification successful"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("修改数据成功"));
+#endif
 		}
 	}
 	else
@@ -945,15 +1008,27 @@ void CMeasureDlg::OnBnClickedBtnSave()
 		ret = db_insert_record(scaleWood.id, scaleWood.wood_list.size(), l, total_v, woollist);
 		if (ret == -1)
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Failed to open the database"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("打开数据库失败"));
+#endif
 		}
 		else if (ret == -2)
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Failed to insert data"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("插入数据失败"));
+#endif
 		}
 		else
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Data saved successfully"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("保存数据成功"));
+#endif
 		}
 	}
 	for (size_t i = 0; i < 4; i++)
@@ -1136,7 +1211,11 @@ void CMeasureDlg::OnBnClickedBtnDownload1()
 	if (wood_data.size() < 2)
 	{
 		WriteLog(_T("No data saved!"));
+#if (LangEN == 1)
+		MessageBox(_T("No data saved!"), _T("FirLogic"));
+#else
 		AfxMessageBox(_T("没有数据保存！"));
+#endif
 		return;
 	}
 
@@ -1178,12 +1257,20 @@ void CMeasureDlg::OnBnClickedBtnDownload1()
 				file.WriteString(_T("\n"));
 			}
 
-			file.Close();
+			file.Close(); 
+#if (LangEN == 1)
+		    MessageBox(_T("Downloading complete."), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("CSV文件导出成功。"));
+#endif
 		}
 		else
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Cannot create .CSV file."), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("无法创建CSV文件。"));
+#endif
 		}
 	}
 }
@@ -1224,7 +1311,11 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 	if (src_wood_data.size() < 1)
 	{
 		WriteLog(_T("No data saved!"));
+#if (LangEN == 1)
+		MessageBox(_T("Data undetected!"), _T("FirLogic"));
+#else
 		AfxMessageBox(_T("没有数据保存！"));
+#endif
 		return;
 	}
 
@@ -1285,12 +1376,19 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 3, user_total_v, format);
 
 		workbook_close(workbook);
-
+#if (LangEN == 1)
+		MessageBox(_T(".xlsx file exported successfully."), _T("FirLogic"));
+#else
 		AfxMessageBox(_T("xlsx文件导出成功。"));
+#endif
 	}
 	else
 	{
+#if (LangEN == 1)
+		MessageBox(_T("Cannot create .xlsx file."), _T("FirLogic"));
+#else
 		AfxMessageBox(_T("无法创建xlsx文件。"));
+#endif
 	}
 }
 
@@ -1441,10 +1539,18 @@ void CMeasureDlg::OnClickStaMinExit(UINT nID)
 	}
 	else if (nID == IDC_EXIT_IMAGE_STA)
 	{
+#if (LangEN == 1)
+		if (MessageBox(_T("Exit the application?"), _T("FirLogic"), MB_YESNO) == IDNO)
+		{
+			return;
+		}
+#else
 		if (AfxMessageBox(_T("确定退出系统？"), MB_YESNO) == IDNO)
 		{
 			return;
 		}
+#endif
+		
 		PostMessage(WM_CLOSE);
 	}
 }
@@ -1497,7 +1603,11 @@ void CMeasureDlg::OnBnClickedBtnPhoto()
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
-			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+#if (LangEN == 1)
+			MessageBox(_T("Camera is capturing/processing, please stand by!"), _T("FirLogic"));
+#else
+			AfxMessageBox(_T("有相机正在拍照或识别中，请稍后！"));
+#endif
 			return;
 		}
 	}
@@ -1527,17 +1637,29 @@ void CMeasureDlg::OnBnClickedBtnInfer()
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 0)
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Please capture image first!"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("请先拍照！"));
+#endif
 			return;
 		}
 		if (m_arrayWnd[i].GetWorkStatus() == 1)
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Camera is capturing, please stand by!"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("有相机正在拍照中，请稍后！"));
+#endif
 			return;
 		}
 		if (m_arrayWnd[i].GetWorkStatus() == 3)
 		{
+#if (LangEN == 1)
+			MessageBox(_T("Camera is processing, please stand by!"), _T("FirLogic"));
+#else
 			AfxMessageBox(_T("有相机正在识别中，请稍后！"));
+#endif
 			return;
 		}
 	}
@@ -1573,7 +1695,11 @@ void CMeasureDlg::OnBnClickedBtnDrop()
 	{
 		if (m_arrayWnd[i].GetWorkStatus() == 1 || m_arrayWnd[i].GetWorkStatus() == 3)
 		{
-			AfxMessageBox(_T("有相机正在拍照或者识别中，请稍后！"));
+#if (LangEN == 1)
+			MessageBox(_T("Camera is capturing/processing, please stand by!"), _T("FirLogic"));
+#else
+			AfxMessageBox(_T("有相机正在拍照或识别中，请稍后！"));
+#endif
 			return;
 		}
 	}

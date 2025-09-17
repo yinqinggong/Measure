@@ -28,4 +28,7 @@ public:
 	{
 		return m_diameter;
 	}
+	CStatic m_staText;
+	CButton m_btnSure;
+	virtual BOOL OnInitDialog();
 };

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include "common.h"
+#include "LogFile.h"
 
 // CDlgReport 对话框
 
@@ -55,6 +56,22 @@ BOOL CDlgReport::OnInitDialog()
 
 	// TODO:  在此添加额外的初始化
 	m_edit_len.SetWindowTextW(_T("2.6"));
+#if (LangEN == 1)
+	m_sta_len.SetWindowTextW(_T("Log length: "));
+	m_sta_standard.SetWindowTextW(_T("Scaling Standard: "));
+	m_combo_standard.InsertString(0, _T("Original"));
+	m_combo_standard.InsertString(1, _T("China Standard"));
+	m_combo_standard.InsertString(2, _T("custom mode 1"));
+	m_combo_standard.InsertString(3, _T("custom mode 2"));
+	m_combo_standard.InsertString(4, _T("custom mode 3"));
+	m_combo_standard.InsertString(5, _T("custom mode 4"));
+	m_combo_standard.InsertString(6, _T("custom mode 5"));
+	m_combo_standard.InsertString(7, _T("custom mode 6"));
+	m_combo_standard.InsertString(8, _T("custom mode 7"));
+	m_combo_standard.InsertString(9, _T("custom mode 8"));
+#else
+	m_sta_len.SetWindowTextW(_T("长度："));
+	m_sta_standard.SetWindowTextW(_T("检尺标准："));
 	m_combo_standard.InsertString(0, _T("原始径级"));
 	m_combo_standard.InsertString(1, _T("国家标准"));
 	m_combo_standard.InsertString(2, _T("二进制"));
@@ -65,7 +82,7 @@ BOOL CDlgReport::OnInitDialog()
 	m_combo_standard.InsertString(7, _T("七进制"));
 	m_combo_standard.InsertString(8, _T("八进制"));
 	m_combo_standard.InsertString(9, _T("九进制"));
-
+#endif
 	CString  strIniFile = GetAppdataPath() + _T("config.ini");
 	m_scaleStandard = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_STANDARD, 0, strIniFile);
 	if (!(m_scaleStandard >= 0 && m_scaleStandard < 10))
@@ -199,12 +216,20 @@ void CDlgReport::UpdateWoodData(int sd)
 	CString strTemp;
 	std::string strNum = std::to_string(m_scaleWood.wood_list.size());
 	UTF8ToUnicode(strNum.c_str(), strTemp);
+#if (LangEN == 1)
+	m_sta_num.SetWindowTextW(_T("Log Count: ") + strTemp);
+#else
 	m_sta_num.SetWindowTextW(_T("根数：") + strTemp);
+#endif
 
 	std::string strSquare = std::to_string(total_v);
 	strSquare = strSquare.substr(0, strSquare.find(".") + 1 + 3);
 	UTF8ToUnicode(strSquare.c_str(), strTemp);
+#if (LangEN == 1)
+	m_sta_square.SetWindowTextW(_T("Total Volume: ") + strTemp);
+#else
 	m_sta_square.SetWindowTextW(_T("材积：") + strTemp);
+#endif
 }
 
 void CDlgReport::InitCtrls()
@@ -213,7 +238,7 @@ void CDlgReport::InitCtrls()
 	GetClientRect(&rect);
 
 	int edge = 20;
-	int sta_w = 80;
+	int sta_w = 120;
 	int edit_w = 150;
 	int h = 30;
 
@@ -243,10 +268,17 @@ void CDlgReport::OnSize(UINT nType, int cx, int cy)
 	GetClientRect(&rect);
 
 	m_list_report.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+#if (LangEN == 1)
+	m_list_report.InsertColumn(0, _T("Diameter Class"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
+	m_list_report.InsertColumn(1, _T("Log Count"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
+	m_list_report.InsertColumn(2, _T("Length"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
+	m_list_report.InsertColumn(3, _T("Volume"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
+#else
 	m_list_report.InsertColumn(0, _T("径级"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
 	m_list_report.InsertColumn(1, _T("根数"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
 	m_list_report.InsertColumn(2, _T("长度"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
 	m_list_report.InsertColumn(3, _T("材积"), LVCFMT_LEFT, (rect.right - 20 * 3) * 0.25);
+#endif
 }
 
 int CDlgReport::InsertListCtrl(CListCtrl& evtListCtrl, CString items[]) 
