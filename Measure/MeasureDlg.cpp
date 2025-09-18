@@ -997,7 +997,7 @@ void CMeasureDlg::OnBnClickedBtnSave()
 		else
 		{
 #if (LangEN == 1)
-			MessageBox(_T("Data modification successful"), _T("FirLogic"));
+			MessageBox(_T("Saved edit successfully."), _T("FirLogic"));
 #else
 			AfxMessageBox(_T("修改数据成功"));
 #endif
@@ -1025,7 +1025,7 @@ void CMeasureDlg::OnBnClickedBtnSave()
 		else
 		{
 #if (LangEN == 1)
-			MessageBox(_T("Data saved successfully"), _T("FirLogic"));
+			MessageBox(_T("Saved data successfully."), _T("FirLogic"));
 #else
 			AfxMessageBox(_T("保存数据成功"));
 #endif
@@ -1042,8 +1042,12 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<CString>>& wood_data)
 {
 	std::vector<WoodDBShow> woodDBShowList;
 	m_dlgData.GetWoodData(woodDBShowList);
-
+#if (LangEN == 1)
+	std::vector<CString> titleVec{ _T("Diameter Class"), _T("Log Count"), _T("Length"), _T("Volume") };
+#else
 	std::vector<CString> titleVec{ _T("径级"), _T("根数"), _T("长度"), _T("材积") };
+#endif 
+
 	wood_data.push_back(titleVec);
 
 	for (size_t j = 0; j < woodDBShowList.size(); j++)
@@ -1212,7 +1216,7 @@ void CMeasureDlg::OnBnClickedBtnDownload1()
 	{
 		WriteLog(_T("No data saved!"));
 #if (LangEN == 1)
-		MessageBox(_T("No data saved!"), _T("FirLogic"));
+		MessageBox(_T("Data undetected!"), _T("FirLogic"));
 #else
 		AfxMessageBox(_T("没有数据保存！"));
 #endif
@@ -1259,7 +1263,7 @@ void CMeasureDlg::OnBnClickedBtnDownload1()
 
 			file.Close(); 
 #if (LangEN == 1)
-		    MessageBox(_T("Downloading complete."), _T("FirLogic"));
+		    MessageBox(_T(".csv file exported successfully."), _T("FirLogic"));
 #else
 			AfxMessageBox(_T("CSV文件导出成功。"));
 #endif
@@ -1278,12 +1282,23 @@ void CMeasureDlg::OnBnClickedBtnDownload1()
 
 std::string CMeasureDlg::GetWorkSheetNameByScaleStandard(int scaleStandard)
 {
-	std::vector<std::string> standardNames = { 
+#if (LangEN == 1)
+	std::vector<std::string> standardNames = {
+		"Original", "China Standard",
+		"custom mode 1", "custom mode 2",
+		"custom mode 3", "custom mode 4",
+		"custom mode 5", "custom mode 6",
+		"custom mode 7", "custom mode 8"
+};
+#else
+	std::vector<std::string> standardNames = {
 		"原始径级", "国家标准",
-		"二进制", "三进制", 
-		"四进制", "五进制", 
-		"六进制", "七进制", 
-		"八进制", "九进制" };
+		"二进制", "三进制",
+		"四进制", "五进制",
+		"六进制", "七进制",
+		"八进制", "九进制"
+};
+#endif
 	if (scaleStandard > 1 && scaleStandard < 10)
 	{
 		return standardNames[scaleStandard];
@@ -1333,13 +1348,19 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 
 		lxw_format* format = workbook_add_format(workbook);
 		format_set_num_format(format, "0.000");
-
+#if (LangEN == 1)
+		lxw_worksheet* worksheet = workbook_add_worksheet(workbook, GBKToUTF8("Original").data());
+		worksheet_write_string(worksheet, 0, 0, GBKToUTF8("Diameter Class").data(), NULL);
+		worksheet_write_string(worksheet, 0, 1, GBKToUTF8("Log Count").data(), NULL);
+		worksheet_write_string(worksheet, 0, 2, GBKToUTF8("Length").data(), NULL);
+		worksheet_write_string(worksheet, 0, 3, GBKToUTF8("Volume").data(), NULL);
+#else
 		lxw_worksheet* worksheet = workbook_add_worksheet(workbook, GBKToUTF8("原始径级").data());
 		worksheet_write_string(worksheet, 0, 0, GBKToUTF8("径级").data(), NULL);
 		worksheet_write_string(worksheet, 0, 1, GBKToUTF8("根数").data(), NULL);
 		worksheet_write_string(worksheet, 0, 2, GBKToUTF8("长度").data(), NULL);
 		worksheet_write_string(worksheet, 0, 3, GBKToUTF8("材积").data(), NULL);
-
+#endif 
 		for (size_t i = 0; i < src_wood_data.size(); i++)
 		{
 			for (size_t j = 0; j < src_wood_data[i].size(); j++)
@@ -1348,19 +1369,31 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 				worksheet_write_number(worksheet, i + 1, j, atof(src_wood_data[i][j].data()), NULL);
 			}
 		}
-
+#if (LangEN == 1)
+		worksheet_write_string(worksheet, src_wood_data.size() + 2, 0, GBKToUTF8("Number of logs:").data(), NULL);
+		worksheet_write_number(worksheet, src_wood_data.size() + 2, 1, src_num, NULL);
+		worksheet_write_string(worksheet, src_wood_data.size() + 2, 2, GBKToUTF8("Total Volume:").data(), NULL);
+		worksheet_write_number(worksheet, src_wood_data.size() + 2, 3, src_total_v, format);
+		
+		std::string userWorkSheetName = GetWorkSheetNameByScaleStandard(scaleStandard);
+		lxw_worksheet* worksheet2 = workbook_add_worksheet(workbook, GBKToUTF8(userWorkSheetName.data()).data());
+		worksheet_write_string(worksheet2, 0, 0, GBKToUTF8("Diameter Class").data(), NULL);
+		worksheet_write_string(worksheet2, 0, 1, GBKToUTF8("Log Count").data(), NULL);
+		worksheet_write_string(worksheet2, 0, 2, GBKToUTF8("Length").data(), NULL);
+		worksheet_write_string(worksheet2, 0, 3, GBKToUTF8("Volume").data(), NULL);
+#else
 		worksheet_write_string(worksheet, src_wood_data.size() + 2, 0, GBKToUTF8("总根数：").data(), NULL);
 		worksheet_write_number(worksheet, src_wood_data.size() + 2, 1, src_num, NULL);
 		worksheet_write_string(worksheet, src_wood_data.size() + 2, 2, GBKToUTF8("总材积：").data(), NULL);
 		worksheet_write_number(worksheet, src_wood_data.size() + 2, 3, src_total_v, format);
-		
+
 		std::string userWorkSheetName = GetWorkSheetNameByScaleStandard(scaleStandard);
 		lxw_worksheet* worksheet2 = workbook_add_worksheet(workbook, GBKToUTF8(userWorkSheetName.data()).data());
 		worksheet_write_string(worksheet2, 0, 0, GBKToUTF8("径级").data(), NULL);
 		worksheet_write_string(worksheet2, 0, 1, GBKToUTF8("根数").data(), NULL);
 		worksheet_write_string(worksheet2, 0, 2, GBKToUTF8("长度").data(), NULL);
 		worksheet_write_string(worksheet2, 0, 3, GBKToUTF8("材积").data(), NULL);
-
+#endif 
 		for (size_t i = 0; i < user_wood_data.size(); i++)
 		{
 			for (size_t j = 0; j < user_wood_data[i].size(); j++)
@@ -1369,12 +1402,17 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 				worksheet_write_number(worksheet2, i + 1, j, atof(user_wood_data[i][j].data()), NULL);
 			}
 		}
-
+#if (LangEN == 1)
+		worksheet_write_string(worksheet2, user_wood_data.size() + 2, 0, GBKToUTF8("Number of logs:").data(), NULL);
+		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 1, user_num, NULL);
+		worksheet_write_string(worksheet2, user_wood_data.size() + 2, 2, GBKToUTF8("Total Volume:").data(), NULL);
+		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 3, user_total_v, format);
+#else
 		worksheet_write_string(worksheet2, user_wood_data.size() + 2, 0, GBKToUTF8("总根数：").data(), NULL);
 		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 1, user_num, NULL);
 		worksheet_write_string(worksheet2, user_wood_data.size() + 2, 2, GBKToUTF8("总材积：").data(), NULL);
 		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 3, user_total_v, format);
-
+#endif
 		workbook_close(workbook);
 #if (LangEN == 1)
 		MessageBox(_T(".xlsx file exported successfully."), _T("FirLogic"));
