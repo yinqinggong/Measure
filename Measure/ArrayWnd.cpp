@@ -26,6 +26,7 @@ std::vector<ScaleWood> g_scaleWoodList(4);
 #define IDC_BTN_CAPTURE                 8000+1
 #define IDC_BTN_REC                     8000+2
 #define IDC_BTN_DIS                     8000+3
+#define IDC_STA_NO                      8000+4 //4个序号4，5，6，7
 
 BEGIN_MESSAGE_MAP(CArrayWnd, CWnd)
     ON_WM_PAINT()
@@ -59,6 +60,11 @@ CArrayWnd::CArrayWnd()
 
 CArrayWnd::~CArrayWnd()
 {
+    if (m_pNoSta != NULL)
+    {
+        delete m_pNoSta;
+        m_pNoSta = NULL;
+    }
     StopThread();
     StopRightCamThread();
 }
@@ -67,6 +73,21 @@ int CArrayWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if (CWnd::OnCreate(lpCreateStruct) == -1)
         return -1;
+
+    m_pNoSta = new CStatic();
+    if (m_pNoSta->Create(_T(""), WS_CHILD | WS_VISIBLE, CRect(0, 0, 0, 0), this, IDC_STA_NO + m_wndIndex))
+    {
+        m_pNoSta->ModifyStyle(0, SS_CENTER);
+        CRect rect;
+        GetClientRect(&rect);
+        m_pNoSta->MoveWindow(rect.right - 30, rect.bottom - 20, 30, 20);
+    }
+    else
+    {
+        delete m_pNoSta;
+        m_pNoSta = NULL;
+    }
+
     //m_btnCapture.Create(_T("拍照"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_CAPTURE);
     //m_btnRec.Create(_T("识别"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_REC);
     //m_btnDis.Create(_T("放弃"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, CRect(20, 20, 120, 50), this, IDC_BTN_DIS);
@@ -176,7 +197,12 @@ void CArrayWnd::OnPaint()
     CPaintDC dc(this);
     CRect clientRect;
     GetClientRect(&clientRect);
-
+    if (m_pNoSta)
+    {
+        CString strTime;
+        strTime.Format(_T(" %d"), m_wndIndex + 1);
+        m_pNoSta->SetWindowTextW(strTime);
+    }
 	if (m_image.IsNull())
 	{
 		dc.FillSolidRect(clientRect, RGB(42, 42, 43));   //控件背景色

@@ -5,6 +5,7 @@
 #include <vector>
 //#include "ScaleAPI.h"
 #include "AsioAPI.h"
+//#include "MyStatic.h"
 #include <gdiplus.h>
 using namespace Gdiplus;
 
@@ -21,6 +22,7 @@ public:
     virtual ~CArrayWnd();
 
 protected:
+    CStatic* m_pNoSta;
     CImage m_image;
     float m_scaleFactor;
     CPoint m_imageOrigin;
