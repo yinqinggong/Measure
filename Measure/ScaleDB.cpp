@@ -3,6 +3,7 @@
 #include "common.h"
 #include "LogFile.h"
 
+const int g_wood_list_len = 10*1024*1024;
 //#include <json/json.h>
 std::string db_path_name = GetAppdataPathUTF8() + "scale.db";
 
@@ -78,7 +79,7 @@ int create_db()
 				amount INTEGER NULL default 0,\
 				lenght INTEGER NULL default 0,\
                 total_volume Float Default 0,\
-				wood_list VARCHAR(40960) NULL default ''\
+				wood_list VARCHAR(409600) NULL default ''\
 			);");
         nRes = sqlite3_exec(pDB, cSql, NULL, NULL, &pcErrMsg);
         if (nRes != SQLITE_OK)
@@ -111,7 +112,7 @@ int db_insert_record(int create_time, int amount, double lenght, double total_vo
     sqlite3* pDB = NULL;
     int ret = 0;
     // 格式化SQL语句
-    char *pSql = new char[409600]();
+    char *pSql = new char[g_wood_list_len]();
     do
     { 
         int nRes = sqlite3_open(db_path_name.c_str(), &pDB);
@@ -125,12 +126,12 @@ int db_insert_record(int create_time, int amount, double lenght, double total_vo
         }
 
         // 插入数据
-        sqlite3_snprintf(409600, pSql, "INSERT INTO scale_result(create_time, amount, lenght, total_volume, wood_list)\
+        sqlite3_snprintf(g_wood_list_len, pSql, "INSERT INTO scale_result(create_time, amount, lenght, total_volume, wood_list)\
          VALUES(%d, %d, %f, %f, '%s')", create_time, amount, lenght, total_volume, wood_list.c_str());
         nRes = sqlite3_exec(pDB, pSql, NULL, NULL, &pcErrMsg);
         if (nRes != SQLITE_OK)
         {
-            WriteLog(_T("INSERT INTO scale_result failed: %d"), nRes);
+            WriteLog(_T("INSERT INTO scale_result failed: %d, %d + 1 = %d"), nRes, strlen(pSql), g_wood_list_len);
             //printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
             ret = -2;
             break;
@@ -399,7 +400,7 @@ int db_update_by_create_time(int create_time, int amount, double lenght, double 
     sqlite3* pDB = NULL;
     int ret = 0;
     // 格式化SQL语句 
-    char* pSql = new char[409600]();
+    char* pSql = new char[g_wood_list_len]();
     do
     {
         int nRes = sqlite3_open(db_path_name.c_str(), &pDB);
@@ -412,11 +413,11 @@ int db_update_by_create_time(int create_time, int amount, double lenght, double 
             break;
         }
 
-        sqlite3_snprintf(409600, pSql, "UPDATE scale_result SET amount = %d, lenght = %f, total_volume = %f, wood_list = '%s' where create_time = %d", amount, lenght, total_volume, wood_list.c_str(), create_time);
+        sqlite3_snprintf(g_wood_list_len, pSql, "UPDATE scale_result SET amount = %d, lenght = %f, total_volume = %f, wood_list = '%s' where create_time = %d", amount, lenght, total_volume, wood_list.c_str(), create_time);
         nRes = sqlite3_exec(pDB, pSql, NULL, NULL, &pcErrMsg);
         if (nRes != SQLITE_OK)
         {
-            WriteLog(_T("UPDATE scale_result SET failed: %d"), nRes);
+            WriteLog(_T("UPDATE scale_result SET failed: %d, %d + 1 = %d"), nRes, strlen(pSql), g_wood_list_len);
             //printf("插入数据库表test_table 失败: %s --------------------\n", pcErrMsg);
             ret = -2;
             break;
