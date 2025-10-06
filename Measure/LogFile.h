@@ -3,8 +3,8 @@
 
 #define QGDebug 0
 #define CloudAPI 0
-#define LangEN 1
-const int  g_wnd_num = 1;   //窗口数量
+#define LangEN 0
+const int  g_wnd_num = 4;   //窗口数量
 
 #ifndef _WIN32
 #include <pthread.h>

@@ -57,8 +57,8 @@ private:
 	//左侧俩按钮
 	CButton m_btnScale;
 	CButton m_btnData;
+	CButton m_btnSetting;
 	//右侧五个按钮
-	
 	CBgColorBtn m_btnPhoto;//拍照
 	CBgColorBtn m_btnInfer;//识别
 	CBgColorBtn m_btnDrop;//放弃
@@ -98,4 +98,5 @@ public:
 
 	bool CollectScaleWood(ScaleWood& scaleWood, std::vector<ScaleWood>& scaleWoodVec);
 	bool ReCollectScaleWood(ScaleWood* pScaleWood, std::vector<ScaleWood>& scaleWoodVec);
+	afx_msg void OnBnClickedBtnSet();
 };

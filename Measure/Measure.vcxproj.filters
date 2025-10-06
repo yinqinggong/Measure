@@ -168,6 +168,9 @@
     <ClInclude Include="merge.h">
       <Filter>Merge</Filter>
     </ClInclude>
+    <ClInclude Include="DlgDebark.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Measure.cpp">
@@ -259,6 +262,9 @@
     </ClCompile>
     <ClCompile Include="merge.cpp">
       <Filter>Merge</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgDebark.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

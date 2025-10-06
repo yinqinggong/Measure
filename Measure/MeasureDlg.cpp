@@ -20,6 +20,7 @@
 #include "xlsxwriter.h"
 #include "intrinsic.h"
 #include "merge.h"
+#include "DlgDebark.h"
 
 //excel begin
 //#include <afxdisp.h>      // MFC 自动化类库
@@ -146,6 +147,7 @@ void CMeasureDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_BG, m_bgStatic);
 	DDX_Control(pDX, IDC_BTN_SCALE, m_btnScale);
 	DDX_Control(pDX, IDC_BTN_DATA, m_btnData);
+	DDX_Control(pDX, IDC_BTN_SET, m_btnSetting);
 	DDX_Control(pDX, IDC_BTN_DEL, m_btnDel);
 	DDX_Control(pDX, IDC_BTN_REPORT, m_btnReport);
 	DDX_Control(pDX, IDC_BTN_SAVE, m_btnSave);
@@ -175,6 +177,7 @@ BEGIN_MESSAGE_MAP(CMeasureDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_PHOTO, &CMeasureDlg::OnBnClickedBtnPhoto)
 	ON_BN_CLICKED(IDC_BTN_INFER, &CMeasureDlg::OnBnClickedBtnInfer)
 	ON_BN_CLICKED(IDC_BTN_DROP, &CMeasureDlg::OnBnClickedBtnDrop)
+	ON_BN_CLICKED(IDC_BTN_SET, &CMeasureDlg::OnBnClickedBtnSet)
 END_MESSAGE_MAP()
 
 
@@ -330,6 +333,7 @@ BOOL CMeasureDlg::OnInitDialog()
 	//检尺和数据按钮
 	m_btnScale.MoveWindow(10, rcWorkArea.Height() * 0.5 - 40, 80, 40);
 	m_btnData.MoveWindow(10, rcWorkArea.Height() * 0.5 + 40, 80, 40);
+	m_btnSetting.MoveWindow(10, rcWorkArea.Height() * 0.5 + 120, 80, 40);
 
 	//右侧五个按钮
 	m_btnPhoto.MoveWindow(rcWorkArea.Width() - 90, rcWorkArea.Height() * 0.5 - 160, 80, 40);
@@ -446,9 +450,18 @@ BOOL CMeasureDlg::OnInitDialog()
 		m_arrayWnd[i].SetPortGPU(gpu_port);
 	}
 
+	//默认去皮
+	CString  strIniFile = GetAppdataPath() + _T("config.ini");
+	int debark = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_DEBARK, -1, strIniFile);
+	if (debark == -1)
+	{
+		WritePrivateProfileString(APP_NAME_USERINFO, KEY_NAME_DEBARK, _T("1"), strIniFile);
+	}
+
 #if (LangEN == 1)
 	m_btnScale.SetWindowTextW(L"Scanner");//检尺
 	m_btnData.SetWindowTextW(L"Data Base");//数据
+	m_btnSetting.SetWindowTextW(L"Setting");//设置
 	m_btnPhoto.SetWindowTextW(L"Capture");//拍照
 	m_btnInfer.SetWindowTextW(L"Process");//识别
 	m_btnDrop.SetWindowTextW(L"Discard");//放弃
@@ -458,6 +471,7 @@ BOOL CMeasureDlg::OnInitDialog()
 #else
 	m_btnScale.SetWindowTextW(L"检尺");//检尺
 	m_btnData.SetWindowTextW(L"数据");//数据
+	m_btnSetting.SetWindowTextW(L"系统设置");//设置
 	m_btnPhoto.SetWindowTextW(L"拍照");//拍照
 	m_btnInfer.SetWindowTextW(L"识别");//识别
 	m_btnDrop.SetWindowTextW(L"放弃");//放弃
@@ -672,7 +686,7 @@ HBRUSH CMeasureDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 		//pDC->SelectObject(&m_font);//文字为15号字体，华文行楷
 		return m_brushBG;
 	}
-	else if (pWnd->GetDlgCtrlID() == IDC_BTN_SCALE || pWnd->GetDlgCtrlID() == IDC_BTN_DATA)
+	else if (pWnd->GetDlgCtrlID() == IDC_BTN_SCALE || pWnd->GetDlgCtrlID() == IDC_BTN_DATA || pWnd->GetDlgCtrlID() == IDC_BTN_SET)
 	{
 		//pDC->SetBkColor(RGB(0, 255, 0));//背景色为绿色
 		return m_brushBG;
@@ -1808,4 +1822,12 @@ bool CMeasureDlg::ReCollectScaleWood(ScaleWood* pScaleWood, std::vector<ScaleWoo
 	}
 
 	return true;
+}
+
+
+void CMeasureDlg::OnBnClickedBtnSet()
+{
+	CDlgDebark dlg;
+	dlg.DoModal();
+
 }

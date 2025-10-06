@@ -36,6 +36,7 @@ static const int g_help_btnId = 18000;//首页界面按钮ID
 
 #define APP_NAME_USERINFO           _T("UserInfo")    // 用户数据
 #define KEY_NAME_STANDARD           _T("standard")    // 检尺标准
+#define KEY_NAME_DEBARK             _T("debark")      // 去皮
 
 typedef struct typeVideoData
 {

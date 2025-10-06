@@ -236,9 +236,17 @@ void CDlgReport::UpdateWoodData(int sd)
 #else
 	m_sta_square.SetWindowTextW(_T("材积：") + strTemp);
 #endif
-	std::string strYield = std::to_string(wood_yield*1.0/m_scaleWood.wood_list.size());
-	strYield = strYield.substr(0, strYield.find(".") + 1 + 3);
-	UTF8ToUnicode(strYield.c_str(), strTemp);
+	if (m_scaleWood.wood_list.size() > 0)
+	{
+		std::string strYield = std::to_string(wood_yield * 1.0 / m_scaleWood.wood_list.size());
+		strYield = strYield.substr(0, strYield.find(".") + 1 + 3);
+		UTF8ToUnicode(strYield.c_str(), strTemp);
+	}
+	else
+	{
+		strTemp = _T("0.000");
+	}
+	
 #if (LangEN == 1)
 	m_sta_rate.SetWindowTextW(_T("Yield Rate: ") + strTemp);
 #else

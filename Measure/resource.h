@@ -11,6 +11,7 @@
 #define IDD_DIALOG_REPORT               132
 #define IDD_DIALOG_DATA                 134
 #define IDD_DIALOG_EDIT                 138
+#define IDD_DLG_DEBARK                  140
 #define IDC_STATIC_VIDEO                1000
 #define IDC_STATIC_SCROLL               1000
 #define IDC_BTN_CAPTURE                 1001
@@ -37,24 +38,26 @@
 #define IDC_STATIC_SQUARE               1012
 #define IDC_BTN_DOWNLOAD                1012
 #define IDC_BTN_DROP                    1013
-#define IDC_STATIC_SQUARE2              1013
 #define IDC_STATIC_RATE                 1013
 #define IDC_STATIC_START                1014
+#define IDC_BTN_SET                     1014
 #define IDC_STATIC_END                  1015
 #define IDC_BUTTON_QUERY                1016
 #define IDC_DATE_START                  1017
 #define IDC_DATE_END                    1018
 #define IDC_STATIC_LOGO                 1023
 #define IDC_BUTTON1                     1024
+#define IDC_BTN_CONFIRM                 1024
 #define IDC_STATIC_TEXT                 1025
+#define IDC_CHECK_DEBARK                1026
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        140
+#define _APS_NEXT_RESOURCE_VALUE        142
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1026
+#define _APS_NEXT_CONTROL_VALUE         1027
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
