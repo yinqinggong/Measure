@@ -36,6 +36,7 @@ void CDlgReport::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST_REPORT, m_list_report);
 	DDX_Control(pDX, IDC_STATIC_NUM, m_sta_num);
 	DDX_Control(pDX, IDC_STATIC_SQUARE, m_sta_square);
+	DDX_Control(pDX, IDC_STATIC_RATE, m_sta_rate);
 }
 
 
@@ -130,9 +131,14 @@ void CDlgReport::UpdateWoodData(int sd)
 	double total_v = 0.0;
 	m_report_map.clear();
 	m_list_report.DeleteAllItems();
+	int wood_yield = 0;
 	for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
 	{
 		double d = m_scaleWood.wood_list[i].diameter;
+		if (d > 1)
+		{
+			wood_yield++;
+		}
 		if (sd == 0)
 		{
 			//原始d
@@ -230,6 +236,14 @@ void CDlgReport::UpdateWoodData(int sd)
 #else
 	m_sta_square.SetWindowTextW(_T("材积：") + strTemp);
 #endif
+	std::string strYield = std::to_string(wood_yield*1.0/m_scaleWood.wood_list.size());
+	strYield = strYield.substr(0, strYield.find(".") + 1 + 3);
+	UTF8ToUnicode(strYield.c_str(), strTemp);
+#if (LangEN == 1)
+	m_sta_rate.SetWindowTextW(_T("Yield Rate: ") + strTemp);
+#else
+	m_sta_rate.SetWindowTextW(_T("出材率：") + strTemp);
+#endif
 }
 
 void CDlgReport::InitCtrls()
@@ -249,6 +263,7 @@ void CDlgReport::InitCtrls()
 
 	m_sta_num.MoveWindow(edge, rect.bottom - 50, sta_w * 2, h);
 	m_sta_square.MoveWindow(edge * 6 + sta_w, rect.bottom - 50, sta_w * 2, h);
+	m_sta_rate.MoveWindow(edge * 18 + sta_w, rect.bottom - 50, sta_w * 2, h);
 	m_list_report.MoveWindow(edge, edge * 2 + h, rect.right - edge * 2, rect.bottom - (edge * 2 + h) * 2 - h);
 }
 

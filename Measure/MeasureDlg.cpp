@@ -1127,7 +1127,7 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<CString>>& wood_data)
 	}
 }
 
-void CMeasureDlg::GetDownLoadData(std::vector<std::vector<std::string>>& wood_data, int scaleStandard, int& num, double& total_v)
+void CMeasureDlg::GetDownLoadData(std::vector<std::vector<std::string>>& wood_data, int scaleStandard, int& num, double& total_v, int& yield)
 {
 	std::vector<WoodDBShow> woodDBShowList;
 	m_dlgData.GetWoodData(woodDBShowList);
@@ -1140,6 +1140,10 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<std::string>>& wood_da
 		for (size_t i = 0; i < woodDBShowList[j].scaleWood.wood_list.size(); i++)
 		{
 			double d = woodDBShowList[j].scaleWood.wood_list[i].diameter;
+			if (d > 1)
+			{
+				yield++;
+			}
 			if (scaleStandard == 0)
 			{
 				//原始d
@@ -1319,15 +1323,17 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 {
 	std::vector<std::vector<std::string>> src_wood_data;
 	int src_num = 0;
+	int src_yield = 0;
 	double src_total_v = 0.0;
-	GetDownLoadData(src_wood_data, 0, src_num, src_total_v);
+	GetDownLoadData(src_wood_data, 0, src_num, src_total_v, src_yield);
 
 	CString  strIniFile = GetAppdataPath() + _T("config.ini");
 	int scaleStandard = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_STANDARD, 0, strIniFile);
 	std::vector<std::vector<std::string>> user_wood_data;
 	int user_num = 0;
+	int user_yield = 0;
 	double user_total_v = 0.0;
-	GetDownLoadData(user_wood_data, scaleStandard < 2 ? 1 : scaleStandard, user_num, user_total_v);
+	GetDownLoadData(user_wood_data, scaleStandard < 2 ? 1 : scaleStandard, user_num, user_total_v, user_yield);
 
 	if (src_wood_data.size() < 1)
 	{
@@ -1380,6 +1386,9 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 		worksheet_write_number(worksheet, src_wood_data.size() + 2, 1, src_num, NULL);
 		worksheet_write_string(worksheet, src_wood_data.size() + 2, 2, GBKToUTF8("Total Volume:").data(), NULL);
 		worksheet_write_number(worksheet, src_wood_data.size() + 2, 3, src_total_v, format);
+		//出材率
+		worksheet_write_string(worksheet, src_wood_data.size() + 3, 0, GBKToUTF8("Yield Rate:").data(), NULL);
+		worksheet_write_number(worksheet, src_wood_data.size() + 3, 1, src_yield * 1.0 / src_num, format);
 		
 		std::string userWorkSheetName = GetWorkSheetNameByScaleStandard(scaleStandard);
 		lxw_worksheet* worksheet2 = workbook_add_worksheet(workbook, GBKToUTF8(userWorkSheetName.data()).data());
@@ -1392,6 +1401,9 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 		worksheet_write_number(worksheet, src_wood_data.size() + 2, 1, src_num, NULL);
 		worksheet_write_string(worksheet, src_wood_data.size() + 2, 2, GBKToUTF8("总材积：").data(), NULL);
 		worksheet_write_number(worksheet, src_wood_data.size() + 2, 3, src_total_v, format);
+		//出材率
+		worksheet_write_string(worksheet, src_wood_data.size() + 3, 0, GBKToUTF8("出材率：").data(), NULL);
+		worksheet_write_number(worksheet, src_wood_data.size() + 3, 1, src_yield*1.0/src_num, format);
 
 		std::string userWorkSheetName = GetWorkSheetNameByScaleStandard(scaleStandard);
 		lxw_worksheet* worksheet2 = workbook_add_worksheet(workbook, GBKToUTF8(userWorkSheetName.data()).data());
@@ -1413,11 +1425,17 @@ void CMeasureDlg::OnBnClickedBtnDownload()
 		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 1, user_num, NULL);
 		worksheet_write_string(worksheet2, user_wood_data.size() + 2, 2, GBKToUTF8("Total Volume:").data(), NULL);
 		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 3, user_total_v, format);
+		//出材率
+		worksheet_write_string(worksheet2, user_wood_data.size() + 3, 0, GBKToUTF8("Yield Rate:").data(), NULL);
+		worksheet_write_number(worksheet2, user_wood_data.size() + 3, 1, user_yield * 1.0 / user_num, format);
 #else
 		worksheet_write_string(worksheet2, user_wood_data.size() + 2, 0, GBKToUTF8("总根数：").data(), NULL);
 		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 1, user_num, NULL);
 		worksheet_write_string(worksheet2, user_wood_data.size() + 2, 2, GBKToUTF8("总材积：").data(), NULL);
 		worksheet_write_number(worksheet2, user_wood_data.size() + 2, 3, user_total_v, format);
+		//出材率
+		worksheet_write_string(worksheet2, user_wood_data.size() + 3, 0, GBKToUTF8("出材率：").data(), NULL);
+		worksheet_write_number(worksheet2, user_wood_data.size() + 3, 1, user_yield * 1.0 / user_num, format);
 #endif
 		workbook_close(workbook);
 #if (LangEN == 1)

@@ -47,6 +47,7 @@ public:
 	CListCtrl m_list_report;
 	CStatic m_sta_num;
 	CStatic m_sta_square;
+	CStatic m_sta_rate;
 
 	std::map<std::string, ReportData, Wood_D_Sort> m_report_map;
 	ScaleWood m_scaleWood;
