@@ -1154,7 +1154,7 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<std::string>>& wood_da
 		for (size_t i = 0; i < woodDBShowList[j].scaleWood.wood_list.size(); i++)
 		{
 			double d = woodDBShowList[j].scaleWood.wood_list[i].diameter;
-			if (d > 1)
+			if (d > 12.0)
 			{
 				yield++;
 			}

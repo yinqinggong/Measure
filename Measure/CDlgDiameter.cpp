@@ -6,6 +6,7 @@
 #include "CDlgDiameter.h"
 #include "afxdialogex.h"
 #include "LogFile.h"
+#include "common.h"
 
 // CDlgDiameter 对话框
 
@@ -57,4 +58,44 @@ BOOL CDlgDiameter::OnInitDialog()
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
+}
+float CDlgDiameter::GetDiameter()
+{
+    /* 去皮公式
+    径级4-8㎝，减去0.1
+    径级8-10㎝，减去0.2
+    径级10-16㎝，减去0.4
+    径级16cm-20cm，减去0.5
+    径级20cm及以上，减去0.6
+    */
+    CString  strIniFile = GetAppdataPath() + _T("config.ini");
+    int debarked = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_DEBARK, -1, strIniFile);
+    if (debarked == 1)
+    {
+        if (m_diameter >= 4.0 && m_diameter < 8.0)
+        {
+            m_diameter -= 0.1;
+        }
+        else if (m_diameter >= 8.0 && m_diameter < 10.0)
+        {
+            m_diameter -= 0.2;
+        }
+        else if (m_diameter >= 10.0 && m_diameter < 16.0)
+        {
+            m_diameter -= 0.4;
+        }
+        else if (m_diameter >= 16.0 && m_diameter < 20.0)
+        {
+            m_diameter -= 0.5;
+        }
+        else if (m_diameter >= 20.0)
+        {
+            m_diameter -= 0.6;
+        }
+        else
+        {
+
+        }
+    }
+    return m_diameter;
 }

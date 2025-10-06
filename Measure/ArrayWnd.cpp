@@ -1322,6 +1322,10 @@ void CArrayWnd::RecMethod()
 
 void CArrayWnd::LogScale()
 {
+    // «∑Ò»•∆§
+    CString  strIniFile = GetAppdataPath() + _T("config.ini");
+    int debarked = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_DEBARK, 0, strIniFile);
+
 #if (QGDebug == 1) 
     //Sleep(1000 * (m_wndIndex + 1));
     //m_btnRec.EnableWindow(TRUE);
@@ -1398,7 +1402,7 @@ void CArrayWnd::LogScale()
     std::string lfileName = GetImagePathUTF8() + "limg_" + std::to_string(m_wndIndex) + ".png";
     std::string rfileName = GetImagePathUTF8() + "rimg_" + std::to_string(m_wndIndex) + ".png";
     std::string imagePath = GetImagePathUTF8() + std::to_string(m_share_wood_id) + "_" + std::to_string(m_wndIndex) + ".png";
-    bool ret = log_scale(m_ip_gpu, m_port_gpu, lfileName, rfileName, imagePath, scalewood, m_wndIndex);
+    bool ret = log_scale(m_ip_gpu, m_port_gpu, lfileName, rfileName, imagePath, scalewood, m_wndIndex, debarked);
     scalewood.id = m_share_wood_id;
     wait.Restore();
     if (!ret)

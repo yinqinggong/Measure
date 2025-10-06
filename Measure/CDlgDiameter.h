@@ -24,10 +24,7 @@ private:
 	// 用户输入的长直径和短直径的较小者
 	float m_diameter;
 public:
-	float GetDiameter()
-	{
-		return m_diameter;
-	}
+	float GetDiameter();
 	CStatic m_staText;
 	CButton m_btnSure;
 	virtual BOOL OnInitDialog();

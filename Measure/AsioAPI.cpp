@@ -173,7 +173,7 @@ static void test_api()
     }
 }
 
-bool log_scale(const std::string& ip_addr, const std::string& port, const std::string& lfileName, const std::string& rfileName, const std::string& imagePath, ScaleWood& scaleWood, int wndIndex)
+bool log_scale(const std::string& ip_addr, const std::string& port, const std::string& lfileName, const std::string& rfileName, const std::string& imagePath, ScaleWood& scaleWood, int wndIndex, int debarked)
 {
     asio::io_context io_context;
     asio::ip::tcp::socket socket(io_context);
@@ -263,6 +263,50 @@ bool log_scale(const std::string& ip_addr, const std::string& port, const std::s
                 woodAttr.diameters.d1 = arrayData[i]["r_long"].asDouble() * 0.1;
                 woodAttr.diameters.d2 = arrayData[i]["r_short"].asDouble() * 0.1;
                 woodAttr.diameter = woodAttr.diameters.d1 < woodAttr.diameters.d2 ? woodAttr.diameters.d1 : woodAttr.diameters.d2;
+                /* 去皮公式
+                径级4-8㎝，减去0.1
+                径级8-10㎝，减去0.2
+                径级10-16㎝，减去0.4
+                径级16cm-20cm，减去0.5
+                径级20cm及以上，减去0.6
+                */
+                if (debarked == 1)
+                {
+                    if (woodAttr.diameter >= 4.0 && woodAttr.diameter < 8.0)
+                    {
+                        woodAttr.diameter -= 0.1;
+                        woodAttr.diameters.d1 -= 0.1;
+                        woodAttr.diameters.d2 -= 0.1;
+                    }
+                    else if (woodAttr.diameter >= 8.0 && woodAttr.diameter < 10.0)
+                    {
+                        woodAttr.diameter -= 0.2;
+                        woodAttr.diameters.d1 -= 0.2;
+                        woodAttr.diameters.d2 -= 0.2;
+                    }
+                    else if (woodAttr.diameter >= 10.0 && woodAttr.diameter < 16.0)
+                    {
+                        woodAttr.diameter -= 0.4;
+                        woodAttr.diameters.d1 -= 0.4;
+                        woodAttr.diameters.d2 -= 0.4;
+                    }
+                    else if (woodAttr.diameter >= 16.0 && woodAttr.diameter < 20.0)
+                    {
+                        woodAttr.diameter -= 0.5;
+                        woodAttr.diameters.d1 -= 0.5;
+                        woodAttr.diameters.d2 -= 0.5;
+                    }
+                    else if (woodAttr.diameter >= 20.0)
+                    {
+                        woodAttr.diameter -= 0.6;
+                        woodAttr.diameters.d1 -= 0.6;
+                        woodAttr.diameters.d2 -= 0.6;
+                    }
+                    else
+                    {
+
+                    }
+                }
                 //木材横截面椭圆在3D相机坐标系下的坐标，单位mm
                 woodAttr.ellipse.cx_3d = arrayData[i]["cx_3d"].asDouble();
                 woodAttr.ellipse.cy_3d = arrayData[i]["cy_3d"].asDouble();

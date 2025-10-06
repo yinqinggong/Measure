@@ -135,7 +135,7 @@ void CDlgReport::UpdateWoodData(int sd)
 	for (size_t i = 0; i < m_scaleWood.wood_list.size(); i++)
 	{
 		double d = m_scaleWood.wood_list[i].diameter;
-		if (d > 1)
+		if (d > 12.0)
 		{
 			wood_yield++;
 		}
