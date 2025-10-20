@@ -45,6 +45,14 @@
 #define IDC_ARRAY_IMAGE_WND3            9000+7
 #define IDC_ARRAY_IMAGE_WND4            9000+8
 
+float kX_OFFSET_1_2 = 100.0f;
+float kY_OFFSET_1_2 = 40.0f;
+float kZ_OFFSET_1_2 = 38.0f;
+float kPOS_EPS_1_2 = 2700.0f; // 3*30*30mm
+float kX_OFFSET_3_4 = -85.0f;
+float kY_OFFSET_3_4 = -30.0f;
+float kZ_OFFSET_3_4 = -115.0f;
+float kPOS_EPS_3_4 = 4800.0f; // 3*30*30mm
 
 bool get_scale_data_result(int index, std::vector<ScaleData>& results1, std::vector<ScaleData>& results2)
 {
@@ -448,6 +456,99 @@ BOOL CMeasureDlg::OnInitDialog()
 		//GPUIP和端口gpu_ip
 		m_arrayWnd[i].SetIPGPU(gpu_ip);
 		m_arrayWnd[i].SetPortGPU(gpu_port);
+	}
+
+	//获取1-2相机的offset
+	char x_offset_1_2[MAX_PATH] = { 0 };
+	char y_offset_1_2[MAX_PATH] = { 0 };
+	char z_offset_1_2[MAX_PATH] = { 0 };
+	char pos_eps_1_2[MAX_PATH] = { 0 };
+	GetPrivateProfileStringA("MergeInfo", "x_offset_1_2", "", x_offset_1_2, MAX_PATH, iniPath);
+	if (strlen(x_offset_1_2) <= 0)
+	{
+		kX_OFFSET_1_2 = 100.0f;
+		WritePrivateProfileStringA("MergeInfo", "x_offset_1_2", "100.0", iniPath);
+	}
+	else
+	{
+		kX_OFFSET_1_2 = atof(x_offset_1_2);
+	}
+	GetPrivateProfileStringA("MergeInfo", "y_offset_1_2", "", y_offset_1_2, MAX_PATH, iniPath);
+	if (strlen(y_offset_1_2) <= 0)
+	{
+		kY_OFFSET_1_2 = 40.0f;
+		WritePrivateProfileStringA("MergeInfo", "y_offset_1_2", "40.0", iniPath);
+	}
+	else
+	{
+		kY_OFFSET_1_2 = atof(y_offset_1_2);
+	}
+	GetPrivateProfileStringA("MergeInfo", "z_offset_1_2", "", z_offset_1_2, MAX_PATH, iniPath);
+	if (strlen(z_offset_1_2) <= 0)
+	{
+		kZ_OFFSET_1_2 = 38.0f;
+		WritePrivateProfileStringA("MergeInfo", "z_offset_1_2", "38.0", iniPath);
+	}
+	else
+	{
+		kZ_OFFSET_1_2 = atof(z_offset_1_2);
+	}
+
+	GetPrivateProfileStringA("MergeInfo", "pos_eps_1_2", "", pos_eps_1_2, MAX_PATH, iniPath);
+	if (strlen(pos_eps_1_2) <= 0)
+	{
+		kPOS_EPS_1_2 = 2700.0f;
+		WritePrivateProfileStringA("MergeInfo", "pos_eps_1_2", "2700.0", iniPath);
+	}
+	else
+	{
+		kPOS_EPS_1_2 = atof(pos_eps_1_2);
+	}
+	//获取3-4相机的offset
+	char x_offset_3_4[MAX_PATH] = { 0 };
+	char y_offset_3_4[MAX_PATH] = { 0 };
+	char z_offset_3_4[MAX_PATH] = { 0 };
+	char pos_eps_3_4[MAX_PATH] = { 0 };
+	GetPrivateProfileStringA("MergeInfo", "x_offset_3_4", "", x_offset_3_4, MAX_PATH, iniPath);
+	if (strlen(x_offset_3_4) <= 0)
+	{
+		kX_OFFSET_3_4 = -85.0f;
+		WritePrivateProfileStringA("MergeInfo", "x_offset_3_4", "-85.0", iniPath);
+	}
+	else
+	{
+		kX_OFFSET_3_4 = atof(x_offset_3_4);
+	}
+	GetPrivateProfileStringA("MergeInfo", "y_offset_3_4", "", y_offset_3_4, MAX_PATH, iniPath);
+	if (strlen(y_offset_3_4) <= 0)
+	{
+		kY_OFFSET_3_4 = -30.0f;
+		WritePrivateProfileStringA("MergeInfo", "y_offset_3_4", "-30.0", iniPath);
+	}
+	else
+	{
+		kY_OFFSET_3_4 = atof(y_offset_3_4);
+	}
+	GetPrivateProfileStringA("MergeInfo", "z_offset_3_4", "", z_offset_3_4, MAX_PATH, iniPath);
+	if (strlen(z_offset_3_4) <= 0)
+	{
+		kZ_OFFSET_3_4 = -115.0f;
+		WritePrivateProfileStringA("MergeInfo", "z_offset_3_4", "-115.0", iniPath);
+	}
+	else
+	{
+		kZ_OFFSET_3_4 = atof(z_offset_3_4);
+	}
+
+	GetPrivateProfileStringA("MergeInfo", "pos_eps_3_4", "", pos_eps_3_4, MAX_PATH, iniPath);
+	if (strlen(pos_eps_3_4) <= 0)
+	{
+		kPOS_EPS_3_4 = 4800.0f;
+		WritePrivateProfileStringA("MergeInfo", "pos_eps_3_4", "4800.0", iniPath);
+	}
+	else
+	{
+		kPOS_EPS_3_4 = atof(pos_eps_3_4);
 	}
 
 	//默认去皮
@@ -1531,23 +1632,17 @@ LRESULT CMeasureDlg::OnUserMessageRecMerge(WPARAM wParam, LPARAM lParam)
 		get_scale_data_result(*pWndIndex, results1, results2);
 		std::vector<int> flags1;
 		std::vector<int> flags2;
-		// 1、2相机
-		float kX_OFFSET = 110.0f;
-		float kY_OFFSET = 40.0f;
-		float kZ_OFFSET = 40.0f;
-		float kPOS_EPS = 2700.0f; // 3*30*30mm
-		if (*pWndIndex == 3)
+		//合并两个相机的检尺结果
+		if (*pWndIndex == 1)
+		{
+			//1、2相机
+			log_scale_merge(results1, results2, r_mat32, t_mat32, kX_OFFSET_1_2, kY_OFFSET_1_2, kZ_OFFSET_1_2, kPOS_EPS_1_2, flags1, flags2);
+		}
+		else if (*pWndIndex == 3)
 		{
 			//3、4相机
-			kX_OFFSET = -65.0f;
-			kY_OFFSET = 0.0f;
-			kZ_OFFSET = -78.0f;
-			kPOS_EPS = 4800.0f; // 3*40*40mm
+			log_scale_merge(results1, results2, r_mat32, t_mat32, kX_OFFSET_3_4, kY_OFFSET_3_4, kZ_OFFSET_3_4, kPOS_EPS_3_4, flags1, flags2);
 		}
-
-		//合并两个相机的检尺结果
-		log_scale_merge(results1, results2, r_mat32, t_mat32, kX_OFFSET, kY_OFFSET, kZ_OFFSET, kPOS_EPS, flags1, flags2);
-		
 		//保存3D图片
 		std::string img_path_0 = GetCurrentPathUTF8() + "img_" + std::to_string(*pWndIndex - 1) + ".png";
 		std::string file_name_0 = GetImagePathUTF8() + std::to_string(m_share_wood_id) + "_" + std::to_string(*pWndIndex - 1) + ".png";
