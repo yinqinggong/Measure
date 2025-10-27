@@ -27,7 +27,7 @@ struct ScaleData
 // flags2: 右侧相机的合并结果，标志位数组，值为1表示该木材保留，值为0表示该木材丢弃
 void log_scale_merge(const std::vector<ScaleData>& results1, const std::vector<ScaleData>& results2,
     const cv::Mat& R, const cv::Mat& t, 
-    float x_offset, float y_offset, float z_offset, float threshold,
+    float x_offset, float y_offset, float z_offset, float x_margin, float threshold,
     std::vector<int>& flags1, std::vector<int>& flags2);
 
 

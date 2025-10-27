@@ -9,25 +9,9 @@ static const float kMIN_X_IN_RIGHT = 10000.0f;
 static const float kX_EPS = 300.0f;
 
 
-//static const float kX_OFFSET = 110.0f;
-//static const float kY_OFFSET = 40.0f;
-//static const float kZ_OFFSET = 40.0f;
-//static const float kPOS_EPS = 2700.0f; // 3*30*30mm
-
-static const float kX_OFFSET = -65.0f;
-static const float kY_OFFSET = 0.0f;
-static const float kZ_OFFSET = -78.0f;
-static const float kPOS_EPS = 4800.0f; // 3*40*40mm
-
-
-
-
-
-
-
 void log_scale_merge(const std::vector<ScaleData> &results1, const std::vector<ScaleData> &results2,
                     const cv::Mat &R, const cv::Mat &t, 
-                    float x_offset, float y_offset, float z_offset, float threshold,
+                    float x_offset, float y_offset, float z_offset, float x_margin, float threshold,
                     std::vector<int> &flags1, std::vector<int> &flags2)
 {
     // 初始化标志位数组，保留所有木材
@@ -59,15 +43,8 @@ void log_scale_merge(const std::vector<ScaleData> &results1, const std::vector<S
         pos2.at<float>(1, i) = results2[i].center_3d.y;
         pos2.at<float>(2, i) = results2[i].center_3d.z;
     }
-
-    // 变换到右相机坐标系
-    //cv::Mat pos1_in_2 = R * pos1;
-    //for (int i = 0; i < pos1_in_2.cols; i++)
-    //{
-    //    pos1_in_2.at<float>(0, i) = pos1_in_2.at<float>(0, i) + t.at<float>(0, 0);
-    //    pos1_in_2.at<float>(1, i) = pos1_in_2.at<float>(1, i) + t.at<float>(1, 0);
-    //    pos1_in_2.at<float>(2, i) = pos1_in_2.at<float>(2, i) + t.at<float>(2, 0);
-    //}
+    
+    // 将左相机中的木材变换到右相机的坐标系
     cv::Mat pos1_in_2 = R * pos1;
     for (int i = 0; i < pos1_in_2.cols; i++)
     {
@@ -93,33 +70,33 @@ void log_scale_merge(const std::vector<ScaleData> &results1, const std::vector<S
     }
 
     // for debug 2025-08-13
-    std::time_t time_stamp = std::time(0);
-    std::string log_file_name = std::to_string(time_stamp) + ".txt";
-    std::ofstream log_file(log_file_name);
-    if (!log_file)
-    {
-        std::cout << "create log file failed" << std::endl;
-        return;
-    }
-    log_file << "x1_max: " << std::to_string(x1_max) << std::endl;
-    log_file << "x2_min: " << std::to_string(x2_min) << std::endl;
+    //std::time_t time_stamp = std::time(0);
+    //std::string log_file_name = std::to_string(time_stamp) + ".txt";
+    //std::ofstream log_file(log_file_name);
+    //if (!log_file)
+    //{
+    //    std::cout << "create log file failed" << std::endl;
+    //    return;
+    //}
+    //log_file << "x1_max: " << std::to_string(x1_max) << std::endl;
+    //log_file << "x2_min: " << std::to_string(x2_min) << std::endl;
 
     // 如果没有重叠的木材，直接返回
     if (x1_max < x2_min - kX_EPS)
     {
-        log_file.close();
+        //log_file.close();
         return;
     }
     
     std::vector<int> overlap1, overlap2;
     std::vector<int> overlap_flags2;
 
-    // 左相机中的重叠木材
+    // 取出左相机中的重叠木材
     for (int i = 0; i < pos1_in_2.cols; i++)
         if (pos1_in_2.at<float>(0, i) > x2_min - kX_EPS)
             overlap1.push_back(i);
 
-    // 右相机中的重叠木材
+    // 取出右相机中的重叠木材
     for (int i = 0; i < pos2.cols; i++)
     {
         if (pos2.at<float>(0, i) < x1_max + kX_EPS)
@@ -129,8 +106,8 @@ void log_scale_merge(const std::vector<ScaleData> &results1, const std::vector<S
         }
     }
 
-    log_file << "number of overlaped wood in left: " << std::to_string(overlap1.size()) << std::endl;
-    log_file << "number of overlaped wood in right: " << std::to_string(overlap2.size()) << std::endl;
+    //log_file << "number of overlaped wood in left: " << std::to_string(overlap1.size()) << std::endl;
+    //log_file << "number of overlaped wood in right: " << std::to_string(overlap2.size()) << std::endl;
 
     // 处理所有重叠木材
     for (size_t i = 0; i < overlap1.size(); i++)
@@ -139,28 +116,25 @@ void log_scale_merge(const std::vector<ScaleData> &results1, const std::vector<S
 
         for (size_t j = 0; j < overlap2.size(); j++)
         {
-            //delta_x = pos1_in_2.at<float>(0, overlap1[i]) + kX_OFFSET - pos2.at<float>(0, overlap2[j]);
-            //delta_y = pos1_in_2.at<float>(1, overlap1[i]) + kY_OFFSET - pos2.at<float>(1, overlap2[j]);
-            //delta_z = pos1_in_2.at<float>(2, overlap1[i]) + kZ_OFFSET - pos2.at<float>(2, overlap2[j]);
             delta_x = pos1_in_2.at<float>(0, overlap1[i]) + x_offset - pos2.at<float>(0, overlap2[j]);
             delta_y = pos1_in_2.at<float>(1, overlap1[i]) + y_offset - pos2.at<float>(1, overlap2[j]);
             delta_z = pos1_in_2.at<float>(2, overlap1[i]) + z_offset - pos2.at<float>(2, overlap2[j]);
-            
+
             dist = delta_x * delta_x + delta_y * delta_y + delta_z * delta_z;
-            
-            //if (dist < kPOS_EPS)
-            if (dist < threshold)
+
+
+            if (dist < threshold || results2[overlap_flags2[j]].center_2d.x < x_margin)
                 overlap_flags2[j] = 1;
 
-            log_file 
-                << std::to_string(pos1_in_2.at<float>(0, overlap1[i]))<<" "
-                << std::to_string(pos1_in_2.at<float>(1, overlap1[i]))<<" "
-                << std::to_string(pos1_in_2.at<float>(2, overlap1[i]))<<",   "
-                << std::to_string(pos2.at<float>(0, overlap2[j])) <<" "
-                << std::to_string(pos2.at<float>(1, overlap2[j])) << " "
-                << std::to_string(pos2.at<float>(2, overlap2[j])) << ",   "
-                << std::to_string(dist)
-                << std::endl;
+            //log_file 
+            //    << std::to_string(pos1_in_2.at<float>(0, overlap1[i]))<<" "
+            //    << std::to_string(pos1_in_2.at<float>(1, overlap1[i]))<<" "
+            //    << std::to_string(pos1_in_2.at<float>(2, overlap1[i]))<<",   "
+            //    << std::to_string(pos2.at<float>(0, overlap2[j])) <<" "
+            //    << std::to_string(pos2.at<float>(1, overlap2[j])) << " "
+            //    << std::to_string(pos2.at<float>(2, overlap2[j])) << ",   "
+            //    << std::to_string(dist)
+            //    << std::endl;
         }
     }
 
@@ -171,7 +145,7 @@ void log_scale_merge(const std::vector<ScaleData> &results1, const std::vector<S
             flags2[overlap2[i]] = 0;
     }
 
-    log_file.close();
+   // log_file.close();
 }
 
 

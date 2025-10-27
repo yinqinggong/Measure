@@ -53,6 +53,7 @@ float kX_OFFSET_3_4 = -85.0f;
 float kY_OFFSET_3_4 = -30.0f;
 float kZ_OFFSET_3_4 = -115.0f;
 float kPOS_EPS_3_4 = 4800.0f; // 3*30*30mm
+float kX_MARGIN = 240.0f;
 
 bool get_scale_data_result(int index, std::vector<ScaleData>& results1, std::vector<ScaleData>& results2)
 {
@@ -549,6 +550,18 @@ BOOL CMeasureDlg::OnInitDialog()
 	else
 	{
 		kPOS_EPS_3_4 = atof(pos_eps_3_4);
+	}
+	//获取新参数x_margin
+	char x_margin[MAX_PATH] = { 0 };
+	GetPrivateProfileStringA("MergeInfo", "x_margin", "", x_margin, MAX_PATH, iniPath);
+	if (strlen(x_margin) <= 0)
+	{
+		kX_MARGIN = 240.0f;
+		WritePrivateProfileStringA("MergeInfo", "x_margin", "240.0", iniPath);
+	}
+	else
+	{
+		kX_MARGIN = atof(x_margin);
 	}
 
 	//默认去皮
@@ -1636,12 +1649,12 @@ LRESULT CMeasureDlg::OnUserMessageRecMerge(WPARAM wParam, LPARAM lParam)
 		if (*pWndIndex == 1)
 		{
 			//1、2相机
-			log_scale_merge(results1, results2, r_mat32, t_mat32, kX_OFFSET_1_2, kY_OFFSET_1_2, kZ_OFFSET_1_2, kPOS_EPS_1_2, flags1, flags2);
+			log_scale_merge(results1, results2, r_mat32, t_mat32, kX_OFFSET_1_2, kY_OFFSET_1_2, kZ_OFFSET_1_2, kX_MARGIN, kPOS_EPS_1_2, flags1, flags2);
 		}
 		else if (*pWndIndex == 3)
 		{
 			//3、4相机
-			log_scale_merge(results1, results2, r_mat32, t_mat32, kX_OFFSET_3_4, kY_OFFSET_3_4, kZ_OFFSET_3_4, kPOS_EPS_3_4, flags1, flags2);
+			log_scale_merge(results1, results2, r_mat32, t_mat32, kX_OFFSET_3_4, kY_OFFSET_3_4, kZ_OFFSET_3_4, kX_MARGIN, kPOS_EPS_3_4, flags1, flags2);
 		}
 		//保存3D图片
 		std::string img_path_0 = GetCurrentPathUTF8() + "img_" + std::to_string(*pWndIndex - 1) + ".png";
