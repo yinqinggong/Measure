@@ -70,27 +70,70 @@ float CDlgDiameter::GetDiameter()
     */
     CString  strIniFile = GetAppdataPath() + _T("config.ini");
     int debarked = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_DEBARK, -1, strIniFile);
+   
+    float fDebark_4_8 = 0.1;
+    float fDebark_8_10 = 0.2;
+    float fDebark_10_16 = 0.4;
+    float fDebark_16_20 = 0.5;
+    float fDebark_20 = 0.6;
+    if (debarked == 1)
+    {
+        char debark_4_8[MAX_PATH] = { 0 };
+        char debark_8_10[MAX_PATH] = { 0 };
+        char debark_10_16[MAX_PATH] = { 0 };
+        char debark_16_20[MAX_PATH] = { 0 };
+        char debark_20[MAX_PATH] = { 0 };
+        char iniPath[MAX_PATH] = { 0 };
+        snprintf(iniPath, sizeof(iniPath), "%sconfig.ini", GetAppdataPathUTF8().c_str());
+
+        GetPrivateProfileStringA("DebarkInfo", "debark_4_8", "", debark_4_8, MAX_PATH, iniPath);
+        if (strlen(debark_4_8) > 0)
+        {
+            fDebark_4_8 = atof(debark_4_8);
+        }
+        GetPrivateProfileStringA("DebarkInfo", "debark_8_10", "", debark_8_10, MAX_PATH, iniPath);
+        if (strlen(debark_8_10) > 0)
+        {
+            fDebark_8_10 = atof(debark_8_10);
+        }
+        GetPrivateProfileStringA("DebarkInfo", "debark_10_16", "", debark_10_16, MAX_PATH, iniPath);
+        if (strlen(debark_10_16) > 0)
+        {
+            fDebark_10_16 = atof(debark_10_16);
+        }
+        GetPrivateProfileStringA("DebarkInfo", "debark_16_20", "", debark_16_20, MAX_PATH, iniPath);
+        if (strlen(debark_16_20) > 0)
+        {
+            fDebark_16_20 = atof(debark_16_20);
+        }
+        GetPrivateProfileStringA("DebarkInfo", "debark_20", "", debark_20, MAX_PATH, iniPath);
+        if (strlen(debark_20) > 0)
+        {
+            fDebark_20 = atof(debark_20);
+        }
+    }
+
     if (debarked == 1)
     {
         if (m_diameter >= 4.0 && m_diameter < 8.0)
         {
-            m_diameter -= 0.1;
+            m_diameter -= fDebark_4_8;
         }
         else if (m_diameter >= 8.0 && m_diameter < 10.0)
         {
-            m_diameter -= 0.2;
+            m_diameter -= fDebark_8_10;
         }
         else if (m_diameter >= 10.0 && m_diameter < 16.0)
         {
-            m_diameter -= 0.4;
+            m_diameter -= fDebark_10_16;
         }
         else if (m_diameter >= 16.0 && m_diameter < 20.0)
         {
-            m_diameter -= 0.5;
+            m_diameter -= fDebark_16_20;
         }
         else if (m_diameter >= 20.0)
         {
-            m_diameter -= 0.6;
+            m_diameter -= fDebark_20;
         }
         else
         {

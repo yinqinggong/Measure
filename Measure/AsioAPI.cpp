@@ -173,7 +173,13 @@ static void test_api()
     }
 }
 
-bool log_scale(const std::string& ip_addr, const std::string& port, const std::string& lfileName, const std::string& rfileName, const std::string& imagePath, ScaleWood& scaleWood, int wndIndex, int debarked)
+bool log_scale(const std::string& ip_addr, const std::string& port, const std::string& lfileName, const std::string& rfileName, const std::string& imagePath, ScaleWood& scaleWood, int wndIndex, 
+    int debarked, 
+    float fDebark_4_8,
+    float fDebark_8_10,
+    float fDebark_10_16,
+    float fDebark_16_20,
+    float fDebark_20)
 {
     asio::io_context io_context;
     asio::ip::tcp::socket socket(io_context);
@@ -274,33 +280,33 @@ bool log_scale(const std::string& ip_addr, const std::string& port, const std::s
                 {
                     if (woodAttr.diameter >= 4.0 && woodAttr.diameter < 8.0)
                     {
-                        woodAttr.diameter -= 0.1;
-                        woodAttr.diameters.d1 -= 0.1;
-                        woodAttr.diameters.d2 -= 0.1;
+                        woodAttr.diameter -= fDebark_4_8;
+                        woodAttr.diameters.d1 -= fDebark_4_8;
+                        woodAttr.diameters.d2 -= fDebark_4_8;
                     }
                     else if (woodAttr.diameter >= 8.0 && woodAttr.diameter < 10.0)
                     {
-                        woodAttr.diameter -= 0.2;
-                        woodAttr.diameters.d1 -= 0.2;
-                        woodAttr.diameters.d2 -= 0.2;
+                        woodAttr.diameter -= fDebark_8_10;
+                        woodAttr.diameters.d1 -= fDebark_8_10;
+                        woodAttr.diameters.d2 -= fDebark_8_10;
                     }
                     else if (woodAttr.diameter >= 10.0 && woodAttr.diameter < 16.0)
                     {
-                        woodAttr.diameter -= 0.4;
-                        woodAttr.diameters.d1 -= 0.4;
-                        woodAttr.diameters.d2 -= 0.4;
+                        woodAttr.diameter -= fDebark_10_16;
+                        woodAttr.diameters.d1 -= fDebark_10_16;
+                        woodAttr.diameters.d2 -= fDebark_10_16;
                     }
                     else if (woodAttr.diameter >= 16.0 && woodAttr.diameter < 20.0)
                     {
-                        woodAttr.diameter -= 0.5;
-                        woodAttr.diameters.d1 -= 0.5;
-                        woodAttr.diameters.d2 -= 0.5;
+                        woodAttr.diameter -= fDebark_16_20;
+                        woodAttr.diameters.d1 -= fDebark_16_20;
+                        woodAttr.diameters.d2 -= fDebark_16_20;
                     }
                     else if (woodAttr.diameter >= 20.0)
                     {
-                        woodAttr.diameter -= 0.6;
-                        woodAttr.diameters.d1 -= 0.6;
-                        woodAttr.diameters.d2 -= 0.6;
+                        woodAttr.diameter -= fDebark_20;
+                        woodAttr.diameters.d1 -= fDebark_20;
+                        woodAttr.diameters.d2 -= fDebark_20;
                     }
                     else
                     {

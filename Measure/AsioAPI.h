@@ -48,5 +48,11 @@ typedef struct defScaleWood
 	std::string img;//字符串,Base64编码的jpg文件，是校正处理之后的图像
 }ScaleWood;
 
-bool log_scale(const std::string& ip_addr, const std::string& port, const std::string& lfileName, const std::string& rfileName, const std::string& imagePath, ScaleWood& scaleWood, int wndIndex, int debarked);
+bool log_scale(const std::string& ip_addr, const std::string& port, const std::string& lfileName, const std::string& rfileName, const std::string& imagePath, ScaleWood& scaleWood, int wndIndex,
+	int debarked,
+	float fDebark_4_8,
+	float fDebark_8_10,
+	float fDebark_10_16,
+	float fDebark_16_20,
+	float fDebark_20);
 bool capture_2d(const std::string& ip, const std::string& port, std::string& file_name);
