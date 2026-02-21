@@ -56,7 +56,7 @@ BOOL CDlgReport::OnInitDialog()
 	CDialogEx::OnInitDialog();
 
 	// TODO:  在此添加额外的初始化
-	m_edit_len.SetWindowTextW(_T("2.6"));
+	m_edit_len.SetWindowTextW(_T("1.3"));
 #if (LangEN == 1)
 	m_sta_len.SetWindowTextW(_T("Log length: "));
 	m_sta_standard.SetWindowTextW(_T("Scaling Standard: "));
@@ -70,6 +70,9 @@ BOOL CDlgReport::OnInitDialog()
 	m_combo_standard.InsertString(7, _T("custom mode 6"));
 	m_combo_standard.InsertString(8, _T("custom mode 7"));
 	m_combo_standard.InsertString(9, _T("custom mode 8"));
+	m_combo_standard.InsertString(10, _T("Hebei"));
+	m_combo_standard.InsertString(11, _T("Keep one decimal place"));
+	m_combo_standard.InsertString(12, _T("Indonesia"));
 #else
 	m_sta_len.SetWindowTextW(_T("长度："));
 	m_sta_standard.SetWindowTextW(_T("检尺标准："));
@@ -83,10 +86,13 @@ BOOL CDlgReport::OnInitDialog()
 	m_combo_standard.InsertString(7, _T("七进制"));
 	m_combo_standard.InsertString(8, _T("八进制"));
 	m_combo_standard.InsertString(9, _T("九进制"));
+	m_combo_standard.InsertString(10, _T("河北标准"));
+	m_combo_standard.InsertString(11, _T("保留一位小数"));
+	m_combo_standard.InsertString(12, _T("印度尼西亚标准"));
 #endif
 	CString  strIniFile = GetAppdataPath() + _T("config.ini");
 	m_scaleStandard = GetPrivateProfileInt(APP_NAME_USERINFO, KEY_NAME_STANDARD, 0, strIniFile);
-	if (!(m_scaleStandard >= 0 && m_scaleStandard < 10))
+	if (!(m_scaleStandard >= 0 && m_scaleStandard < 13))
 	{
 		m_scaleStandard = 0;
 	}
@@ -111,7 +117,7 @@ BOOL CDlgReport::OnInitDialog()
 void CDlgReport::SetScaleWood(ScaleWood scaleWood)
 {
 	m_scaleWood = scaleWood;
-	if (m_scaleStandard >= 0 && m_scaleStandard < 10)
+	if (m_scaleStandard >= 0 && m_scaleStandard < 13)
 	{
 		UpdateWoodData(m_scaleStandard);
 	}
@@ -152,6 +158,29 @@ void CDlgReport::UpdateWoodData(int sd)
 		//{
 		//	d = round(((d - 0.3) / 2)) * 2;
 		//}
+		else if (sd == 10)//河北标准，取整，不四舍五入
+		{
+			int temp_d = d;
+			d = temp_d * 1.0;
+		}
+		else if (sd == 11)//保留一位小数标准，不四舍五入
+		{
+			int temp_d = d * 10;
+			d = temp_d * 0.1 ;
+		}
+		else if (sd == 12)//印度尼西亚标准
+		{
+			/*印度尼西亚标准处理规则为：
+				1.	将短径四舍五入到厘米
+				2.	将长径四舍五入到厘米
+				3.	计算径级:(四舍五入后的短径 + 四舍五入后的长径) / 2
+				4.	将径级向下取整保留整数厘米
+			*/
+			int d1 = m_scaleWood.wood_list[i].diameters.d1 + 0.5;
+			int d2 = m_scaleWood.wood_list[i].diameters.d2 + 0.5;
+			int temp_d = (d1 + d2) * 0.5;
+			d = temp_d * 1.0;
+		}
 		else
 		{
 			//其他进制，三进制 = 0.1 * 3
@@ -167,11 +196,19 @@ void CDlgReport::UpdateWoodData(int sd)
 			iter->second.wood_num++;
 			//double d = m_scaleWood.wood_list[i].diameter;
 			double l = wood_len;
-			if (d < 14) {
-				iter->second.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+			if (sd == 12)//印度尼西亚标准
+			{
+				//3.14×(径级 / 2)2×材长 / 1000000
+				iter->second.wood_v = 3.14 * (d * 0.5) * (d * 0.5) * l * 100 / 1000000;
 			}
-			else {
-				iter->second.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+			else
+			{
+				if (d < 14) {
+					iter->second.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+				}
+				else {
+					iter->second.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+				}
 			}
 
 			total_v += iter->second.wood_v;
@@ -186,11 +223,19 @@ void CDlgReport::UpdateWoodData(int sd)
 
 			//double d = m_scaleWood.wood_list[i].diameter;
 			double l = wood_len;
-			if (d < 14) {
-				reportData.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+			if (sd == 12)//印度尼西亚标准
+			{
+				//3.14×(径级 / 2)2×材长 / 1000000
+				reportData.wood_v = 3.14 * (d * 0.5) * (d * 0.5) * l * 100 / 1000000;
 			}
-			else {
-				reportData.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+			else
+			{
+				if (d < 14) {
+					reportData.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+				}
+				else {
+					reportData.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+				}
 			}
 
 			m_report_map.insert(std::make_pair(str_wood_d, reportData));
@@ -209,7 +254,7 @@ void CDlgReport::UpdateWoodData(int sd)
 		UTF8ToUnicode(wood_num.c_str(), items[1]);
 
 		std::string wood_len = std::to_string(iter->second.wood_l);
-		wood_len = wood_len.substr(0, wood_len.find(".") + 1 + 1);
+		wood_len = wood_len.substr(0, wood_len.find(".") + 1 + 3);
 		UTF8ToUnicode(wood_len.c_str(), items[2]);
 
 		std::string wood_v = std::to_string(iter->second.wood_v);
@@ -322,7 +367,7 @@ void CDlgReport::OnCbnSelchangeComboStandard()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	int sel = m_combo_standard.GetCurSel();
-	if (sel >= 0 && sel < 10)
+	if (sel >= 0 && sel < 13)
 	{
 		m_scaleStandard = sel;
 		UpdateWoodData(sel);
@@ -355,7 +400,7 @@ double CDlgReport::GetWoodLen()
 void CDlgReport::SetWoodLen(double wood_len)
 {
 	CString str_wood_len;
-	str_wood_len.Format(_T("%.1f"), wood_len);
+	str_wood_len.Format(_T("%.3f"), wood_len);
 	m_edit_len.SetWindowTextW(str_wood_len);
 }
 

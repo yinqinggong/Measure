@@ -458,8 +458,11 @@ void CEditWoodWnd::OnLButtonUp(UINT nFlags, CPoint point)
                     woodAttr.index = m_wndIndex;
                     woodAttr.diameter = d;
                     woodAttr.ellipse = m_ellipse_add;
-                    woodAttr.diameters.d1 = m_ellipse_add.ab1;
-                    woodAttr.diameters.d2 = m_ellipse_add.ab2;
+                    //印度尼西亚标准使用了d1和d2
+                    //woodAttr.diameters.d1 = m_ellipse_add.ab1;
+                    //woodAttr.diameters.d2 = m_ellipse_add.ab2;
+                    woodAttr.diameters.d1 = d;
+                    woodAttr.diameters.d2 = d;
                     m_pScaleWood->wood_list.push_back(woodAttr);
                 }
             }

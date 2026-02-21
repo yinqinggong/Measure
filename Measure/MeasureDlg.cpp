@@ -1318,6 +1318,29 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<std::string>>& wood_da
 				d = round(d / 2) * 2;
 				d = round(d * 10) / 10;
 			}
+			else if (scaleStandard == 10)//河北标准，取整，不四舍五入
+			{
+				int temp_d = d;
+				d = temp_d * 1.0;
+			}
+			else if (scaleStandard == 11)//保留一位小数标准，不四舍五入
+			{
+				int temp_d = d * 10;
+				d = temp_d * 0.1;
+			}
+			else if (scaleStandard == 12)//印度尼西亚标准
+			{
+				/*印度尼西亚标准处理规则为：
+					1.	将短径四舍五入到厘米
+					2.	将长径四舍五入到厘米
+					3.	计算径级:(四舍五入后的短径 + 四舍五入后的长径) / 2
+					4.	将径级向下取整保留整数厘米
+				*/
+				int d1 = woodDBShowList[j].scaleWood.wood_list[i].diameters.d1 + 0.5;
+				int d2 = woodDBShowList[j].scaleWood.wood_list[i].diameters.d2 + 0.5;
+				int temp_d = (d1 + d2) * 0.5;
+				d = temp_d * 1.0;
+			}
 			else
 			{
 				//其他进制，三进制 = 0.1 * 3
@@ -1332,11 +1355,19 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<std::string>>& wood_da
 			{
 				iter->second.wood_num++;
 				double l = wood_len;
-				if (d < 14) {
-					iter->second.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+				if (scaleStandard == 12)//印度尼西亚标准
+				{
+					//3.14×(径级 / 2)2×材长 / 1000000
+					iter->second.wood_v = 3.14 * (d * 0.5) * (d * 0.5) * l * 100 / 1000000;
 				}
-				else {
-					iter->second.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+				else
+				{
+					if (d < 14) {
+						iter->second.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+					}
+					else {
+						iter->second.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+					}
 				}
 
 				total_v += iter->second.wood_v;
@@ -1349,11 +1380,19 @@ void CMeasureDlg::GetDownLoadData(std::vector<std::vector<std::string>>& wood_da
 				reportData.wood_l = wood_len;
 				reportData.wood_num = 1;
 				double l = wood_len;
-				if (d < 14) {
-					reportData.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+				if (scaleStandard == 12)//印度尼西亚标准
+				{
+					//3.14×(径级 / 2)2×材长 / 1000000
+					reportData.wood_v = 3.14 * (d * 0.5) * (d * 0.5) * l * 100 / 1000000;
 				}
-				else {
-					reportData.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+				else
+				{
+					if (d < 14) {
+						reportData.wood_v = ((0.7854 * l * (d + 0.45 * l + 0.2) * (d + 0.45 * l + 0.2)) / 10000);
+					}
+					else {
+						reportData.wood_v = ((0.7854 * l * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10)) * (d + 0.5 * l + 0.005 * l * l + 0.000125 * l * (14 - l) * (14 - l) * (d - 10))) / 10000);
+					}
 				}
 
 				report_map.insert(std::make_pair(str_wood_d, reportData));
@@ -1463,7 +1502,9 @@ std::string CMeasureDlg::GetWorkSheetNameByScaleStandard(int scaleStandard)
 		"custom mode 1", "custom mode 2",
 		"custom mode 3", "custom mode 4",
 		"custom mode 5", "custom mode 6",
-		"custom mode 7", "custom mode 8"
+		"custom mode 7", "custom mode 8",
+		"Hebei", "Keep one decimal place",
+		"Indonesia"
 };
 #else
 	std::vector<std::string> standardNames = {
@@ -1471,10 +1512,12 @@ std::string CMeasureDlg::GetWorkSheetNameByScaleStandard(int scaleStandard)
 		"二进制", "三进制",
 		"四进制", "五进制",
 		"六进制", "七进制",
-		"八进制", "九进制"
+		"八进制", "九进制",
+		"河北标准", "保留一位小数",
+		"印度尼西亚标准"
 };
 #endif
-	if (scaleStandard > 1 && scaleStandard < 10)
+	if (scaleStandard > 1 && scaleStandard < 13)
 	{
 		return standardNames[scaleStandard];
 	}
